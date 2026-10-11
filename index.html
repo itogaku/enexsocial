@@ -42,7 +42,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
 .score b{font-family:var(--mincho);font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums;margin-inline:2px}
 
 .panel{display:flex;flex-direction:column;gap:10px}
-.tabs{display:grid;grid-template-columns:repeat(6,1fr);border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+.tabs{display:grid;grid-template-columns:repeat(7,1fr);border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
 .tabs button{background:var(--surface);border:0;border-left:1.5px solid var(--ink);padding:10px 4px;font-weight:700;font-size:15px;display:flex;flex-direction:column;align-items:center;line-height:1.3}
 .tabs button:first-child{border-left:0}
 .tabs button small{font-weight:400;font-size:11px;color:var(--muted)}
@@ -338,6 +338,18 @@ mark{background:var(--shu-soft);color:inherit;padding:0 1px}
 .srl{margin:0;font-family:var(--mincho);line-height:1.8}
 .srfig{text-align:center;color:var(--ink)} .srfig .gfig{margin:0 auto} .srfig table{margin:0 auto;font-size:13px}
 .srimg{max-width:100%;max-height:320px;height:auto;display:block;margin:0 auto} .sheet .srimg{max-height:60mm}
+.sumsheet .sh-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid currentColor;margin-bottom:8px}
+.sumsheet .sh-title h3{margin:0;font-family:var(--mincho);font-size:20px}.sumsheet .sh-title .sub{font-size:12px;color:var(--muted)}
+.sumpt{margin:4px 0;padding-left:1.2em}.sumpt li{margin:3px 0;line-height:1.7}
+.sumflow .sf{margin:6px 0}.sumflow .sf p{margin:2px 0;line-height:1.7}.sftip{font-size:.92em;color:var(--muted)}
+.sumtl td{padding:3px 6px;vertical-align:top}.sumtl td.y{white-space:nowrap}
+.sumlk,.sumqa{margin:4px 0;padding-left:1.2em}.sumlk li,.sumqa li{margin:2px 0;line-height:1.6}
+.sumes dt{font-weight:700;margin-top:6px}.sumes dd{margin:2px 0 4px 1em;line-height:1.7}
+.sumcat{margin:6px 0}.sumcat ul{margin:2px 0;padding-left:1.2em}.sumcat li{line-height:1.7}
+.sumdoc{border:1px solid var(--line);border-radius:6px;padding:6px 10px;margin:8px 0;break-inside:avoid}
+.sumclim{display:inline-block;width:330px;max-width:100%;vertical-align:top;margin:4px;font-size:13px}.sumclim p{margin:2px 0}
+.sheet.sumsheet .sumdoc{border-color:#888}
+@media print{ .sumsheet{break-after:page} .sumsheet .dai{break-inside:auto} }
 .srsmall{font-size:11px;color:var(--muted);text-align:center}
 .sheet .srl{line-height:1.6} .sheet .srh{border-color:#111} .sheet .srfig .gfig{max-width:78mm!important}
 .tfl{display:grid;grid-template-columns:1.6em 1fr;gap:4px}
@@ -414,7 +426,7 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .subj button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 body[data-subj="rk"] .gpanel,body[data-subj="rk"] .gq{display:none}
 body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,body:not([data-subj="rk"]) #selBar,body:not([data-subj="rk"]) .foot{display:none!important}
-.gpanel .tabs{grid-template-columns:repeat(5,1fr)}
+.gpanel .tabs{grid-template-columns:repeat(6,1fr)}
 .gbig{font-size:16px;line-height:1.9}
 .gnote{font-size:12px;color:var(--muted);margin:4px 0 0}
 .choices.long{grid-template-columns:1fr}
@@ -466,6 +478,7 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
       <button id="tab-essay" data-mode="essay" aria-pressed="false">記述<small>理由を説明</small></button>
  <button id="tab-exam" data-mode="exam" aria-pressed="false">入試形式<small>年表・正誤など</small></button>
       <button id="tab-list" data-mode="list" aria-pressed="false">年表一覧<small>選んで出題</small></button>
+      <button id="tab-sum" data-mode="sum" aria-pressed="false">まとめ<small>学ぶことの整理</small></button>
       <button id="tab-print" data-mode="print" aria-pressed="false">プリント<small>A4で印刷</small></button>
     </div>
     <div class="optrows" id="eraRow"></div>
@@ -2029,7 +2042,7 @@ const S = {mode:'order', eras:new Set(ERAS.map(e=>e[0])), world:true, n:'r', the
   omode:'bank', ordImp:'prefer', noObvious:true, ranks:['A','B','C'], rankWeight:true, cands:[], candOpen:false, candTarget:20, span:'free', recentThemes:[], avoidThemes:[], exclude:null, listTheme:'all', listKind:'ev', listFilter:'all', editing:null, editFocus:false, flash:'', q:'', sel:new Set(), custom:[],
   pr:{title:'歴史 確認プリント', order:4, orderN:'r', fill:6, bank:true, exam:2, essay:1, answers:true}, examFmt:'rand',
   sheet:null, total:0, ok:0, streak:0, qno:0, cur:null, answered:false, lastTheme:null, recent:[], msg:''};
-try{const m=localStorage.getItem('rk-mode'); if(['order','fill','essay','exam','list','print'].includes(m)) S.mode=m;}catch(e){}
+try{const m=localStorage.getItem('rk-mode'); if(['order','fill','essay','exam','list','print','sum'].includes(m)) S.mode=m;}catch(e){}
 
 const KANA=['ア','イ','ウ','エ','オ','カ','キ','ク'];
 const MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯';
@@ -3058,6 +3071,49 @@ function exShiryo(theme){
     box, labels:KANA.slice(0,4), options:opts.map(esc), ans:opts.indexOf(q.a),
     expl:`<b>${esc(q.a.replace(/。$/,''))}</b>。${esc(q.w||'')}<br><small>資料：${d.img?esc(d.img.cr):esc(d.n)+(d.y?`（${esc(d.y)}）`:'')}</small>`};
 }
+/* ---------- まとめプリント（歴史） ---------- */
+// 単元ごとの「おさえるポイント」（この道場で書いたもの）
+const SUM_PT={
+e01:['約1万年前に氷河時代が終わり、日本列島ができた。縄文時代の人々は狩り・漁・採集でくらし、縄文土器・土偶・たて穴住居・貝塚が特色。','紀元前4世紀ごろ、大陸から稲作と金属器（青銅器・鉄器）が伝わって弥生時代が始まった。高床倉庫・弥生土器・銅鐸。','米のたくわえや土地・水をめぐって争いが起こり、むらがまとまってくにができた。奴国（金印）や邪馬台国の卑弥呼が中国に使いを送った。','3世紀後半から各地に古墳がつくられ、大王を中心とする大和政権が九州から東北南部まで勢力を広げた。渡来人が漢字・仏教・須恵器などを伝えた。'],
+e02:['聖徳太子（厩戸皇子）は蘇我馬子と協力し、冠位十二階・十七条の憲法で天皇中心の国づくりをめざし、遣隋使を送った。飛鳥文化（法隆寺）。','645年、中大兄皇子と中臣鎌足が蘇我氏をたおし、大化の改新を始めた（公地・公民）。白村江の戦いのあと国の守りを固めた。','701年の大宝律令で律令国家のしくみが整い、710年に平城京へ都を移した。班田収授法で口分田をあたえ、租・調・庸や兵役を課した。','人口増加で口分田が不足し、743年の墾田永年私財法で私有地が認められ、のちの荘園のもととなった。','聖武天皇は仏教の力で国を守ろうとし、国分寺・東大寺の大仏をつくらせた。天平文化（正倉院）、『古事記』『日本書紀』『万葉集』。'],
+e03:['794年、桓武天皇が平安京に都を移し、坂上田村麻呂を征夷大将軍として東北地方の蝦夷を従えた。','最澄（天台宗）・空海（真言宗）が新しい仏教を開いた。894年に菅原道真の意見で遣唐使が停止された。','藤原氏は娘を天皇のきさきにし、摂政・関白として政治を動かした（摂関政治）。11世紀前半の藤原道長・頼通のころが最盛期。','国風文化：かな文字が生まれ、『源氏物語』（紫式部）・『枕草子』（清少納言）が書かれた。浄土信仰が広まり、平等院鳳凰堂が建てられた。'],
+e04:['地方の争いの中から武士が成長し、1086年に白河上皇が院政を始めた。平清盛が武士として初めて太政大臣となり、日宋貿易を進めた。','1185年に平氏がほろび、源頼朝は守護・地頭を置き、1192年に征夷大将軍となった。将軍と御家人は御恩と奉公の関係で結ばれた。','1221年の承久の乱のあと、幕府は六波羅探題を置き、1232年に北条泰時が御成敗式目を定めた（執権政治）。','元寇（1274年・1281年）を北条時宗のもとで退けたが、恩賞が不十分で御家人は困窮し、1297年に徳政令が出された。','鎌倉文化：運慶らの金剛力士像、浄土宗（法然）・浄土真宗（親鸞）・日蓮宗・時宗、禅宗（臨済宗・曹洞宗）。'],
+e05:['1333年に鎌倉幕府がほろび、後醍醐天皇が建武の新政を始めたが、足利尊氏が兵をあげ、南北朝の対立が約60年続いた。','足利義満が南北朝を統一し、明と勘合貿易を始めた。守護は守護大名へと成長した。','農村では惣（自治組織）ができ、土一揆（正長の土一揆）や国一揆、一向一揆が起こった。商工業者は座をつくり、土倉・酒屋が金貸しをした。','1467年の応仁の乱をきっかけに下剋上の風潮が広がり、戦国大名が分国法を定めて領国を治めた。','室町文化：金閣（北山文化）、銀閣と書院造（東山文化）、雪舟の水墨画、能・狂言。'],
+e06:['ヨーロッパではルネサンス・宗教改革が起こり、新航路が開かれた（大航海時代）。','1543年に鉄砲、1549年にザビエルがキリスト教を伝え、南蛮貿易が始まった。','織田信長：長篠の戦いで鉄砲を活用、安土城の城下で楽市・楽座、仏教勢力をおさえキリスト教を保護。','豊臣秀吉：1590年に全国統一。太閤検地と刀狩で兵農分離を進めた。バテレン追放令を出し、朝鮮に出兵した。','桃山文化：大名や豪商の力を背景にした豪華な文化。姫路城、狩野永徳の障壁画、千利休の茶の湯。'],
+e07:['1600年の関ヶ原の戦いに勝った徳川家康が、1603年に江戸幕府を開いた。','大名を親藩・譜代・外様に分けて配置し、武家諸法度で統制した。徳川家光が参勤交代を制度化した。','朱印船貿易のあと、キリスト教の禁止を強め、島原・天草一揆をへて鎖国の体制を固めた。','長崎でオランダ・中国と貿易し、朝鮮（対馬藩・朝鮮通信使）、琉球（薩摩藩）、アイヌの人々（松前藩）とも交流した。'],
+e08:['新田開発や農具の改良で生産が増え、五街道・西廻り航路などの交通が整った。江戸・大阪・京都の三都が栄えた。','元禄文化（上方の町人）：井原西鶴・近松門左衛門・松尾芭蕉、菱川師宣の浮世絵。','享保の改革（徳川吉宗）：上げ米の制、公事方御定書、目安箱。田沼意次は株仲間を奨励した。寛政の改革（松平定信）、天保の改革（水野忠邦）。','百姓一揆・打ちこわしが増え、1837年には大塩平八郎の乱が起こった。','化政文化（江戸の町人）：葛飾北斎・歌川広重の錦絵、十返舎一九。国学（本居宣長）と蘭学（杉田玄白『解体新書』）が発達した。'],
+e09:['欧米では市民革命（名誉革命・アメリカ独立・フランス革命）と産業革命が進み、アジアに進出した（アヘン戦争）。','1853年にペリーが来航し、1854年に日米和親条約、1858年に日米修好通商条約（領事裁判権を認め、関税自主権がない）を結んだ。','開国後、生糸の輸出で物価が上がり、尊王攘夷運動が高まった。井伊直弼は安政の大獄を行い、桜田門外の変で暗殺された。','薩長同盟が結ばれ、1867年に徳川慶喜が大政奉還を行い、王政復古の大号令が出された。'],
+e10:['1868年に五箇条の御誓文で新しい政治の方針を示し、戊辰戦争で旧幕府軍をやぶった。','版籍奉還（1869年）・廃藩置県（1871年）で中央集権の国家をつくった。','富国強兵をめざし、学制（1872年）・徴兵令（1873年）・地租改正（1873年）の三大改革を行った。','殖産興業として富岡製糸場などの官営工場をつくり、鉄道や郵便を整えた。文明開化で生活が西洋風に変わった。'],
+e11:['1874年、板垣退助らが民撰議院設立の建白書を出し、自由民権運動が始まった。1877年に西南戦争が起こった。','1881年に国会開設の勅諭が出され、板垣退助が自由党、大隈重信が立憲改進党をつくった。','伊藤博文がドイツ（プロイセン）の憲法を学び、1885年に内閣制度をつくって初代首相となった。','1889年に大日本帝国憲法が発布され、1890年に第1回衆議院議員選挙と帝国議会が開かれた（選挙権は直接国税15円以上を納める満25歳以上の男子）。'],
+e12:['1894年に陸奥宗光が領事裁判権の撤廃に成功し、同年に日清戦争が始まった。下関条約で台湾などを得たが、三国干渉で遼東半島を返した。','1902年に日英同盟を結び、1904年に日露戦争が始まった。ポーツマス条約で賠償金が得られず、日比谷焼き打ち事件が起こった。','1910年に韓国を併合し、1911年に小村寿太郎が関税自主権を回復した。','産業革命：日清戦争後に軽工業、日露戦争後に重工業が発達した（八幡製鉄所）。足尾銅山鉱毒事件などの社会問題も起こった。'],
+e13:['1914年に第一次世界大戦が始まり、日本は日英同盟を理由に参戦し、中国に二十一か条の要求を出した。','大戦中は好景気（大戦景気）だったが、物価が上がって1918年に米騒動が起こり、原敬が本格的な政党内閣をつくった。','大戦後、ベルサイユ条約が結ばれ、1920年に国際連盟ができた。アジアでは三・一独立運動や五・四運動が起こった。','大正デモクラシー：吉野作造の民本主義。1925年に普通選挙法（満25歳以上の男子）と治安維持法が成立した。','社会運動が広がり、全国水平社、新婦人協会（平塚らいてう・市川房枝）などがつくられた。'],
+e14:['1929年に世界恐慌が起こり、アメリカはニューディール政策、イギリス・フランスはブロック経済を進めた。ドイツ・イタリアではファシズムが台頭した。','1931年の満州事変のあと満州国がつくられ、日本は国際連盟を脱退した。五・一五事件、二・二六事件で軍部の力が強まった。','1937年に日中戦争が始まり、1938年に国家総動員法が制定された。','1939年に第二次世界大戦が始まり、日本は日独伊三国同盟を結び、1941年に太平洋戦争が始まった。','1945年、沖縄戦、広島・長崎への原子爆弾の投下をへて、日本はポツダム宣言を受け入れて降伏した。'],
+e15:['GHQ（連合国軍総司令部）のもとで民主化が進められた。','財閥解体と農地改革で経済の民主化を進め、選挙法改正で満20歳以上の男女に選挙権をあたえた。','1946年11月3日に日本国憲法が公布、1947年5月3日に施行された（国民主権・基本的人権の尊重・平和主義）。教育基本法も制定された。','冷戦が始まり、1950年に朝鮮戦争が起こると、日本は特需景気で経済が回復した。'],
+e16:['1951年にサンフランシスコ平和条約で独立を回復し、同時に日米安全保障条約を結んだ。','1956年の日ソ共同宣言で国際連合に加盟し、1965年に日韓基本条約、1972年に日中共同声明を出した。1972年に沖縄が日本に復帰した。','1950年代後半から高度経済成長が続き、1964年に東京オリンピックが開かれ、東海道新幹線が開通した。','公害問題が深刻になり、1967年に公害対策基本法が制定された。1973年の石油危機で高度経済成長は終わった。'],
+e17:['1989年にマルタ会談で冷戦の終結が宣言され、1990年に東西ドイツが統一、1991年にソ連が解体した。','1980年代後半のバブル経済が1990年代初めに崩壊し、長い不況が続いた。','地域紛争やテロ、地球環境問題などの課題に、国際連合やNGOなどが取り組んでいる。','1995年に阪神・淡路大震災、2011年に東日本大震災が起こった。少子高齢化が進んでいる。']
+};
+function sumKey(){ return THEMES[S.sumTheme]?S.sumTheme:'e01'; }
+function sumHTML(t){
+  const ev=E.filter(e=>!e.deleted&&e.tags.includes(t)&&S.ranks.includes(e.rank)).sort((a,b)=>a.y-b.y);
+  const sids=new Set(ev.map(e=>e.sid));
+  const flows=BANK.filter(b=>b.tk===t);
+  const links=Object.keys(LINKMAP).map(k=>k.split('>')).filter(([a,b])=>sids.has(a)&&sids.has(b)).map(([a,b])=>({a:bySid(a),b:bySid(b),t:LINKMAP[a+'>'+b]})).sort((x,y)=>x.a.y-y.a.y);
+  const es=ESSAY.filter(e=>!e.deleted&&e.tags.includes(t));
+  const docs=SHIRYO.filter(d=>d.tags.includes(t)&&(!d.img||SR_IMG.has(d.img.f)));
+  let h=`<div class="sheet sumsheet"><div class="sh-title"><h3>${esc(THEMES[t])}</h3><span class="sub">まとめプリント（歴史）</span></div>`;
+  let n=0; const sec=(title,body)=>body?`<section class="dai"><h4><span class="dn">${++n}</span>${title}</h4>${body}</section>`:'';
+  h+=sec('この単元でおさえること',SUM_PT[t]?`<ul class="sumpt">${SUM_PT[t].map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'');
+  h+=sec('流れをつかもう',flows.length?`<div class="sumflow">${flows.map(b=>`<div class="sf"><b>${esc(b.ti)}</b><p>${esc(b.sum)}</p>${b.tip?`<p class="sftip">覚え方：${esc(b.tip)}</p>`:''}</div>`).join('')}</div>`:'');
+  h+=sec('年表で確認しよう（★は特に重要）',ev.length?`<table class="xnen sumtl"><tbody>${ev.map(e=>`<tr><td class="y">${ySpan(e)}</td><td>${e.rank==='A'?'★ ':''}${sentB(e)}</td></tr>`).join('')}</tbody></table>`:'');
+  h+=sec('できごとのつながり（原因 → 結果）',links.length?`<ul class="sumlk">${links.map(l=>`<li><b>${esc(l.a.key)}</b> → <b>${esc(l.b.key)}</b>：${esc(l.t)}</li>`).join('')}</ul>`:'');
+  h+=sec('説明できるようにしよう',es.length?`<dl class="sumes">${es.map(e=>`<dt>${esc(e.q)}</dt><dd>${esc(e.a)}</dd>`).join('')}</dl>`:'');
+  h+=sec('史料・資料を読もう',docs.length?docs.map(d=>`<div class="sumdoc"><div class="srh"><b>${esc(d.n)}</b>${d.y?`（${esc(d.y)}）`:''}</div>${d.img?`<div class="srfig"><img class="srimg" src="${esc(d.img.f)}" alt="${esc(d.n)}"></div>`:''}${d.fig?`<div class="srfig">${srFig(d.fig)}</div>`:''}${srText(d.L,null).map(x=>`<p class="srl">${x}</p>`).join('')}<div class="srcnote">${esc(d.img?d.img.cr:d.s)}</div><ul class="sumqa">${d.q.map(q=>`<li>${esc(q.q)} → <b>${esc(q.a.replace(/。$/,''))}</b></li>`).join('')}</ul></div>`).join(''):'');
+  return h+'</div>';
+}
+function renderSum(){
+  const t=sumKey();
+  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn primary" data-act="print">印刷する</button></div><p class="hint-line">重要度のボタンで、年表にのせるできごとをしぼりこめます。</p></div><div id="sheets">${sumHTML(t)}</div>`;
+}
 window.srFig=srFig;
 const EXAM_GEN={interval:exInterval,tf:exTF,combo:exCombo,period:exPeriod,world:exWorld,era:exEra,porder:exPOrder,closest:exClosest,cause:exCause,pick3:exPick3,shiryo:exShiryo};
 function makeExam(fmt,theme){
@@ -3145,6 +3201,8 @@ function renderControls(){
   }else if(S.mode==='essay'){
     h=`<span class="lab">テーマ</span>${themeSelect('genTheme',S.theme,false,ecnt)}</div><div class="row"><span class="lab">設定</span>
        <span class="lab" style="min-width:auto">指定語句</span><button class="chip" data-hintset="1" aria-pressed="${S.hint}">あり</button><button class="chip" data-hintset="0" aria-pressed="${!S.hint}">なし</button>`;
+  }else if(S.mode==='sum'){
+    h=`<span class="lab">単元</span><select class="sel" id="sumTheme" aria-label="単元">${themeGroups(k=>`<option value="${k}" ${sumKey()===k?'selected':''}>${esc(THEMES[k])}</option>`)}</select>`;
   }else if(S.mode==='list'){
     h=`<span class="lab">テーマ</span><select class="sel" id="themeSel" aria-label="テーマで絞り込む"><option value="all">すべてのテーマ</option>${
       themeGroups(k=>`<option value="${k}" ${S.listTheme===k?'selected':''}>${esc(THEMES[k])}（${cnt(k)}）</option>`)
@@ -3163,6 +3221,7 @@ function renderControls(){
 function newQuestion(){
   S.msg='';
   if(S.mode==='list'){S.cur=null;renderList();return;}
+  if(S.mode==='sum'){S.cur=null;renderSum();return;}
   if(S.mode==='print'){S.cur=null;buildSheet();if(!S.prFitted){S.prFitted=true;fitOnePage();}else renderPrint();return;}
   S.answered=false;
   S.cur={order:genOrder,fill:genFill,essay:genEssay,exam:genExam}[S.mode]();
@@ -3774,6 +3833,7 @@ document.addEventListener('click',ev=>{
 document.addEventListener('change',ev=>{
   const id=ev.target.id, v=ev.target.value;
   if(id==='themeSel'){S.listTheme=v;renderList();}
+  if(id==='sumTheme'){S.sumTheme=v;renderSum();}
   if(id==='genTheme'){S.theme=v;S.lastTheme=null;const bn=document.querySelector('.bankn'); if(bn&&S.omode==='bank') bn.textContent=`この条件で ${bankFor(S.theme,S.n).length} 問`;newQuestion();}
   if(id==='prOrder'){S.pr.order=+v;buildSheet();renderPrint();}
   if(id==='prOrderN'){S.pr.orderN=v==='r'?'r':+v;buildSheet();renderPrint();}
@@ -4690,6 +4750,62 @@ function mkSr(){
     box,labels:KANA.slice(0,4),opts:opts.map(esc),ans:opts.indexOf(q.a),long:opts.some(o=>o.length>12),
     expl:`<b>${esc(q.a.replace(/。$/,''))}</b>。${esc(q.w||'')}`};
 }
+/* ---------- まとめプリント（地理・公民） ---------- */
+const GPT={
+ chizu:['縮尺：地図上の長さ×縮尺の分母＝実際の距離。2万5千分の1では1cmが250m、5万分の1では1cmが500m。','等高線：2万5千分の1では主曲線10mごと・計曲線50mごと。間隔がせまいほど傾斜が急。','等高線が低い方へ張り出す所は尾根、高い方へ食いこむ所は谷。','おもな地図記号（田・畑・果樹園・茶畑・寺院・神社・郵便局・老人ホーム・図書館・自然災害伝承碑など）を区別できるようにする。','地域調査は、テーマを決める→仮説を立てる→野外観察・聞き取り・統計で調べる→まとめて発表する、の順で進める。'],
+ shizen:['日本は環太平洋造山帯にふくまれ、山地が国土の約4分の3をしめる。火山や地震が多い。','川は短く急流。扇状地（果樹園）・三角州（市街地や水田）などの地形が見られる。海岸にはリアス海岸や砂浜海岸がある。','日本近海には暖流（黒潮・対馬海流）と寒流（親潮・リマン海流）が流れ、潮目はよい漁場となる。','気候区分：北海道、日本海側（冬に雪）、太平洋側（夏に雨）、内陸（降水量が少なく寒暖差が大きい）、瀬戸内（降水量が少ない）、南西諸島（一年中温暖）。','自然災害（地震・津波・火山・台風・豪雨）に備え、ハザードマップの確認や防災・減災の取り組みが大切。'],
+ jinkou:['日本の人口ピラミッドは、富士山型→つりがね型→つぼ型と変化し、少子高齢化が進んでいる。','大都市圏に人口が集中する過密と、農村・山間部の過疎が問題となっている。','鉱産資源のほとんどを輸入にたよる。石油は西アジア、石炭・鉄鉱石はオーストラリアなどから輸入している。','日本の発電は火力が中心。2011年の原子力発電所の事故のあと、原子力の割合が下がり、再生可能エネルギーの割合が上がっている。'],
+ sangyou:['農業：稲作、近郊農業、促成栽培（宮崎・高知）・抑制栽培（高原野菜）などの工夫。食料自給率は低く、小麦・大豆は大部分を輸入。','漁業：とる漁業から育てる漁業（養殖業・栽培漁業）へ。','工業：太平洋ベルトに工業地帯・地域が集中。中京工業地帯は機械（自動車）の割合が高く、出荷額が最大。','工業の変化：高速道路の整備で内陸部にも工場が進出。海外への工場移転で産業の空洞化が問題に。','第三次産業（商業・サービス業）で働く人が最も多い。交通・通信網が発達し、航空機は軽くて高価なもの、船は重くてかさばるものの輸送に使われる。'],
+ kyushu:['阿蘇山などの火山が多く、カルデラや温泉、地熱発電が見られる。南部にはシラス台地が広がる。','九州南部は畜産（豚・肉用牛・鶏）、宮崎平野はピーマンなどの促成栽培、筑紫平野は稲作がさかん。','北九州工業地帯は八幡製鉄所から発展した。現在はIC工場や自動車工場も多い。','水俣病の経験から環境保全に取り組み、北九州市はエコタウンとしてリサイクルを進めている。','沖縄はさんご礁の海と観光、アメリカ軍基地の問題がある。'],
+ chushikoku:['山陰（冬に雪）・瀬戸内（降水量が少ない）・南四国（夏に雨が多い）で気候が異なる。','瀬戸内工業地域は石油化学コンビナートが多い。','高知平野ではなすなどの促成栽培、愛媛ではみかんの栽培がさかん。讃岐平野ではため池がつくられてきた。','本州四国連絡橋の開通で移動が便利になった一方、ストロー現象も起こった。','山間部や離島では過疎化が進み、地域おこし（町おこし・村おこし）に取り組んでいる。'],
+ kinki:['京都・奈良には古い都があり、歴史的な景観を守る取り組み（建物の高さやデザインの規制）がある。','阪神工業地帯は金属・化学工業の割合が高く、東大阪市などに中小工場が多い。','琵琶湖は「近畿の水がめ」。赤潮の発生を防ぐため、りんをふくむ合成洗剤の使用を減らした。','紀伊山地では林業（吉野すぎ・尾鷲ひのき）、和歌山ではみかん・梅の栽培がさかん。','大阪は江戸時代に「天下の台所」とよばれた商業の中心地。'],
+ chubu:['北陸（日本海側）・中央高地・東海の3つに分けられる。','北陸：冬の雪が多く、水田単作地帯。雪で農作業ができない冬の副業から地場産業（輪島塗・眼鏡枠など）が発達した。','中央高地：甲府盆地のぶどう・もも、長野のりんご、高原での夏のレタスなど高原野菜（抑制栽培）。精密機械工業が発達した。','東海：中京工業地帯（豊田市の自動車）、東海工業地域（浜松市のオートバイ・楽器）。静岡の茶、渥美半島の電照菊。'],
+ kanto:['日本最大の関東平野が広がり、関東ローム（火山灰）におおわれた台地が多い。','東京は日本の政治・経済の中心で、一極集中が進んでいる。昼間人口が夜間人口より多い。','京浜工業地帯（印刷業も多い）、京葉工業地域（化学）、北関東工業地域（内陸部、機械）。','大都市の近くで野菜や花をつくる近郊農業がさかん。群馬の嬬恋村では夏にキャベツをつくる。','成田国際空港は日本最大の貿易港（金額）で、軽くて高価な電子部品などを運ぶ。'],
+ tohoku:['奥羽山脈が中央を南北に走る。三陸海岸の南部はリアス海岸で、養殖がさかん。','夏に吹く冷たい北東の風（やませ）が冷害の原因となる。','米の生産が多く、日本の穀倉地帯。青森のりんご、山形のさくらんぼ。','伝統行事（ねぶた祭・竿燈まつり・七夕まつり）や伝統的工芸品（南部鉄器・天童将棋駒など）がある。','2011年の東日本大震災で大きな被害を受け、復興が進められている。'],
+ hokkaido:['冷帯（亜寒帯）の気候で、冬の寒さがきびしい。夏は涼しく、梅雨がない。','明治時代に開拓使が置かれ、屯田兵によって開拓が進んだ。もとはアイヌの人々がくらしていた。','石狩平野は稲作（客土で土地を改良）、十勝平野は畑作（輪作）、根釧台地は酪農。','漁業は北洋漁業が縮小し、育てる漁業へ。','流氷や知床（世界自然遺産）などを生かした観光、エコツーリズムに取り組んでいる。'],
+ world:['六大陸と三大洋。面積最大の大陸はユーラシア大陸、最大の海洋は太平洋。','緯度は赤道を0度として南北に90度ずつ、経度は本初子午線を0度として東西に180度ずつ。','地球は24時間で360度回るので、経度15度で1時間の時差が生じる。日本の標準時子午線は東経135度。','日本の領域：東西南北の端（南鳥島・与那国島・沖ノ鳥島・択捉島）。排他的経済水域は200海里まで。北方領土・竹島の問題がある。','世界地図は、正距方位図法（中心からの距離と方位が正しい）、メルカトル図法（角度が正しい）など、目的に応じて使い分ける。'],
+ climate:['熱帯（一年中暑い）、乾燥帯（雨が少ない）、温帯（四季がある）、冷帯（冬が長く寒い）、寒帯（一年中寒い）に分けられる。','雨温図は、棒グラフが降水量、折れ線が気温。南半球では季節が逆になる。','人々のくらし：熱帯の高床の家、乾燥帯の日干しれんがの家・オアシス・遊牧、寒帯のイヌイットのくらし、高山のアンデスの人々。','三大宗教：キリスト教（ヨーロッパ・南北アメリカ）、イスラム教（西アジア・北アフリカ）、仏教（東南アジア・東アジア）。インドのヒンドゥー教。'],
+ asia:['季節風（モンスーン）の影響で、夏は雨が多い。東アジア・東南アジアで稲作がさかん。','中国：人口が多く、沿海部に経済特区をつくって「世界の工場」に。沿海部と内陸部の経済格差が課題。','韓国はIT・造船、インドはICT（情報通信技術）産業が発達。東南アジアはASEANで協力し、プランテーションで天然ゴム・油やしを栽培。','西アジアは石油の産出が多く、多くの国がOPECに加盟。イスラム教を信仰する人が多い。'],
+ europe:['北大西洋海流（暖流）と偏西風の影響で、高緯度のわりに温暖（西岸海洋性気候）。南部は地中海性気候。','農業：混合農業（北西部）、地中海式農業（南部、オリーブ・ぶどう）、酪農（北部・アルプス）。','EU（ヨーロッパ連合）：人・もの・お金の移動が自由で、共通通貨ユーロを使う国が多い。東西の経済格差が課題。','航空機を各国で分担して生産するなど国境をこえた工業。環境問題（酸性雨）への取り組みや再生可能エネルギーの利用が進む。'],
+ africa:['赤道付近に熱帯雨林、その南北にサバナ、さらに砂漠が広がる。サハラ砂漠の南のサヘルでは砂漠化が進む。','かつてヨーロッパの植民地とされた。直線的な国境が多く、民族の分布と国境が一致しないため紛争の原因にもなった。','カカオ豆（コートジボワール・ガーナ）などのプランテーション農業や、レアメタル・金・ダイヤモンドの鉱産資源。','特定の産物の輸出にたよるモノカルチャー経済で、収入が不安定になりやすい。AU（アフリカ連合）で協力している。'],
+ namerica:['アメリカは地域の気候や土地に合わせて作物をつくる適地適作で、大型機械を使う企業的な農業。「世界の食料庫」。','西経100度付近を境に、東は降水量が多くとうもろこし・大豆、西は乾燥して放牧・かんがい農業。','工業：北東部の五大湖周辺から、北緯37度以南のサンベルトへ。シリコンバレーにICT産業が集まる。','移民の国で、ヒスパニック（スペイン語を話す人々）が増えている。多国籍企業が世界で活動する。','アメリカ・カナダ・メキシコで貿易協定（USMCA）を結んでいる。'],
+ samerica:['アンデス山脈、アマゾン川と熱帯雨林が広がる。スペイン・ポルトガルの植民地だった。','ブラジルはコーヒー・大豆・さとうきびの生産が多く、さとうきびからバイオエタノールをつくる。鉄鉱石も多い。','アマゾンの熱帯雨林の開発（森林伐採）が環境問題となっている。','先住民と白人の混血のメスチーソ、アフリカ系の人々など多様な人々がくらす。日系人も多い。'],
+ oceania:['オーストラリアは大部分が乾燥帯で、内陸に砂漠が広がる。羊・牛の放牧、小麦の栽培がさかん。','鉄鉱石・石炭などの鉱産資源が豊富で、露天掘りで採掘し、日本や中国へ輸出する。','かつては白豪主義だったが、現在は多文化社会をめざす。先住民はアボリジニ（ニュージーランドはマオリ）。','貿易の相手はイギリス中心からアジア中心に変わった。APECに参加している。'],
+ gendai:['グローバル化が進み、国際分業や国際競争が広がっている。','少子高齢化が進み、核家族や一人ぐらしの世帯が増えている。','情報化が進み、情報リテラシー（情報を正しく使う力）や情報モラルが大切になっている。','対立から合意をめざすときは、効率（むだを省く）と公正（手続き・機会・結果の公正さ）の考え方を用いる。決定の方法には全会一致と多数決がある（少数意見の尊重）。','文化には科学・宗教・芸術などがあり、伝統文化や年中行事を受けつぎ、異文化を理解することが大切。'],
+ jinken:['人権思想：ロック（抵抗権）、モンテスキュー（三権分立）、ルソー（人民主権）。アメリカ独立宣言・フランス人権宣言、ワイマール憲法（社会権）。','日本国憲法の三つの基本原理：国民主権・基本的人権の尊重・平和主義。天皇は日本国・日本国民統合の象徴。','基本的人権：平等権、自由権（精神・身体・経済活動）、社会権（生存権・教育を受ける権利・勤労の権利・労働基本権）、参政権、請求権。','新しい人権：環境権、知る権利、プライバシーの権利、自己決定権。人権は公共の福祉によって制限されることがある。','憲法改正：各議院の総議員の3分の2以上の賛成で国会が発議し、国民投票で過半数の賛成が必要。'],
+ senkyo:['選挙の四原則：普通選挙・平等選挙・秘密選挙・直接選挙。満18歳以上に選挙権がある。','衆議院は小選挙区比例代表並立制。一票の格差や投票率の低下が課題。','政党：政権を担う与党と、それ以外の野党。複数の政党で内閣をつくる連立政権もある。','マスメディアは世論の形成に大きな影響をあたえる。情報をうのみにしない姿勢が大切。'],
+ sanken:['国会は国権の最高機関で唯一の立法機関。衆議院と参議院の二院制で、衆議院の優越がある。','内閣は行政を担当し、国会の信任にもとづく議院内閣制。内閣不信任の決議には、10日以内の衆議院の解散か総辞職で応える。','裁判所は司法を担当し、三審制で慎重に裁判を行う。違憲審査権をもち、最高裁判所は「憲法の番人」。','2009年から、重大な刑事裁判に国民が参加する裁判員制度が始まった。','三権分立：立法・行政・司法が互いに抑制し合い、権力の集中を防ぐ。'],
+ chihou:['地方自治は「民主主義の学校」。首長と地方議会の議員はどちらも住民が直接選ぶ（二元代表制）。','住民の直接請求権：条例の制定・改廃（有権者の50分の1以上の署名）、首長・議員の解職や議会の解散（原則3分の1以上）。','地方財政：自主財源の地方税が少なく、地方交付税交付金（使い道自由）や国庫支出金（使い道指定）、地方債にたよる。','住民投票やNPOの活動など、住民の参加が広がっている。'],
+ shouhi:['家計の収入と支出、消費支出と貯蓄。契約は合意によって成り立つ。','消費者を守るしくみ：クーリング・オフ制度、製造物責任法（PL法）、消費者契約法、消費者基本法、消費者庁。','流通のしくみ：生産者→卸売業者→小売業者→消費者。','企業には私企業と公企業がある。株式会社は株式を発行して資金を集め、株主は配当を受け取る。','企業の社会的責任（CSR）。独占禁止法と公正取引委員会が公正な競争を守る。'],
+ kinyu:['市場価格は需要と供給の関係で決まる。需要が供給より多いと価格は上がる。電気・水道などの料金は公共料金。','労働者の権利：労働基準法（1日8時間・週40時間）、労働組合法、労働関係調整法の労働三法。ワーク・ライフ・バランスが大切。','金融：日本銀行は発券銀行・銀行の銀行・政府の銀行。景気に応じて公開市場操作などの金融政策を行う。','景気変動：好景気ではインフレーション、不景気ではデフレーションが起こりやすい。','為替相場：円高は輸入に有利、円安は輸出に有利。'],
+ zaisei:['財政：国の歳入は税金と公債金（国債）。歳出は社会保障関係費が最大で、国債費も大きい。','税金：直接税（所得税・法人税など）と間接税（消費税など）。所得税は累進課税で所得の再分配の役割をもつ。','財政政策：不景気のときは公共事業を増やし減税、好景気のときはその逆。','社会保障制度の4つの柱：社会保険・公的扶助・社会福祉・公衆衛生（憲法25条の生存権にもとづく）。少子高齢化で負担が増えている。','公害対策と環境保全：四大公害病、環境基本法、循環型社会（3R）。'],
+ kokusai:['国家の三要素：領域・国民・主権。領域は領土・領海（12海里）・領空。','国際連合：総会、安全保障理事会（常任理事国5か国は拒否権をもつ）、UNESCO・UNICEFなどの機関。PKO（平和維持活動）。','地域統合：EU、ASEAN、APEC、USMCAなど。','南北問題・南南問題、地球温暖化（パリ協定）、難民問題などの地球規模の課題。持続可能な開発目標（SDGs）。','日本の役割：ODA（政府開発援助）、非核三原則、人間の安全保障。NGOの活動も大切。']
+};
+function sumUnits(){ const d=D(); if(G.unit==='all') return [d.units[0]]; if(G.unit.startsWith('ch:')) return d.units.filter(u=>d.chOf&&d.chOf[u.key]===G.unit.slice(3)); return d.units.filter(u=>u.key===G.unit); }
+function sumUnitHTML(u){
+  const d=D(); const k=u.key; const fk=f=>f.k.split('|')[0];
+  const F=d.facts.filter(f=>f.u===k&&!DEL.has(f.id)&&G.ranks.includes(f.r));
+  const cats=[]; F.forEach(f=>{ if(!cats.includes(f.c)) cats.push(f.c); });
+  const ES=d.essays.filter(e=>e.u===k&&!DEL.has(e.id));
+  const EV=(d.events||[]).filter(e=>e.u===k).sort((a,b)=>a.y-b.y);
+  const LK=(d.links||[]).filter(l=>l.u===k);
+  const DOC=(GSR[G.subj]||[]).filter(x=>[].concat(x.u).includes(k));
+  const CL=(k==='shizen'&&G.subj==='jg')||(k==='climate'&&G.subj==='wg')?CLIM[G.subj]:null;
+  let n=0; const sec=(title,body)=>body?`<section class="dai"><h4><span class="dn">${++n}</span>${title}</h4>${body}</section>`:'';
+  let h=`<div class="sheet sumsheet"><div class="sh-title"><h3>${esc(u.name)}</h3><span class="sub">まとめプリント（${esc(d.name)}）</span></div>`;
+  h+=sec('この単元でおさえること',GPT[k]?`<ul class="sumpt">${GPT[k].map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'');
+  h+=sec('年表で確認しよう',EV.length?`<table class="xnen sumtl"><tbody>${EV.map(e=>`<tr><td class="y">${e.y<0?'前'+(-e.y):e.y}年</td><td>${esc(e.x)}</td></tr>`).join('')}</tbody></table>`:'');
+  h+=sec('できごとのつながり（原因 → 結果）',LK.length?`<ul class="sumlk">${LK.map(l=>`<li>${esc(l.why)}</li>`).join('')}</ul>`:'');
+  h+=sec('重要語句（★は特に重要）',F.length?cats.map(c=>`<div class="sumcat"><b>${esc(c)}</b><ul>${F.filter(f=>f.c===c).map(f=>`<li>${f.r==='A'?'★ ':''}${esc(f.t).replace('〔〕',`<b>${esc(fk(f))}</b>`)}</li>`).join('')}</ul></div>`).join(''):'');
+  h+=sec('説明できるようにしよう',ES.length?`<dl class="sumes">${ES.map(e=>`<dt>${esc(e.q)}</dt><dd>${esc(e.a)}</dd>`).join('')}</dl>`:'');
+  h+=sec('資料を読もう',(CL?`<div class="figrow">${CL.c.map(c=>`<div class="sumclim"><b>${esc(c.n)}</b>（${esc(c.z)}）${climFig(c)}<p>${esc(c.w)}</p></div>`).join('')}</div><div class="srcnote">${esc(CL.src)}</div>`:'')
+    +DOC.map(x=>`<div class="sumdoc"><div class="srh"><b>${esc(x.n)}</b></div>${x.fig?`<div class="srfig">${window.srFig(x.fig)}</div>`:''}${srTextG(x.L,null).map(t=>`<p class="srl">${t}</p>`).join('')}<div class="srcnote">${esc(x.s)}</div><ul class="sumqa">${x.q.map(q=>`<li>${esc(q.q)} → <b>${esc(q.a.replace(/。$/,''))}</b></li>`).join('')}</ul></div>`).join(''));
+  return h+'</div>';
+}
+function renderSumG(){
+  const U=sumUnits();
+  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn primary" data-gact="print">印刷する</button></div>${G.unit==='all'?'<p class="hint-line">上の「単元」でまとめを見たい単元を選んでください（いまは最初の単元を表示しています）。</p>':''}</div><div id="gsheets">${U.map(sumUnitHTML).join('')}</div>`;
+}
 const FMTS={order:['年代の並び替え',mkOrder],cause:['原因と結果',mkCause],combo:['語句の組み合わせ',mkCombo],tf:['文X・Yの正誤',mkTF],wrong:['誤っている文を選ぶ',mkWrong],jisa:['時差の計算',mkJisa],scale:['地形図の縮尺',mkScale],density:['人口密度の計算',mkDensity],dhondt:['ドント式の議席配分',mkDhondt],fx:['円高・円安の計算',mkFx],pyr:['人口ピラミッド',mkPyramid],ds:['需要・供給曲線',mkDS],biz:['景気変動の図',mkBiz],sanken:['三権分立の図',mkSanken],stab:['統計表の読み取り',mkStatTab],trend:['グラフの読み取り',mkTrend],sr:['資料の読み取り（実際の統計・条文）',mkSr],hidden:['条件から当てる',mkHidden],topo:['地形図の読み取り',mkTopo],tarea:['地形図の面積',mkTopoArea],anti:['対蹠点',mkAnti],sign:['直接請求の署名数',mkSign]};
 const ONLY={jisa:'wg',scale:'jg',density:'jg',dhondt:'ko',fx:'ko',pyr:'jg',ds:'ko',biz:'ko',order:'tk',cause:'tk',sanken:'ko',topo:'jg',tarea:'jg',anti:'wg',sign:'ko'};
 const KNOW=['order','cause','combo','tf','wrong'];
@@ -4704,7 +4820,7 @@ const limitOf=e=>Math.ceil((e.a.replace(/[。\s]/g,'').length+5)/10)*10;
 function rule(e,useW){ const N=['','','二つの','三つの']; return `${useW&&e.use&&e.use.length?e.use.map(k=>'「'+esc(k)+'」').join('、')+'の'+(N[e.use.length]||'')+'語を用いて、':''}${limitOf(e)}字以内（読点を含む。）で書きなさい。`; }
 
 /* ---------- 画面 ---------- */
-const TABS=[['drill','一問一答','語句を答える'],['exam','入試形式','組み合わせ・正誤'+(0?'':'')],['essay','記述','理由を説明'],['list','用語一覧','確認・削除'],['print','プリント','A4で印刷']];
+const TABS=[['drill','一問一答','語句を答える'],['exam','入試形式','組み合わせ・正誤'+(0?'':'')],['essay','記述','理由を説明'],['list','用語一覧','確認・削除'],['sum','まとめ','学ぶことの整理'],['print','プリント','A4で印刷']];
 function subjBar(){
   return `<nav class="subj" aria-label="分野">${SUBJ.map(([k,v])=>`<button data-gsubj="${k}" aria-pressed="${G.subj===k}">${v}</button>`).join('')}</nav>`;
 }
@@ -4736,6 +4852,7 @@ function renderG(){
 function newG(){
   G.answered=false; G.cur=null;
   if(G.mode==='list') return renderList();
+  if(G.mode==='sum') return renderSumG();
   if(G.mode==='print'){ if(!G.sheet) buildSheet(); renderPrint(); if(!G.fitted){G.fitted=true; fitPage();} return; }
   G.cur=G.mode==='drill'?mkDrill():G.mode==='exam'?mkExam(G.fmt):mkEssay();
   renderQ();
