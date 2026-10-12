@@ -4781,6 +4781,7 @@ const GPT={
  zaisei:['財政：国の歳入は税金と公債金（国債）。歳出は社会保障関係費が最大で、国債費も大きい。','税金：直接税（所得税・法人税など）と間接税（消費税など）。所得税は累進課税で所得の再分配の役割をもつ。','財政政策：不景気のときは公共事業を増やし減税、好景気のときはその逆。','社会保障制度の4つの柱：社会保険・公的扶助・社会福祉・公衆衛生（憲法25条の生存権にもとづく）。少子高齢化で負担が増えている。','公害対策と環境保全：四大公害病、環境基本法、循環型社会（3R）。'],
  kokusai:['国家の三要素：領域・国民・主権。領域は領土・領海（12海里）・領空。','国際連合：総会、安全保障理事会（常任理事国5か国は拒否権をもつ）、UNESCO・UNICEFなどの機関。PKO（平和維持活動）。','地域統合：EU、ASEAN、APEC、USMCAなど。','南北問題・南南問題、地球温暖化（パリ協定）、難民問題などの地球規模の課題。持続可能な開発目標（SDGs）。','日本の役割：ODA（政府開発援助）、非核三原則、人間の安全保障。NGOの活動も大切。']
 };
+const TPT=/*TPT*/{};
 function sumUnits(){ const d=D(); if(G.unit==='all') return [d.units[0]]; if(G.unit.startsWith('ch:')) return d.units.filter(u=>d.chOf&&d.chOf[u.key]===G.unit.slice(3)); return d.units.filter(u=>u.key===G.unit); }
 function sumUnitHTML(u){
   const d=D(); const k=u.key; const fk=f=>f.k.split('|')[0];
@@ -4793,7 +4794,8 @@ function sumUnitHTML(u){
   const CL=(k==='shizen'&&G.subj==='jg')||(k==='climate'&&G.subj==='wg')?CLIM[G.subj]:null;
   let n=0; const sec=(title,body)=>body?`<section class="dai"><h4><span class="dn">${++n}</span>${title}</h4>${body}</section>`:'';
   let h=`<div class="sheet sumsheet"><div class="sh-title"><h3>${esc(u.name)}</h3><span class="sub">まとめプリント（${esc(d.name)}）</span></div>`;
-  h+=sec('この単元でおさえること',GPT[k]?`<ul class="sumpt">${GPT[k].map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'');
+  const PT=GPT[k]||((G.subj==='tk'||G.subj==='tg')&&TPT[k]);
+  h+=sec('この単元でおさえること',PT?`<ul class="sumpt">${PT.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'');
   h+=sec('年表で確認しよう',EV.length?`<table class="xnen sumtl"><tbody>${EV.map(e=>`<tr><td class="y">${e.y<0?'前'+(-e.y):e.y}年</td><td>${esc(e.x)}</td></tr>`).join('')}</tbody></table>`:'');
   h+=sec('できごとのつながり（原因 → 結果）',LK.length?`<ul class="sumlk">${LK.map(l=>`<li>${esc(l.why)}</li>`).join('')}</ul>`:'');
   h+=sec('重要語句（★は特に重要）',F.length?cats.map(c=>`<div class="sumcat"><b>${esc(c)}</b><ul>${F.filter(f=>f.c===c).map(f=>`<li>${f.r==='A'?'★ ':''}${esc(f.t).replace('〔〕',`<b>${esc(fk(f))}</b>`)}</li>`).join('')}</ul></div>`).join(''):'');
