@@ -342,6 +342,7 @@ mark{background:var(--shu-soft);color:inherit;padding:0 1px}
 .sumsheet .sh-title h3{margin:0;font-family:var(--mincho);font-size:20px}.sumsheet .sh-title .sub{font-size:12px;color:var(--muted)}
 .hideans .ans{color:transparent!important;border-bottom:1.5px solid currentColor;border-bottom-color:var(--ink)}
 .sheet.sumsheet .hideans .ans,.hideans .sheet .ans{border-bottom-color:#111}
+.ovt th,.ovt td{font-size:13px}.ovt th:first-child{white-space:nowrap}
 .tsum{margin:6px 0 10px;break-inside:avoid}.tsum-h{font-weight:700;margin:4px 0 3px}.tsumt{width:100%}.tsumt th,.tsumt td{padding:4px 6px;vertical-align:top;line-height:1.55}
 .sumpt{margin:4px 0;padding-left:1.2em}.sumpt li{margin:3px 0;line-height:1.7}
 .sumflow .sf{margin:6px 0}.sumflow .sf p{margin:2px 0;line-height:1.7}.sftip{font-size:.92em;color:var(--muted)}
@@ -3095,7 +3096,7 @@ e15:['GHQ（連合国軍総司令部）のもとで民主化が進められた�
 e16:['1951年にサンフランシスコ平和条約で独立を回復し、同時に日米安全保障条約を結んだ。','1956年の日ソ共同宣言で国際連合に加盟し、1965年に日韓基本条約、1972年に日中共同声明を出した。1972年に沖縄が日本に復帰した。','1950年代後半から高度経済成長が続き、1964年に東京オリンピックが開かれ、東海道新幹線が開通した。','公害問題が深刻になり、1967年に公害対策基本法が制定された。1973年の石油危機で高度経済成長は終わった。'],
 e17:['1989年にマルタ会談で冷戦の終結が宣言され、1990年に東西ドイツが統一、1991年にソ連が解体した。','1980年代後半のバブル経済が1990年代初めに崩壊し、長い不況が続いた。','地域紛争やテロ、地球環境問題などの課題に、国際連合やNGOなどが取り組んでいる。','1995年に阪神・淡路大震災、2011年に東日本大震災が起こった。少子高齢化が進んでいる。']
 };
-function sumKey(){ return THEMES[S.sumTheme]?S.sumTheme:'e01'; }
+function sumKey(){ return (THEMES[S.sumTheme]||S.sumTheme==='ov')?S.sumTheme:'e01'; }
 function sumHTML(t){
   const ev=E.filter(e=>!e.deleted&&e.tags.includes(t)&&S.ranks.includes(e.rank)).sort((a,b)=>a.y-b.y);
   const sids=new Set(ev.map(e=>e.sid));
@@ -3115,9 +3116,56 @@ function sumHTML(t){
 }
 function renderSum(){
   const t=sumKey();
-  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-act="hideans" aria-pressed="${!!S.hideAns}">${S.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-act="print">印刷する</button></div><p class="hint-line">重要度のボタンで、年表にのせるできごとをしぼりこめます。</p></div><div id="sheets" class="${S.hideAns?'hideans':''}">${sumHTML(t)}</div>`;
+  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-act="hideans" aria-pressed="${!!S.hideAns}">${S.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-act="print">印刷する</button></div><p class="hint-line">重要度のボタンで、年表にのせるできごとをしぼりこめます。</p></div><div id="sheets" class="${S.hideAns?'hideans':''}">${t==='ov'?ovHTML(['reki']):sumHTML(t)}</div>`;
 }
-window.srFig=srFig;
+/* ---------- 全体のまとめ（歴史の流れ・世界のまとめ・日本のまとめ）[[語句]]は「答えをかくす」で空欄 ---------- */
+const OV={
+ reki:{t:'歴史の流れ（時代と分野で整理）',h:['時代','政治・社会','外交・世界との関わり','文化','世界の動き'],r:[
+  ['旧石器・縄文','狩り・漁・採集のくらし。[[たて穴住居]]・[[貝塚]]','大陸と陸続き→約1万年前に日本列島','[[縄文土器]]、[[土偶]]','[[四大文明]]がおこる'],
+  ['弥生','[[稲作]]が広まり、むらからくにへ。[[邪馬台国]]の[[卑弥呼]]','奴国が漢に使い（[[金印]]）、卑弥呼が[[魏]]に使い','[[弥生土器]]、[[銅鐸]]','中国で漢が栄える。[[シルクロード]]'],
+  ['古墳','[[大和政権]]（大王）が勢力を広げる','[[渡来人]]が技術を伝える。倭の五王が宋に使い','[[前方後円墳]]、[[埴輪]]','[[仏教]]・キリスト教が広まる'],
+  ['飛鳥','[[聖徳太子]]の政治、[[大化の改新]]（645年）、[[大宝律令]]（701年）','[[遣隋使]]（小野妹子）、白村江の戦い','[[飛鳥文化]]：法隆寺','隋・唐が中国を統一'],
+  ['奈良','[[平城京]]（710年）、[[班田収授法]]、[[墾田永年私財法]]','[[遣唐使]]','[[天平文化]]：東大寺・正倉院、『[[万葉集]]』','唐が栄える。イスラム帝国'],
+  ['平安','[[平安京]]（794年）、[[摂関政治]]（藤原道長）、[[院政]]、平清盛','遣唐使の停止（894年）、[[日宋貿易]]','[[国風文化]]：かな文字、『源氏物語』、平等院鳳凰堂','宋が中国を統一'],
+  ['鎌倉','[[鎌倉幕府]]（源頼朝）、[[執権政治]]、[[御成敗式目]]（1232年）','[[元寇]]（1274年・1281年）','[[鎌倉文化]]：金剛力士像、新しい仏教','モンゴル帝国、[[十字軍]]'],
+  ['室町（戦国）','[[建武の新政]]、[[室町幕府]]（足利尊氏）、[[応仁の乱]]（1467年）、下剋上','[[勘合貿易]]（足利義満）、琉球王国の中継貿易','[[北山文化]]（金閣）・[[東山文化]]（銀閣・書院造）','[[ルネサンス]]、[[宗教改革]]、大航海時代'],
+  ['安土桃山','[[織田信長]]（楽市・楽座）、[[豊臣秀吉]]（[[太閤検地]]・[[刀狩]]）','[[鉄砲]]・キリスト教の伝来、[[南蛮貿易]]、朝鮮侵略','[[桃山文化]]：姫路城、千利休の茶の湯','ヨーロッパ人がアジアに進出'],
+  ['江戸','[[江戸幕府]]（徳川家康）、[[武家諸法度]]、[[参勤交代]]、三大改革','[[鎖国]]（長崎でオランダ・中国）、[[ペリー]]来航（1853年）、[[日米修好通商条約]]','[[元禄文化]]（上方）、[[化政文化]]（江戸）、国学・蘭学','[[市民革命]]、[[産業革命]]、アヘン戦争'],
+  ['明治','[[明治維新]]（廃藩置県・学制・徴兵令・[[地租改正]]）、[[自由民権運動]]、[[大日本帝国憲法]]（1889年）','[[日清戦争]]・[[日露戦争]]、[[条約改正]]、韓国併合','[[文明開化]]','帝国主義、辛亥革命'],
+  ['大正','[[大正デモクラシー]]、[[米騒動]]、[[普通選挙法]]（1925年）','[[第一次世界大戦]]、[[二十一か条の要求]]、国際連盟加盟','大衆文化（ラジオ放送）','[[ロシア革命]]、ベルサイユ条約'],
+  ['昭和（戦前・戦中）','五・一五事件、二・二六事件、[[国家総動員法]]','[[満州事変]]、[[日中戦争]]、[[太平洋戦争]]、ポツダム宣言受諾','戦時体制','[[世界恐慌]]、ファシズム、[[第二次世界大戦]]'],
+  ['昭和（戦後）〜令和','[[農地改革]]・[[財閥解体]]、[[日本国憲法]]、[[高度経済成長]]、バブル経済','[[サンフランシスコ平和条約]]、国際連合加盟、日中共同声明','テレビの普及、高度情報化','[[冷戦]]と終結、グローバル化']]},
+ sekai:{t:'世界のまとめ（主な産物の生産が多い国）',h:['産物','生産・産出が多い国（上位の例）','ポイント'],r:[
+  ['米','[[中国]]・[[インド]]・バングラデシュ','季節風（モンスーン）のアジアで多い'],
+  ['小麦','中国・インド・[[ロシア]]','アメリカ・フランスなどは輸出が多い'],
+  ['とうもろこし','[[アメリカ]]・中国・[[ブラジル]]','飼料やバイオエタノールの原料にも使う'],
+  ['大豆','[[ブラジル]]・アメリカ・アルゼンチン','南アメリカで生産が急増'],
+  ['カカオ豆','[[コートジボワール]]・[[ガーナ]]','ギニア湾岸のプランテーション'],
+  ['コーヒー豆','[[ブラジル]]・ベトナム','熱帯の高原などで栽培'],
+  ['茶','[[中国]]・[[インド]]','インドのアッサム地方、スリランカなど'],
+  ['原油','アメリカ・サウジアラビア・ロシア','西アジアのペルシア湾岸に多い。[[OPEC]]'],
+  ['石炭','[[中国]]・インド','日本は[[オーストラリア]]から多く輸入'],
+  ['鉄鉱石','[[オーストラリア]]・[[ブラジル]]','露天掘りで採掘'],
+  ['銅鉱','[[チリ]]','アンデス山脈ぞいの国で多い']]},
+ nihon:{t:'日本のまとめ（主な産物の生産が多い都道府県）',h:['産物','生産が多い都道府県（上位の例）','ポイント'],r:[
+  ['米','[[新潟]]・[[北海道]]','東北・北陸は日本の穀倉地帯'],
+  ['りんご','[[青森]]・[[長野]]','すずしい気候'],
+  ['みかん','[[和歌山]]・静岡・愛媛','あたたかい地域の日当たりのよい斜面'],
+  ['ぶどう・もも','[[山梨]]（甲府盆地）・長野・福島','水はけのよい[[扇状地]]'],
+  ['茶','[[静岡]]・[[鹿児島]]','水はけのよい台地'],
+  ['キャベツ','[[群馬]]・愛知・千葉','群馬の嬬恋村は夏の[[抑制栽培]]（高原野菜）'],
+  ['ピーマン','茨城・[[宮崎]]・高知','宮崎・高知は冬に出荷する[[促成栽培]]'],
+  ['豚・肉用牛','[[鹿児島]]・宮崎・北海道','九州南部は畜産がさかん（シラス台地）'],
+  ['乳牛（酪農）','[[北海道]]','[[根釧台地]]'],
+  ['じゃがいも・てんさい','[[北海道]]','[[十勝平野]]の畑作'],
+  ['工業','[[中京工業地帯]]（愛知）が出荷額最大','自動車などの機械工業の割合が高い']],
+  note:'統計の年によって順位が入れかわることがあります（農林水産省の統計などをもとにした上位の例）。'}
+};
+function ovHTML(keys){
+  const cell=c=>esc(c).replace(/\[\[([^\]]+)\]\]/g,'<b class="ans">$1</b>');
+  return keys.map(k=>{ const t=OV[k]; return `<div class="sheet sumsheet"><div class="sh-title"><h3>${esc(t.t)}</h3><span class="sub">全体のまとめ</span></div><table class="xnen stbl tsumt ovt"><thead><tr>${t.h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.r.map(r=>`<tr>${r.map((c,i)=>i?`<td>${cell(c)}</td>`:`<th>${cell(c)}</th>`).join('')}</tr>`).join('')}</tbody></table>${t.note?`<p class="srcnote">${esc(t.note)}</p>`:''}</div>`; }).join('');
+}
+window.srFig=srFig; window.ovHTML=ovHTML;
 const EXAM_GEN={interval:exInterval,tf:exTF,combo:exCombo,period:exPeriod,world:exWorld,era:exEra,porder:exPOrder,closest:exClosest,cause:exCause,pick3:exPick3,shiryo:exShiryo};
 function makeExam(fmt,theme){
   if(!Object.keys(LINK_IN).length&&!Object.keys(LINK_OUT).length) buildLinkIndex();
@@ -3205,7 +3253,7 @@ function renderControls(){
     h=`<span class="lab">テーマ</span>${themeSelect('genTheme',S.theme,false,ecnt)}</div><div class="row"><span class="lab">設定</span>
        <span class="lab" style="min-width:auto">指定語句</span><button class="chip" data-hintset="1" aria-pressed="${S.hint}">あり</button><button class="chip" data-hintset="0" aria-pressed="${!S.hint}">なし</button>`;
   }else if(S.mode==='sum'){
-    h=`<span class="lab">単元</span><select class="sel" id="sumTheme" aria-label="単元">${themeGroups(k=>`<option value="${k}" ${sumKey()===k?'selected':''}>${esc(THEMES[k])}</option>`)}</select>`;
+    h=`<span class="lab">単元</span><select class="sel" id="sumTheme" aria-label="単元"><option value="ov" ${sumKey()==='ov'?'selected':''}>全体のまとめ（歴史の流れ）</option>${themeGroups(k=>`<option value="${k}" ${sumKey()===k?'selected':''}>${esc(THEMES[k])}</option>`)}</select>`;
   }else if(S.mode==='list'){
     h=`<span class="lab">テーマ</span><select class="sel" id="themeSel" aria-label="テーマで絞り込む"><option value="all">すべてのテーマ</option>${
       themeGroups(k=>`<option value="${k}" ${S.listTheme===k?'selected':''}>${esc(THEMES[k])}（${cnt(k)}）</option>`)
@@ -4864,8 +4912,8 @@ function sumUnitHTML(u){
   return h+'</div>';
 }
 function renderSumG(){
-  const U=sumUnits();
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="hideans" aria-pressed="${!!G.hideAns}">${G.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${G.unit==='all'?'<p class="hint-line">上の「単元」でまとめを見たい単元を選んでください（いまは最初の単元を表示しています）。</p>':''}</div><div id="gsheets" class="${G.hideAns?'hideans':''}">${U.map(sumUnitHTML).join('')}</div>`;
+  const U=sumUnits(); const OVK={tk:['reki'],tg:['sekai','nihon'],jg:['nihon'],wg:['sekai']}[G.subj]; const showOv=G.unit==='all'&&OVK;
+  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="hideans" aria-pressed="${!!G.hideAns}">${G.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${G.unit==='all'?`<p class="hint-line">${showOv?'全体のまとめを表示しています。単元ごとのまとめは、上の「単元」で選んでください。':'上の「単元」でまとめを見たい単元を選んでください（いまは最初の単元を表示しています）。'}</p>`:''}</div><div id="gsheets" class="${G.hideAns?'hideans':''}">${showOv?window.ovHTML(OVK):U.map(sumUnitHTML).join('')}</div>`;
 }
 const FMTS={order:['年代の並び替え',mkOrder],cause:['原因と結果',mkCause],combo:['語句の組み合わせ',mkCombo],tf:['文X・Yの正誤',mkTF],wrong:['誤っている文を選ぶ',mkWrong],jisa:['時差の計算',mkJisa],scale:['地形図の縮尺',mkScale],density:['人口密度の計算',mkDensity],dhondt:['ドント式の議席配分',mkDhondt],fx:['円高・円安の計算',mkFx],pyr:['人口ピラミッド',mkPyramid],ds:['需要・供給曲線',mkDS],biz:['景気変動の図',mkBiz],sanken:['三権分立の図',mkSanken],stab:['統計表の読み取り',mkStatTab],trend:['グラフの読み取り',mkTrend],sr:['資料の読み取り（実際の統計・条文）',mkSr],hidden:['条件から当てる',mkHidden],topo:['地形図の読み取り',mkTopo],tarea:['地形図の面積',mkTopoArea],anti:['対蹠点',mkAnti],sign:['直接請求の署名数',mkSign]};
 const ONLY={jisa:'wg',scale:'jg',density:'jg',dhondt:'ko',fx:'ko',pyr:'jg',ds:'ko',biz:'ko',order:'tk',cause:'tk',sanken:'ko',topo:'jg',tarea:'jg',anti:'wg',sign:'ko'};
