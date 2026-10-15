@@ -4985,9 +4985,18 @@ function sumUnitHTML(u){
     +DOC.map(x=>`<div class="sumdoc"><div class="srh"><b>${esc(x.n)}</b></div>${x.fig?`<div class="srfig">${window.srFig(x.fig)}</div>`:''}${srTextG(x.L,null).map(t=>`<p class="srl">${t}</p>`).join('')}<div class="srcnote">${esc(x.s)}</div><ul class="sumqa">${x.q.map(q=>`<li>${esc(q.q)} → <b>${esc(q.a.replace(/。$/,''))}</b></li>`).join('')}</ul></div>`).join(''));
   return h+'</div>';
 }
+function tkNenpyoHTML(){
+  const d=GDATA.tk; if(!d||!d.events) return '';
+  const chName=Object.fromEntries(d.chapters.map(c=>[c.key,c.name]));
+  const order=d.chapters.map(c=>c.key); const by={};
+  d.events.forEach(e=>{ const c=d.chOf[e.u]; (by[c]=by[c]||[]).push(e); });
+  const yv=y=>y<0?`前${-y}`:String(y);
+  const row=e=>{ const t=e.k.slice(e.k.indexOf(':')+1); const x=esc(e.x); const tx=esc(t); return `<tr><td class="y">${yv(e.y)}年</td><td>${x.includes(tx)?x.replace(tx,`<b class="ans">${tx}</b>`):`${x}（<b class="ans">${tx}</b>）`}</td></tr>`; };
+  return `<div class="sheet sumsheet"><div class="sh-title"><h3>総まとめ年表</h3><span class="sub">定期テスト（歴史）の全単元のできごと</span></div>${order.filter(c=>by[c]).map(c=>`<div class="tsum-h">${esc(chName[c])}</div><table class="xnen sumtl"><tbody>${by[c].sort((a,b)=>a.y-b.y).map(row).join('')}</tbody></table>`).join('')}</div>`;
+}
 function renderSumG(){
   const U=sumUnits(); const OVK={tk:['reki'],tg:['sekai','nihon'],jg:['nihon'],wg:['sekai']}[G.subj]; const showOv=G.unit==='all'&&OVK;
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="hideans" aria-pressed="${!!G.hideAns}">${G.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${G.unit==='all'?`<p class="hint-line">${showOv?'全体のまとめを表示しています。単元ごとのまとめは、上の「単元」で選んでください。':'上の「単元」でまとめを見たい単元を選んでください（いまは最初の単元を表示しています）。'}</p>`:''}</div><div id="gsheets" class="${G.hideAns?'hideans':''}">${showOv?window.ovHTML(OVK):U.map(sumUnitHTML).join('')}</div>`;
+  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="hideans" aria-pressed="${!!G.hideAns}">${G.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${G.unit==='all'?`<p class="hint-line">${showOv?'全体のまとめを表示しています。単元ごとのまとめは、上の「単元」で選んでください。':'上の「単元」でまとめを見たい単元を選んでください（いまは最初の単元を表示しています）。'}</p>`:''}</div><div id="gsheets" class="${G.hideAns?'hideans':''}">${showOv?window.ovHTML(OVK)+(G.subj==='tk'?tkNenpyoHTML():''):U.map(sumUnitHTML).join('')}</div>`;
 }
 /* ---------- 年表の問題（定期テスト・歴史）：単元の年表データから作る ---------- */
 const evTerm=e=>e.k.slice(e.k.indexOf(':')+1);
@@ -5142,7 +5151,9 @@ function buildSheet(){
   const keep=G.recent.slice(); G.recent=[];
   const P=shuffle(facts()); const used=new Set();
   for(const f of P){ if(sh.drill.length>=pr.drill) break; if(used.has(norm(f.key))) continue; used.add(norm(f.key)); sh.drill.push(f); }
-  for(let i=0;i<pr.exam;i++){ const q=mkExam('rand'); if(q) sh.exam.push(q); }
+  if(pr.kansei){ const F=fmtsFor(); const pref={tk:['nen','jiki','tf','combo','cause','order','wrong'],tg:['tf','combo','wrong'],tc:['sr','tf','combo','sanken','sign','ds','wrong']}[G.subj]||shuffle(F);
+    const L=pref.filter(k=>F.includes(k)); for(let i=0;i<pr.exam;i++){ let q=null; for(let t=0;t<L.length&&!q;t++){ q=mkExam(L[(i+t)%L.length]); } if(!q) q=mkExam('rand'); if(q) sh.exam.push(q); } }
+  else for(let i=0;i<pr.exam;i++){ const q=mkExam('rand'); if(q) sh.exam.push(q); }
   sh.essay=shuffle(essays()).slice(0,pr.essay);
   if(sh.drill.length<pr.drill) sh.note.push('この条件の語句が足りないため、一問一答は少なめです。');
   G.recent=keep; G.sheet=sh;
@@ -5172,6 +5183,7 @@ function renderPrint(){
     <div class="pset-row"><label>一問一答</label>${opt('gpDrill',[0,4,6,8,10,12,15,20],pr.drill,'問')}</div>
     <div class="pset-row"><label>${isT()?'テスト形式':'入試形式'}</label>${opt('gpExam',[0,1,2,3,4,5,6,8],pr.exam,'問')}<span class="hint-line">${fmtsFor().map(k=>FMTS[k][0]).join('・')}</span></div>
     <div class="pset-row"><label>記述</label>${opt('gpEssay',[0,1,2,3,4],pr.essay,'問')}<span class="hint-line">指定語句：</span><button class="chip" data-ghint="1" aria-pressed="${G.hint}">つける</button><button class="chip" data-ghint="0" aria-pressed="${!G.hint}">つけない</button></div>
+    <div class="pset-row"><label>完成テスト</label><button class="btn sm" data-gact="kansei">${G.unit==='all'?'全範囲':'この単元'}の完成テストを作る</button><span class="hint-line">一問一答10問・テスト形式5問（${G.subj==='tk'?'年表・時期・正誤・組み合わせ・原因と結果':'正誤・組み合わせ・資料など'}を1問ずつ）・記述2問。単元は上の「単元」で選びます。</span></div>
     <div class="pset-row"><label>解答</label><button class="chip" data-gans aria-pressed="${pr.answers}">解答ページをつける</button></div>
     <div class="pset-row"><label>用紙</label><span id="gPg" class="pginfo"></span><button class="btn sm" data-gact="fit" id="gFit" hidden>1枚に収める</button></div>
     <div class="actions"><button class="btn" data-gact="rebuild">問題を作り直す</button><button class="btn primary" data-gact="print">印刷する</button></div>
@@ -5223,6 +5235,7 @@ document.addEventListener('click',ev=>{
     case 'rebuild': { let best=null,bp=99; for(let t=0;t<6;t++){ buildSheet(); renderPrint(); const n=pages(); if(n<bp){bp=n;best=G.sheet;} if(n<=1) break; } G.sheet=best; renderPrint(); break; }
     case 'fit': fitPage(); break;
     case 'hideans': G.hideAns=!G.hideAns; renderSumG(); break;
+    case 'kansei': { const un=G.unit==='all'?'':D().unitName[G.unit]||''; Object.assign(G.pr,{title:'完成テスト'+(un?'：'+un.replace(/^\d+\s*/,''):''),drill:10,exam:5,essay:2,answers:true,kansei:true}); buildSheet(); renderPrint(); G.fitted=true; break; }
     case 'print': window.print(); break;
   }
 });
