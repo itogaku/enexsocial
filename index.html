@@ -3062,6 +3062,9 @@ function exShiryo(theme){
   S.srRecent=S.srRecent||[];
   let c=P.filter(d=>!S.srRecent.includes(d.id)); if(!c.length){ S.srRecent=[]; c=P; }
   const d=rand(c); S.srRecent.push(d.id); if(S.srRecent.length>Math.min(12,P.length-1)) S.srRecent.shift();
+  return shiryoQ(d);
+}
+function shiryoQ(d){
   const q=rand(d.q); const h=q.h||'';
   const isFig=!!d.fig;
   const name=h.includes('n')?'':d.n, src=h.includes('s')?'':d.s, yr=h.includes('y')?'':d.y;
@@ -3167,6 +3170,8 @@ function ovHTML(keys){
   return keys.map(k=>{ const t=OV[k]; return `<div class="sheet sumsheet"><div class="sh-title"><h3>${esc(t.t)}</h3><span class="sub">全体のまとめ</span></div><table class="xnen stbl tsumt ovt"><thead><tr>${t.h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.r.map(r=>`<tr>${r.map((c,i)=>i?`<td>${cell(c)}</td>`:`<th>${cell(c)}</th>`).join('')}</tr>`).join('')}</tbody></table>${t.note?`<p class="srcnote">${esc(t.note)}</p>`:''}</div>`; }).join('');
 }
 window.srFig=srFig; window.ovHTML=ovHTML;
+// 定期テスト（歴史）の資料問題で使う
+window.SHIRYO=SHIRYO; window.shiryoQ=d=>shiryoQ(d); window.srImgOk=d=>!d.img||SR_IMG.has(d.img.f);
 const EXAM_GEN={interval:exInterval,tf:exTF,combo:exCombo,period:exPeriod,world:exWorld,era:exEra,porder:exPOrder,closest:exClosest,cause:exCause,pick3:exPick3,shiryo:exShiryo};
 function makeExam(fmt,theme){
   if(!Object.keys(LINK_IN).length&&!Object.keys(LINK_OUT).length) buildLinkIndex();
@@ -4683,8 +4688,8 @@ function climFig(c){
   const avg=c.t.reduce((a,b)=>a+b)/12, tot=c.p.reduce((a,b)=>a+b);
   return `<div class="figc">${SVG(W,H,s)}<div class="srsmall">年平均気温 ${avg.toFixed(1)}℃　年降水量 ${nf(tot)}mm<br>（折れ線：気温　棒：降水量）</div></div>`;
 }
-function mkClim(){
-  const C=CLIM[G.subj]; if(!C) return null; const L=C.c;
+function mkClim(key){
+  const C=CLIM[key||G.subj]; if(!C) return null; const L=C.c;
   const k=rand(L); const others=shuffle(L.filter(x=>x!==k)).slice(0,3); const opts=shuffle([k,...others]);
   const kind=Math.random()<0.5?'city':'zone';
   const box=`<div class="srbox"><div class="srh">雨温図</div><div class="srfig">${climFig(k)}</div><div class="srcnote">${esc(C.src)}</div></div>`;
@@ -4793,15 +4798,26 @@ const GSR={
 };
 const TCMAP={k01:'c3',k02:'c3',k03:'c2',k04:'c2',k05:'c5',k06:'c12',k07:'c12',k08:'c10',k09:'c10',k10:'c2',k11:'c14',k12:'c12'};
 GSR.tc=GSR.ko.filter(d=>TCMAP[d.id]).map(d=>Object.assign({},d,{u:TCMAP[d.id]}));
+// 定期テスト（歴史）：歴史の史料・資料を単元に対応させる
+const TKMAP={s01:'s6',s02:'s6',s03:'s7',s04:'s8',s05:'s8',s06:'s9',s07:'s10',s08:'s11',s09:'s12',s10:'s16',s11:'s16',s12:'s18',s13:'s19',s14:'s23',s15:'s24',s16:'s29',s17:'s30',s18:'s30',s19:'s32',s20:'s33',s21:'s40',s22:'s49',s23:'s51',s24:'s53',s25:'s55',s26:'s54',s27:'s59',s28:'s60',s29:'s63',s30:'s73',s31:'s73',s32:'s78',s33:'s83',s34:'s85',
+  g01:['s60','s73','s85'],g02:'s51',g03:'s63',g04:'s85',g05:'s89',g06:'s54',g07:['s66','s85'],g08:['s75','s76'],i01:'s5',i02:'s6',i03:'s7',i04:'s18',i05:'s31',i06:'s39',i07:'s42',i08:'s61'};
+GSR.tk=(window.SHIRYO||[]).filter(d=>TKMAP[d.id]).map(d=>Object.assign({},d,{u:TKMAP[d.id]}));
+// 定期テスト（地理）：地理の資料を単元に対応させる
+const TGMAP={j01:['g61','g83'],j02:['g61','g68','g76','g81','g89'],j03:'g60',j04:['g61','g98'],j05:'g60',w01:['g23','g24','g39','g42'],w02:['g19','g27','g32'],w03:['g28','g30']};
+GSR.tg=GSR.jg.concat(GSR.wg).filter(d=>TGMAP[d.id]).map(d=>Object.assign({},d,{u:TGMAP[d.id]}));
+// 雨温図：どの単元で出すか（地理・定期テストは日本の気候と世界の気候の単元）
+const climSets=()=>G.subj==='jg'?(um('shizen')?['jg']:[]):G.subj==='wg'?(um('climate')?['wg']:[]):G.subj==='tg'?[['g55','jg'],['g5','wg']].filter(([u])=>um(u)).map(x=>x[1]):[];
 TREND.tc=TREND.ko;
 function srTextG(L,bl){ return L.map(x=>esc(x).replace(/〔([A-Z]):([^〕]+)〕/g,(m,k,w)=>k===bl?`<span class="sblank">${String.fromCharCode(k.charCodeAt(0)+0xFEE0)}</span>`:w)); }
 function mkSr(){
-  const P=(GSR[G.subj]||[]).filter(d=>[].concat(d.u).some(um));
-  const climOk=CLIM[G.subj]&&um(G.subj==='jg'?'shizen':'climate');
-  if(!P.length&&!climOk) return null;
-  if(climOk&&(!P.length||Math.random()<0.3)) return mkClim();
+  const P=(GSR[G.subj]||[]).filter(d=>[].concat(d.u).some(um)&&(!window.srImgOk||window.srImgOk(d)));
+  const CS=climSets();
+  if(!P.length&&!CS.length) return null;
+  if(CS.length&&(!P.length||Math.random()<0.3)) return mkClim(rand(CS));
   G.srRecent=G.srRecent||[]; let c=P.filter(d=>!G.srRecent.includes(d.id)); if(!c.length){ G.srRecent=[]; c=P; }
   const d=rand(c); G.srRecent.push(d.id); if(G.srRecent.length>Math.max(1,P.length-1)) G.srRecent.shift();
+  if(d.tags&&window.shiryoQ){ const r=window.shiryoQ(d); // 歴史の史料・資料（図版をふくむ）
+    return {type:'exam',fmt:'sr',stem:r.stem,box:r.box,labels:r.labels,opts:r.options,ans:r.ans,long:r.options.some(o=>o.length>12),expl:r.expl}; }
   const q=rand(d.q); const isFig=!!d.fig;
   const body=(isFig?`<div class="srfig">${window.srFig(d.fig)}</div>`:'')+srTextG(d.L,q.bl).map(x=>`<p class="srl">${x}</p>`).join('');
   const note=isFig?esc(d.s):(d.L[0]&&d.L[0].startsWith('（')?`${esc(d.s)}。`:`${esc(d.s)}より（一部）。`);
@@ -4975,7 +4991,7 @@ function sumUnitHTML(u){
   const EV=(d.events||[]).filter(e=>e.u===k).sort((a,b)=>a.y-b.y);
   const LK=(d.links||[]).filter(l=>l.u===k);
   const DOC=(GSR[G.subj]||[]).filter(x=>[].concat(x.u).includes(k));
-  const CL=(k==='shizen'&&G.subj==='jg')||(k==='climate'&&G.subj==='wg')?CLIM[G.subj]:null;
+  const CL=(k==='shizen'&&G.subj==='jg')||(k==='climate'&&G.subj==='wg')?CLIM[G.subj]:G.subj==='tg'&&(k==='g55'||k==='g5')?CLIM[k==='g55'?'jg':'wg']:null;
   let n=0; const sec=(title,body)=>body?`<section class="dai"><h4><span class="dn">${++n}</span>${title}</h4>${body}</section>`:'';
   let h=`<div class="sheet sumsheet"><div class="sh-title"><h3>${esc(u.name)}</h3><span class="sub">まとめプリント（${esc(d.name)}）</span></div>`;
   const PT=isT()?TPT[k]:GPT[k];
@@ -4986,7 +5002,7 @@ function sumUnitHTML(u){
   h+=sec('重要語句（★は特に重要）',F.length?cats.map(c=>`<div class="sumcat"><b>${esc(c)}</b><ul>${F.filter(f=>f.c===c).map(f=>`<li>${f.r==='A'?'★ ':''}${esc(f.t).replace('〔〕',`<b class="ans">${esc(fk(f))}</b>`)}</li>`).join('')}</ul></div>`).join(''):'');
   h+=sec('説明できるようにしよう',ES.length?`<dl class="sumes">${ES.map(e=>`<dt>${esc(e.q)}</dt><dd>${esc(e.a)}</dd>`).join('')}</dl>`:'');
   h+=sec('資料を読もう',(CL?`<div class="figrow">${CL.c.map(c=>`<div class="sumclim"><b>${esc(c.n)}</b>（${esc(c.z)}）${climFig(c)}<p>${esc(c.w)}</p></div>`).join('')}</div><div class="srcnote">${esc(CL.src)}</div>`:'')
-    +DOC.map(x=>`<div class="sumdoc"><div class="srh"><b>${esc(x.n)}</b></div>${x.fig?`<div class="srfig">${window.srFig(x.fig)}</div>`:''}${srTextG(x.L,null).map(t=>`<p class="srl">${t}</p>`).join('')}<div class="srcnote">${esc(x.s)}</div><ul class="sumqa">${x.q.map(q=>`<li>${esc(q.q)} → <b>${esc(q.a.replace(/。$/,''))}</b></li>`).join('')}</ul></div>`).join(''));
+    +DOC.filter(x=>!window.srImgOk||window.srImgOk(x)).map(x=>`<div class="sumdoc"><div class="srh"><b>${esc(x.n)}</b>${x.y?`（${esc(x.y)}）`:''}</div>${x.img?`<div class="srfig"><img class="srimg" src="${esc(x.img.f)}" alt="${esc(x.n)}"></div>`:''}${x.fig?`<div class="srfig">${window.srFig(x.fig)}</div>`:''}${srTextG(x.L,null).map(t=>`<p class="srl">${t}</p>`).join('')}<div class="srcnote">${esc(x.img?x.img.cr:x.s)}</div><ul class="sumqa">${x.q.map(q=>`<li>${esc(q.q)} → <b>${esc(q.a.replace(/。$/,''))}</b></li>`).join('')}</ul></div>`).join(''));
   return h+'</div>';
 }
 function tkNenpyoHTML(){
@@ -5058,7 +5074,7 @@ function mkJiki(){
 const FMTS={order:['年代の並び替え',mkOrder],nen:['年表の穴埋め',mkNenpyo],jiki:['年表の時期',mkJiki],cause:['原因と結果',mkCause],combo:['語句の組み合わせ',mkCombo],tf:['文X・Yの正誤',mkTF],wrong:['誤っている文を選ぶ',mkWrong],jisa:['時差の計算',mkJisa],scale:['地形図の縮尺',mkScale],density:['人口密度の計算',mkDensity],dhondt:['ドント式の議席配分',mkDhondt],fx:['円高・円安の計算',mkFx],pyr:['人口ピラミッド',mkPyramid],ds:['需要・供給曲線',mkDS],biz:['景気変動の図',mkBiz],sanken:['三権分立の図',mkSanken],stab:['統計表の読み取り',mkStatTab],trend:['グラフの読み取り',mkTrend],sr:['資料の読み取り（実際の統計・条文）',mkSr],hidden:['条件から当てる',mkHidden],topo:['地形図の読み取り',mkTopo],tarea:['地形図の面積',mkTopoArea],anti:['対蹠点',mkAnti],sign:['直接請求の署名数',mkSign]};
 const ONLY={nen:'tk',jiki:'tk',jisa:'wg',scale:'jg',density:'jg',dhondt:'ko',fx:'ko',pyr:'jg',ds:'ko',biz:'ko',order:'tk',cause:'tk',sanken:'ko',topo:'jg',tarea:'jg',anti:'wg',sign:'ko'};
 const KNOW=['order','cause','nen','jiki','combo','tf','wrong'];
-const fmtsFor=()=>Object.keys(FMTS).filter(k=>(!ONLY[k]||ONLY[k]===G.subj||(G.subj==='tc'&&ONLY[k]==='ko'))&&(k!=='stab'||STAB[G.subj])&&(k!=='sr'||GSR[G.subj])&&(k!=='trend'||TREND[G.subj])&&(!isT()||KNOW.includes(k)||(G.subj==='tc'&&k!=='order'&&k!=='cause')));
+const fmtsFor=()=>Object.keys(FMTS).filter(k=>(!ONLY[k]||ONLY[k]===G.subj||(G.subj==='tc'&&ONLY[k]==='ko'))&&(k!=='stab'||STAB[G.subj])&&(k!=='sr'||GSR[G.subj])&&(k!=='trend'||TREND[G.subj])&&(!isT()||KNOW.includes(k)||k==='sr'||(G.subj==='tc'&&k!=='order'&&k!=='cause')));
 function mkExam(fmt){
   const list=fmt==='rand'?shuffle(fmtsFor()):fmt==='srand'?shuffle(fmtsFor().filter(k=>!KNOW.includes(k))):[fmt];
   for(const f of list){ for(let t=0;t<3;t++){ const q=FMTS[f][1](); if(q){ q.fname=FMTS[f][0]; return q; } } }
