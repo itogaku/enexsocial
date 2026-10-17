@@ -200,6 +200,12 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
 /* 記述 */
 @media screen{#gq table.stbl,#gq table.gtbl{display:block;max-width:100%;overflow-x:auto}}
 @media print{section.dai h4{break-after:avoid;page-break-after:avoid}.sumdoc,.sumclim,.srbox{break-inside:avoid;page-break-inside:avoid}}
+.sh-score{border:1.5px solid #111;padding:3px 8px;font-size:9pt;white-space:nowrap}.sh-score .sc{display:inline-block;width:16mm}
+.dai h4 .pt{font-weight:400;font-size:.85em;margin-left:4px}
+.asg{display:grid;grid-template-columns:repeat(5,1fr);border-left:1px solid #111;border-top:1px solid #111}
+.asg .ab{border-right:1px solid #111;border-bottom:1px solid #111;height:12mm;font-size:8pt;padding:1px 3px}
+.ansform .ae{border:1px solid #111;height:30mm;font-size:8pt;padding:1px 3px;margin-bottom:3mm}
+@media print{.ansform{break-before:page}}
 .kw-list{display:flex;flex-wrap:wrap;gap:6px}
 .kw{font-size:13px;border:1.5px solid var(--line);border-radius:4px;padding:1px 10px;background:var(--surface)}
 .kw.hit{border-color:var(--ok);color:var(--ok);font-weight:700}
@@ -4863,13 +4869,13 @@ function mkSr(){
   G.srRecent=G.srRecent||[]; let c=P.filter(d=>!G.srRecent.includes(d.id)); if(!c.length){ G.srRecent=[]; c=P; }
   const d=rand(c); G.srRecent.push(d.id); if(G.srRecent.length>Math.max(1,P.length-1)) G.srRecent.shift();
   if(d.tags&&window.shiryoQ){ const r=window.shiryoQ(d); // 歴史の史料・資料（図版をふくむ）
-    return {type:'exam',fmt:'sr',stem:r.stem,box:r.box,labels:r.labels,opts:r.options,ans:r.ans,long:r.options.some(o=>o.length>12),expl:r.expl}; }
+    return {type:'exam',fmt:'sr',doc:d.id,stem:r.stem,box:r.box,labels:r.labels,opts:r.options,ans:r.ans,long:r.options.some(o=>o.length>12),expl:r.expl}; }
   const q=rand(d.q); const isFig=!!d.fig;
   const body=(isFig?`<div class="srfig">${window.srFig(d.fig)}</div>`:'')+srTextG(d.L,q.bl).map(x=>`<p class="srl">${x}</p>`).join('');
   const note=isFig?esc(d.s):(d.L[0]&&d.L[0].startsWith('（')?`${esc(d.s)}。`:`${esc(d.s)}より（一部）。`);
   const box=`<div class="srbox"><div class="srh">${isFig?esc(d.n):'資料'}</div>${body}<div class="srcnote">${note}</div></div>`;
   const opts=shuffle([q.a,...q.d]);
-  return {type:'exam',fmt:'sr',stem:`次の${isFig?(d.fig.k==='table'?'表':'グラフ'):'資料'}を見て、${esc(q.q)}として最も適当なものを、次のア〜エのうちから一つ選び、その符号を答えなさい。`,
+  return {type:'exam',fmt:'sr',doc:d.id,stem:`次の${isFig?(d.fig.k==='table'?'表':'グラフ'):'資料'}を見て、${esc(q.q)}として最も適当なものを、次のア〜エのうちから一つ選び、その符号を答えなさい。`,
     box,labels:KANA.slice(0,4),opts:opts.map(esc),ans:opts.indexOf(q.a),long:opts.some(o=>o.length>12),
     expl:`<b>${esc(q.a.replace(/。$/,''))}</b>。${esc(q.w||'')}`};
 }
@@ -5212,14 +5218,30 @@ function renderList(){
 }
 
 /* ---------- プリント ---------- */
+// 選んでいる範囲の名前（単元・章）
+const rangeName=()=>{ if(G.unit==='all') return ''; if(G.unit.startsWith('ch:')){ const c=(D().chapters||[]).find(c=>c.key===G.unit.slice(3)); return c?c.name:''; } return (D().unitName[G.unit]||'').replace(/^\d+\s*/,''); };
+// 模擬定期テストの配点（一問一答・テスト形式・記述の1問あたり）
+const MOCKPT={drill:2,exam:4,essay:10};
 function buildSheet(){
   const pr=G.pr; const sh={drill:[],exam:[],essay:[],note:[]};
   const keep=G.recent.slice(); G.recent=[];
   const P=shuffle(facts()); const used=new Set();
+  // 1枚のプリントの中で、同じ問い・同じ資料（表やグラフ）を2回使わない
+  const seenQ=new Set(); const okQ=q=>{ if(!q) return null; const a=q.stem+'|'+(q.box||''), b=q.box&&q.box.length>40?q.box:'', c=q.doc?'doc:'+q.doc:''; if(seenQ.has(a)||(b&&seenQ.has(b))||(c&&seenQ.has(c))) return null; seenQ.add(a); if(b) seenQ.add(b); if(c) seenQ.add(c); return q; };
   for(const f of P){ if(sh.drill.length>=pr.drill) break; if(used.has(norm(f.key))) continue; used.add(norm(f.key)); sh.drill.push(f); }
+  // 完成テスト・模擬定期テストで単元の語句が足りないときは、同じ章のほかの単元から補う
+  if(pr.kansei&&sh.drill.length<pr.drill&&G.unit!=='all'&&!G.unit.startsWith('ch:')&&D().chOf){ const ch=D().chOf[G.unit];
+    const more=shuffle(D().facts.filter(f=>!DEL.has(f.id)&&!f.x&&D().chOf[f.u]===ch&&f.u!==G.unit&&G.ranks.includes(f.r)));
+    let k=0; for(const f of more){ if(sh.drill.length>=pr.drill) break; if(used.has(norm(f.key))) continue; used.add(norm(f.key)); sh.drill.push(f); k++; }
+    if(k) sh.note.push(`この単元の語句が少ないため、一問一答のうち${k}問は同じ章のほかの単元から出しています。`); }
   if(pr.kansei){ const F=fmtsFor(); const pref={tk:['nen','jiki','tf','combo','cause','order','wrong'],tg:['tf','combo','wrong'],tc:['sr','tf','combo','sanken','sign','ds','wrong']}[G.subj]||shuffle(F);
-    const L=pref.filter(k=>F.includes(k)); for(let i=0;i<pr.exam;i++){ let q=null; for(let t=0;t<L.length&&!q;t++){ q=mkExam(L[(i+t)%L.length]); } if(!q) q=mkExam('rand'); if(q) sh.exam.push(q); } }
-  else for(let i=0;i<pr.exam;i++){ const q=mkExam('rand'); if(q) sh.exam.push(q); }
+    let L=pref.filter(k=>F.includes(k)); if(pr.mock&&F.includes('sr')) L=['sr','sr','sr'].concat(L.filter(k=>k!=='sr')); // 模擬テストは資料問題を3問入れる
+    // 形式を順番に回す。作れなくなった形式（資料を使い切ったなど）は飛ばす
+    const fails=new Set(); let cur=0;
+    for(let i=0;i<pr.exam;i++){ let q=null;
+      for(let t=0;t<L.length&&!q;t++){ const k=L[(cur+t)%L.length]; if(fails.has(k)) continue; q=okQ(mkExam(k))||okQ(mkExam(k)); if(q) cur=(cur+t+1)%L.length; else fails.add(k); }
+      for(let t=0;t<12&&!q;t++) q=okQ(mkExam('rand')); if(q) sh.exam.push(q); } }
+  else for(let i=0;i<pr.exam;i++){ let q=null; for(let t=0;t<12&&!q;t++) q=okQ(mkExam('rand')); if(q) sh.exam.push(q); }
   sh.essay=shuffle(essays()).slice(0,pr.essay);
   if(sh.drill.length<pr.drill) sh.note.push('この条件の語句が足りないため、一問一答は少なめです。');
   G.recent=keep; G.sheet=sh;
@@ -5227,19 +5249,28 @@ function buildSheet(){
 function sheetHTML(){
   const sh=G.sheet, pr=G.pr; let q='', a='', dai=0;
   const n=SUBJ.find(x=>x[0]===G.subj)[1]; const un=G.unit==='all'?'':'・'+D().unitName[G.unit];
-  const head=sub=>`<div class="sh-head"><div><div class="sh-title">${esc(pr.title)}${sub?`<span class="sh-sub">${sub}</span>`:''}</div><div class="sh-meta">${esc(n+un)}</div></div><div class="sh-name">組　　番　名前<span class="nm"></span></div></div>`;
+  const head=sub=>`<div class="sh-head"><div><div class="sh-title">${esc(pr.title)}${sub?`<span class="sh-sub">${sub}</span>`:''}</div><div class="sh-meta">${esc(n+un)}</div></div><div class="sh-name">組　　番　名前<span class="nm"></span></div>${PT&&sub!=='解答'?`<div class="sh-score">得点<span class="sc"></span>／${total}点</div>`:''}</div>`;
+  const PT=pr.mock?MOCKPT:null; const pt=k=>PT?`<span class="pt">（各${PT[k]}点）</span>`:'';
+  const total=PT?sh.drill.length*PT.drill+sh.exam.length*PT.exam+sh.essay.length*PT.essay:0;
   const tool=(k,i)=>`<span class="qtools"><button class="tbtn" data-gre="${k}" data-gi="${i}">この問題を変える</button><button class="tbtn del" data-grm="${k}" data-gi="${i}">消す</button></span>`;
   if(sh.drill.length){ dai++;
-    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の文の空欄にあてはまる語句を書きなさい。</h4><ol class="glq">${sh.drill.map((f,i)=>`<li>${tool('drill',i)}(${i+1}) ${fill(f,'<span class="sblank">　　　　　　</span>')}</li>`).join('')}</ol></section>`;
+    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の文の空欄にあてはまる語句を書きなさい。${pt('drill')}</h4><ol class="glq">${sh.drill.map((f,i)=>`<li>${tool('drill',i)}(${i+1}) ${fill(f,'<span class="sblank">　　　　　　</span>')}</li>`).join('')}</ol></section>`;
     a+=`<section class="dai"><h4><span class="dn">${dai}</span>一問一答</h4><ol class="alist">${sh.drill.map((f,i)=>`<li>(${i+1}) <b>${esc(f.key)}</b>${f.alts.length>1?`（${f.alts.slice(1).map(esc).join('・')}）`:''}</li>`).join('')}</ol></section>`; }
   if(sh.exam.length){ dai++;
-    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。</h4>${sh.exam.map((x,i)=>`<div class="sx">${tool('exam',i)}<p>(${i+1}) ${x.stem}</p>${x.box?`<div class="xbox">${x.box}</div>`:''}${x.labels[0]===''?'':`<div class="xopts${x.long?' long':''}">${x.opts.map((o,k)=>`<span><b>${x.labels[k]}</b> ${o}</span>`).join('')}</div>`}</div>`).join('')}</section>`;
+    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。${pt('exam')}</h4>${sh.exam.map((x,i)=>`<div class="sx">${tool('exam',i)}<p>(${i+1}) ${x.stem}</p>${x.box?`<div class="xbox">${x.box}</div>`:''}${x.labels[0]===''?'':`<div class="xopts${x.long?' long':''}">${x.opts.map((o,k)=>`<span><b>${x.labels[k]}</b> ${o}</span>`).join('')}</div>`}</div>`).join('')}</section>`;
     a+=`<section class="dai"><h4><span class="dn">${dai}</span>${isT()?'テスト形式':'入試形式'}</h4><ol class="alist">${sh.exam.map((x,i)=>`<li>(${i+1}) <b>${x.ansText||x.labels[x.ans]||x.opts[x.ans]}</b><span class="ay">${x.expl}</span></li>`).join('')}</ol></section>`; }
   if(sh.essay.length){ dai++;
-    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。</h4>${sh.essay.map((e,i)=>`<div class="sess">${tool('essay',i)}<p>(${i+1}) ${esc(e.q)}<span class="skw">${rule(e,G.hint)}</span></p><div class="lines"></div></div>`).join('')}</section>`;
+    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。${pt('essay')}</h4>${sh.essay.map((e,i)=>`<div class="sess">${tool('essay',i)}<p>(${i+1}) ${esc(e.q)}<span class="skw">${rule(e,G.hint)}</span></p><div class="lines"></div></div>`).join('')}</section>`;
     a+=`<section class="dai"><h4><span class="dn">${dai}</span>記述（解答例）</h4><ol class="alist">${sh.essay.map((e,i)=>`<li>(${i+1}) ${esc(e.a)}<span class="ay">採点のポイント：${e.kw.map(k=>esc(k[0])).join('・')}</span></li>`).join('')}</ol></section>`; }
   if(!dai) return '<div class="empty">問題がありません。</div>';
-  return `<article class="sheet">${head('')}${q}</article>`+(pr.answers?`<article class="sheet ans-sheet">${head('解答')}${a}</article>`:'');
+  // 模擬定期テストには解答用紙をつける
+  let as='';
+  if(PT){ let d2=0; const box=(n,cls)=>Array.from({length:n},(_,i)=>`<div class="${cls}"><span>(${i+1})</span></div>`).join('');
+    if(sh.drill.length) as+=`<section class="dai"><h4><span class="dn">${++d2}</span>${pt('drill')}</h4><div class="asg">${box(sh.drill.length,'ab')}</div></section>`;
+    if(sh.exam.length) as+=`<section class="dai"><h4><span class="dn">${++d2}</span>${pt('exam')}</h4><div class="asg">${box(sh.exam.length,'ab')}</div></section>`;
+    if(sh.essay.length) as+=`<section class="dai"><h4><span class="dn">${++d2}</span>${pt('essay')}</h4>${box(sh.essay.length,'ae')}</section>`;
+    as=`<article class="sheet ansform">${head('解答用紙')}${as}</article>`; }
+  return `<article class="sheet">${head('')}${q}</article>`+as+(pr.answers?`<article class="sheet ans-sheet">${head('解答')}${a}</article>`:'');
 }
 function renderPrint(){
   const pr=G.pr, sh=G.sheet;
@@ -5249,7 +5280,7 @@ function renderPrint(){
     <div class="pset-row"><label>一問一答</label>${opt('gpDrill',[0,4,6,8,10,12,15,20],pr.drill,'問')}</div>
     <div class="pset-row"><label>${isT()?'テスト形式':'入試形式'}</label>${opt('gpExam',[0,1,2,3,4,5,6,8],pr.exam,'問')}<span class="hint-line">${fmtsFor().map(k=>FMTS[k][0]).join('・')}</span></div>
     <div class="pset-row"><label>記述</label>${opt('gpEssay',[0,1,2,3,4],pr.essay,'問')}<span class="hint-line">指定語句：</span><button class="chip" data-ghint="1" aria-pressed="${G.hint}">つける</button><button class="chip" data-ghint="0" aria-pressed="${!G.hint}">つけない</button></div>
-    <div class="pset-row"><label>完成テスト</label><button class="btn sm" data-gact="kansei">${G.unit==='all'?'全範囲':'この単元'}の完成テストを作る</button><span class="hint-line">一問一答10問・テスト形式5問（${G.subj==='tk'?'年表・時期・正誤・組み合わせ・原因と結果':'正誤・組み合わせ・資料など'}を1問ずつ）・記述2問。単元は上の「単元」で選びます。</span></div>
+    <div class="pset-row"><label>完成テスト</label><button class="btn sm" data-gact="kansei">${G.unit==='all'?'全範囲':'この単元'}の完成テストを作る</button><button class="btn sm" data-gact="mock">${G.unit==='all'?'全範囲':G.unit.startsWith('ch:')?'この章':'この単元'}の模擬定期テスト（100点）を作る</button><span class="hint-line">一問一答10問・テスト形式5問（${G.subj==='tk'?'年表・時期・正誤・組み合わせ・原因と結果':'正誤・組み合わせ・資料など'}を1問ずつ）・記述2問。単元は上の「単元」で選びます。</span></div>
     <div class="pset-row"><label>解答</label><button class="chip" data-gans aria-pressed="${pr.answers}">解答ページをつける</button></div>
     <div class="pset-row"><label>用紙</label><span id="gPg" class="pginfo"></span><button class="btn sm" data-gact="fit" id="gFit" hidden>1枚に収める</button></div>
     <div class="actions"><button class="btn" data-gact="rebuild">問題を作り直す</button><button class="btn primary" data-gact="print">印刷する</button></div>
@@ -5301,7 +5332,8 @@ document.addEventListener('click',ev=>{
     case 'rebuild': { let best=null,bp=99; for(let t=0;t<6;t++){ buildSheet(); renderPrint(); const n=pages(); if(n<bp){bp=n;best=G.sheet;} if(n<=1) break; } G.sheet=best; renderPrint(); break; }
     case 'fit': fitPage(); break;
     case 'hideans': G.hideAns=!G.hideAns; renderSumG(); break;
-    case 'kansei': { const un=G.unit==='all'?'':D().unitName[G.unit]||''; Object.assign(G.pr,{title:'完成テスト'+(un?'：'+un.replace(/^\d+\s*/,''):''),drill:10,exam:5,essay:2,answers:true,kansei:true}); buildSheet(); renderPrint(); G.fitted=true; break; }
+    case 'kansei': { const un=G.unit==='all'?'':D().unitName[G.unit]||''; Object.assign(G.pr,{title:'完成テスト'+(un?'：'+un.replace(/^\d+\s*/,''):''),drill:10,exam:5,essay:2,answers:true,kansei:true,mock:false}); buildSheet(); renderPrint(); G.fitted=true; break; }
+    case 'mock': { const un=rangeName(); Object.assign(G.pr,{title:'定期テスト（模擬）'+(un?'：'+un:''),drill:15,exam:10,essay:3,answers:true,kansei:true,mock:true}); buildSheet(); renderPrint(); G.fitted=true; break; }
     case 'print': window.print(); break;
   }
 });
