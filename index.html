@@ -206,6 +206,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
 .asg .ab{border-right:1px solid #111;border-bottom:1px solid #111;height:12mm;font-size:8pt;padding:1px 3px}
 .ansform .ae{border:1px solid #111;height:30mm;font-size:8pt;padding:1px 3px;margin-bottom:3mm}
 @media print{.ansform{break-before:page}}
+.qdel{text-align:right;margin-top:8px}
 .kw-list{display:flex;flex-wrap:wrap;gap:6px}
 .kw{font-size:13px;border:1.5px solid var(--line);border-radius:4px;padding:1px 10px;background:var(--surface)}
 .kw.hit{border-color:var(--ok);color:var(--ok);font-weight:700}
@@ -3299,7 +3300,7 @@ function render(){
   const q=$('#q'); const c=S.cur;
   if(!c){q.innerHTML=`<div class="empty">${S.mode==='order'&&(S.omode==='strict'||S.omode==='genre'||S.omode==='bank')?'この出し方では、この時代とテーマの組み合わせの問題が作れません。テーマを「おまかせ」にするか、出し方を変えてください。':'この時代とテーマの組み合わせでは問題が作れません。時代を増やすか、テーマを変えてください。'}</div>`;return;}
   if(c.type==='order'){ c.imp=orderImportance(c.items); if(S.flash2){ setTimeout(()=>{S.flash2='';},0); } q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span><span class="imp imp${c.imp.level}">順番：${IMP_LABEL[c.imp.level]}</span></div>`+(S.flash2?`<p class="warn">${esc(S.flash2)}</p>`:'')+renderOrder(c); }
-  if(c.type==='fill') q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span></div>`+renderFill(c);
+  if(c.type==='fill') q.innerHTML=(S.flash2?`<p class="warn">${esc(S.flash2)}</p>`:'')+`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span></div>`+renderFill(c);
   if(c.type==='exam') q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span></div>`+renderExam(c);
   if(c.type==='essay') q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="era" style="--c:var(${ERA_COLOR[c.q.era]})">${c.q.era}</span></div>`+renderEssay(c);
   const f=q.querySelector('input,textarea'); if(f&&!S.answered) f.focus({preventScroll:true});
@@ -3375,8 +3376,8 @@ function renderFill(c){
     const ok=c.ok;
     h+=`<div class="result ${ok?'ok':'ng'}"><div class="verdict">${ok?'正解':'不正解'}<small>答え：${esc(t.alts.join('／'))}${!S.choice&&c.given?`　（あなたの答え：${esc(c.given)}）`:''}</small></div>
       <div>${yv(t)}${yu(t)}　${filled(t)}</div></div>
-      <div class="actions">${!ok&&!S.choice&&c.given?'<button class="btn" data-act="override">正解にする（表記ゆれ）</button>':''}<button class="btn next" data-act="next">次の問題</button></div>`;
-  }
+      <div class="actions">${!ok&&!S.choice&&c.given?'<button class="btn" data-act="override">正解にする（表記ゆれ）</button>':''}${Store.canEdit?'<button class="btn danger" data-act="delfill">この語句を出さない</button>':''}<button class="btn next" data-act="next">次の問題</button></div>`;
+  } else if(Store.canEdit) h+=`<div class="qdel"><button class="tbtn del" data-act="delfill">この語句を出さない</button></div>`;
   return h;
 }
 
@@ -3851,6 +3852,7 @@ document.addEventListener('click',ev=>{
     case 'giveup': judgeFill('');break;
     case 'override': if(!c.ok){c.ok=true;S.ok++;S.streak++;$('#sOk').textContent=S.ok;$('#sStreak').textContent=S.streak;render();}break;
     case 'next': newQuestion();break;
+    case 'delfill': { const t=c.target; setDeleted(t.sid,true).then(ok=>{ S.flash2=ok===false?'':`「${t.key}」を出さないようにしました。年表一覧の「消したもの」から復活できます。`; newQuestion(); setTimeout(()=>{S.flash2='';},0); }); break; }
     case 'bancur': banCombo(c.items); S.flash2='この並び替えを削除しました。年表一覧の「削除した並び替え」から元に戻せます。'; newQuestion(); break;
     case 'selclear': S.sel.clear(); if(S.mode==='list') renderList(); renderSelBar(); break;
     case 'selplay': {
@@ -5177,7 +5179,8 @@ function newG(){
 function renderQ(){
   const c=G.cur; const el=$('#gq');
   if(!c){ el.innerHTML='<div class="empty">この条件では問題を作れません。単元や重要度を変えてください。</div>'; return; }
-  let h=`<div class="qhead"><span class="qno">${esc(D().unitName[(c.f||c.e||{}).u]||(isT()?'テスト形式':'入試形式'))}</span>${c.fname&&(c.f||c.e)?'':''}${c.fname?`<span class="tag">${esc(c.fname)}</span>`:''}</div>`;
+  let h=G.delMsg?`<p class="warn">${esc(G.delMsg)}</p>`:''; G.delMsg='';
+  h+=`<div class="qhead"><span class="qno">${esc(D().unitName[(c.f||c.e||{}).u]||(isT()?'テスト形式':'入試形式'))}</span>${c.fname&&(c.f||c.e)?'':''}${c.fname?`<span class="tag">${esc(c.fname)}</span>`:''}</div>`;
   if(c.type==='drill'){
     h+=`<p class="prompt">次の文の空欄にあてはまる語句を${G.write?'書きなさい':'選びなさい'}。</p><div class="xbox gbig">${c.stem}</div>`;
     if(G.write){ h+=`<form id="gForm" class="inp"><input id="gIn" autocomplete="off" placeholder="答えを入力" ${G.answered?'disabled':''} value="${esc(c.given||'')}"><button class="btn primary" ${G.answered?'disabled':''}>答え合わせ</button></form>`; }
@@ -5189,6 +5192,8 @@ function renderQ(){
     if(!G.answered) h+=`<div class="actions"><button class="btn primary" data-gact="esshow">解答例を見る</button></div>`;
     else { const txt=c.text||''; h+=`<div class="result"><div class="verdict">解答例</div><div>${esc(e.a)}</div><div class="kw-list"><span style="font-size:12px;color:var(--muted)">採点のポイント</span>${e.kw.map(k=>{const hit=k.some(w=>txt.includes(w));return `<span class="kw ${txt?(hit?'hit':'miss'):''}">${txt?(hit?'○ ':'× '):''}${esc(k[0])}</span>`}).join('')}</div></div><div class="actions"><button class="btn next" data-gact="next">次の問題</button></div>`; }
   }
+  // 答える前でも、いらない一問一答は消せる（「用語一覧」の「消したもの」から復活できる）
+  if(!G.answered&&c.type==='drill'&&c.f) h+=`<div class="qdel"><button class="tbtn del" data-gact="del">この語句を出さない</button></div>`;
   if(G.answered&&c.type!=='essay'){ const ok=c.given===c.ans||c.okw; h+=`<div class="result ${ok?'ok':'ng'}"><div class="verdict">${ok?'正解':'不正解'}</div><div>${c.expl}</div></div><div class="actions">${c.f?'<button class="btn danger" data-gact="del">この語句を出さない</button>':''}<button class="btn next" data-gact="next">次の問題</button></div>`; }
   el.innerHTML=h;
   if(c.type==='drill'&&G.write&&!G.answered) setTimeout(()=>{const i=$('#gIn'); if(i) i.focus();},0);
@@ -5328,7 +5333,7 @@ document.addEventListener('click',ev=>{
   switch(d.gact){
     case 'next': newG(); break;
     case 'esshow': { const t=$('#gEs'); G.cur.text=t?t.value:''; G.answered=true; judge(true); renderQ(); break; }
-    case 'del': { const c=G.cur; const id=c.f?c.f.id:null; if(id){ DEL.add(id); saveDel(); } newG(); break; }
+    case 'del': { const c=G.cur; const id=c.f?c.f.id:null; if(id){ DEL.add(id); saveDel(); G.delMsg=`「${c.f.key}」の問題を出さないようにしました。「用語一覧」の「消したもの」から復活できます。`; } newG(); break; }
     case 'rebuild': { let best=null,bp=99; for(let t=0;t<6;t++){ buildSheet(); renderPrint(); const n=pages(); if(n<bp){bp=n;best=G.sheet;} if(n<=1) break; } G.sheet=best; renderPrint(); break; }
     case 'fit': fitPage(); break;
     case 'hideans': G.hideAns=!G.hideAns; renderSumG(); break;
