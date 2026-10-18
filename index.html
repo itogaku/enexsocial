@@ -206,7 +206,15 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
 .asg .ab{border-right:1px solid #111;border-bottom:1px solid #111;height:12mm;font-size:8pt;padding:1px 3px}
 .ansform .ae{border:1px solid #111;height:30mm;font-size:8pt;padding:1px 3px;margin-bottom:3mm}
 @media print{.ansform{break-before:page}}
-.qdel{text-align:right;margin-top:8px}
+/* プリント画面：広い画面では左に問題構成、右にプリント */
+@media screen and (min-width:1100px){
+  .wrap:has(.pwrap){max-width:1560px}
+  .pwrap{display:grid;grid-template-columns:minmax(330px,400px) 1fr;gap:22px;align-items:start}
+  .pleft{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;padding-right:6px}
+  .pleft .pset{border-bottom:0}
+  .pleft .pset-row{flex-wrap:wrap}
+  .pright{min-width:0}
+}
 .kw-list{display:flex;flex-wrap:wrap;gap:6px}
 .kw{font-size:13px;border:1.5px solid var(--line);border-radius:4px;padding:1px 10px;background:var(--surface)}
 .kw.hit{border-color:var(--ok);color:var(--ok);font-weight:700}
@@ -3300,7 +3308,7 @@ function render(){
   const q=$('#q'); const c=S.cur;
   if(!c){q.innerHTML=`<div class="empty">${S.mode==='order'&&(S.omode==='strict'||S.omode==='genre'||S.omode==='bank')?'この出し方では、この時代とテーマの組み合わせの問題が作れません。テーマを「おまかせ」にするか、出し方を変えてください。':'この時代とテーマの組み合わせでは問題が作れません。時代を増やすか、テーマを変えてください。'}</div>`;return;}
   if(c.type==='order'){ c.imp=orderImportance(c.items); if(S.flash2){ setTimeout(()=>{S.flash2='';},0); } q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span><span class="imp imp${c.imp.level}">順番：${IMP_LABEL[c.imp.level]}</span></div>`+(S.flash2?`<p class="warn">${esc(S.flash2)}</p>`:'')+renderOrder(c); }
-  if(c.type==='fill') q.innerHTML=(S.flash2?`<p class="warn">${esc(S.flash2)}</p>`:'')+`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span></div>`+renderFill(c);
+  if(c.type==='fill') q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span></div>`+renderFill(c);
   if(c.type==='exam') q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="tag">${esc(c.theme)}</span></div>`+renderExam(c);
   if(c.type==='essay') q.innerHTML=`<div class="qhead"><span class="qno">第${S.qno}問</span><span class="era" style="--c:var(${ERA_COLOR[c.q.era]})">${c.q.era}</span></div>`+renderEssay(c);
   const f=q.querySelector('input,textarea'); if(f&&!S.answered) f.focus({preventScroll:true});
@@ -3376,8 +3384,8 @@ function renderFill(c){
     const ok=c.ok;
     h+=`<div class="result ${ok?'ok':'ng'}"><div class="verdict">${ok?'正解':'不正解'}<small>答え：${esc(t.alts.join('／'))}${!S.choice&&c.given?`　（あなたの答え：${esc(c.given)}）`:''}</small></div>
       <div>${yv(t)}${yu(t)}　${filled(t)}</div></div>
-      <div class="actions">${!ok&&!S.choice&&c.given?'<button class="btn" data-act="override">正解にする（表記ゆれ）</button>':''}${Store.canEdit?'<button class="btn danger" data-act="delfill">この語句を出さない</button>':''}<button class="btn next" data-act="next">次の問題</button></div>`;
-  } else if(Store.canEdit) h+=`<div class="qdel"><button class="tbtn del" data-act="delfill">この語句を出さない</button></div>`;
+      <div class="actions">${!ok&&!S.choice&&c.given?'<button class="btn" data-act="override">正解にする（表記ゆれ）</button>':''}<button class="btn next" data-act="next">次の問題</button></div>`;
+  }
   return h;
 }
 
@@ -3665,7 +3673,7 @@ function candsHTML(){
 function renderPrint(){
   const pr=S.pr, sh=S.sheet;
   const opt=(id,vals,cur,unit)=>`<select class="sel" id="${id}">${vals.map(v=>`<option value="${v}" ${v===cur?'selected':''}>${v}${unit}</option>`).join('')}</select>`;
-  let h=`<div class="pset">
+  let h=`<div class="pwrap"><div class="pleft"><div class="pset">
     <div class="pset-row"><label for="prTitle">タイトル</label><input class="search" id="prTitle" value="${esc(pr.title)}"></div>
     <div class="pset-row"><label>並び替えの出し方</label>${omodeChips()}</div>
     <div class="pset-row"><label>並び替えの時代</label>${spanChips()}</div>
@@ -3682,7 +3690,7 @@ function renderPrint(){
     <div class="actions"><button class="btn" data-act="tolist2">一覧から問題を選ぶ</button><button class="btn" data-act="rebuild">問題を作り直す</button><button class="btn primary" data-act="print">印刷する</button></div>
     <p class="hint-line">印刷はA4たて向き。このプレビュー画面では印刷ボタンがはたらかないことがあります。そのときはダウンロード版のHTMLファイルをブラウザで開いて印刷してください。</p>
     ${sh.note.length?`<p class="warn">${sh.note.map(esc).join('<br>')}</p>`:''}
-  </div>${candsHTML()}${essCandsHTML()}<div id="sheets">${sheetHTML(sh)}</div>`;
+  </div>${candsHTML()}${essCandsHTML()}</div><div class="pright"><div id="sheets">${sheetHTML(sh)}</div></div></div>`;
   $('#q').innerHTML=h;
   showPages();
 }
@@ -3852,7 +3860,6 @@ document.addEventListener('click',ev=>{
     case 'giveup': judgeFill('');break;
     case 'override': if(!c.ok){c.ok=true;S.ok++;S.streak++;$('#sOk').textContent=S.ok;$('#sStreak').textContent=S.streak;render();}break;
     case 'next': newQuestion();break;
-    case 'delfill': { const t=c.target; setDeleted(t.sid,true).then(ok=>{ S.flash2=ok===false?'':`「${t.key}」を出さないようにしました。年表一覧の「消したもの」から復活できます。`; newQuestion(); setTimeout(()=>{S.flash2='';},0); }); break; }
     case 'bancur': banCombo(c.items); S.flash2='この並び替えを削除しました。年表一覧の「削除した並び替え」から元に戻せます。'; newQuestion(); break;
     case 'selclear': S.sel.clear(); if(S.mode==='list') renderList(); renderSelBar(); break;
     case 'selplay': {
@@ -5179,8 +5186,7 @@ function newG(){
 function renderQ(){
   const c=G.cur; const el=$('#gq');
   if(!c){ el.innerHTML='<div class="empty">この条件では問題を作れません。単元や重要度を変えてください。</div>'; return; }
-  let h=G.delMsg?`<p class="warn">${esc(G.delMsg)}</p>`:''; G.delMsg='';
-  h+=`<div class="qhead"><span class="qno">${esc(D().unitName[(c.f||c.e||{}).u]||(isT()?'テスト形式':'入試形式'))}</span>${c.fname&&(c.f||c.e)?'':''}${c.fname?`<span class="tag">${esc(c.fname)}</span>`:''}</div>`;
+  let h=`<div class="qhead"><span class="qno">${esc(D().unitName[(c.f||c.e||{}).u]||(isT()?'テスト形式':'入試形式'))}</span>${c.fname&&(c.f||c.e)?'':''}${c.fname?`<span class="tag">${esc(c.fname)}</span>`:''}</div>`;
   if(c.type==='drill'){
     h+=`<p class="prompt">次の文の空欄にあてはまる語句を${G.write?'書きなさい':'選びなさい'}。</p><div class="xbox gbig">${c.stem}</div>`;
     if(G.write){ h+=`<form id="gForm" class="inp"><input id="gIn" autocomplete="off" placeholder="答えを入力" ${G.answered?'disabled':''} value="${esc(c.given||'')}"><button class="btn primary" ${G.answered?'disabled':''}>答え合わせ</button></form>`; }
@@ -5192,8 +5198,6 @@ function renderQ(){
     if(!G.answered) h+=`<div class="actions"><button class="btn primary" data-gact="esshow">解答例を見る</button></div>`;
     else { const txt=c.text||''; h+=`<div class="result"><div class="verdict">解答例</div><div>${esc(e.a)}</div><div class="kw-list"><span style="font-size:12px;color:var(--muted)">採点のポイント</span>${e.kw.map(k=>{const hit=k.some(w=>txt.includes(w));return `<span class="kw ${txt?(hit?'hit':'miss'):''}">${txt?(hit?'○ ':'× '):''}${esc(k[0])}</span>`}).join('')}</div></div><div class="actions"><button class="btn next" data-gact="next">次の問題</button></div>`; }
   }
-  // 答える前でも、いらない一問一答は消せる（「用語一覧」の「消したもの」から復活できる）
-  if(!G.answered&&c.type==='drill'&&c.f) h+=`<div class="qdel"><button class="tbtn del" data-gact="del">この語句を出さない</button></div>`;
   if(G.answered&&c.type!=='essay'){ const ok=c.given===c.ans||c.okw; h+=`<div class="result ${ok?'ok':'ng'}"><div class="verdict">${ok?'正解':'不正解'}</div><div>${c.expl}</div></div><div class="actions">${c.f?'<button class="btn danger" data-gact="del">この語句を出さない</button>':''}<button class="btn next" data-gact="next">次の問題</button></div>`; }
   el.innerHTML=h;
   if(c.type==='drill'&&G.write&&!G.answered) setTimeout(()=>{const i=$('#gIn'); if(i) i.focus();},0);
@@ -5257,15 +5261,16 @@ function sheetHTML(){
   const head=sub=>`<div class="sh-head"><div><div class="sh-title">${esc(pr.title)}${sub?`<span class="sh-sub">${sub}</span>`:''}</div><div class="sh-meta">${esc(n+un)}</div></div><div class="sh-name">組　　番　名前<span class="nm"></span></div>${PT&&sub!=='解答'?`<div class="sh-score">得点<span class="sc"></span>／${total}点</div>`:''}</div>`;
   const PT=pr.mock?MOCKPT:null; const pt=k=>PT?`<span class="pt">（各${PT[k]}点）</span>`:'';
   const total=PT?sh.drill.length*PT.drill+sh.exam.length*PT.exam+sh.essay.length*PT.essay:0;
+  const addb=k=>`<div class="addrow"><button class="tbtn" data-gadd="${k}">＋ 1問追加</button></div>`;
   const tool=(k,i)=>`<span class="qtools"><button class="tbtn" data-gre="${k}" data-gi="${i}">この問題を変える</button><button class="tbtn del" data-grm="${k}" data-gi="${i}">消す</button></span>`;
   if(sh.drill.length){ dai++;
-    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の文の空欄にあてはまる語句を書きなさい。${pt('drill')}</h4><ol class="glq">${sh.drill.map((f,i)=>`<li>${tool('drill',i)}(${i+1}) ${fill(f,'<span class="sblank">　　　　　　</span>')}</li>`).join('')}</ol></section>`;
+    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の文の空欄にあてはまる語句を書きなさい。${pt('drill')}</h4><ol class="glq">${sh.drill.map((f,i)=>`<li>${tool('drill',i)}(${i+1}) ${fill(f,'<span class="sblank">　　　　　　</span>')}</li>`).join('')}</ol>${addb('drill')}</section>`;
     a+=`<section class="dai"><h4><span class="dn">${dai}</span>一問一答</h4><ol class="alist">${sh.drill.map((f,i)=>`<li>(${i+1}) <b>${esc(f.key)}</b>${f.alts.length>1?`（${f.alts.slice(1).map(esc).join('・')}）`:''}</li>`).join('')}</ol></section>`; }
   if(sh.exam.length){ dai++;
-    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。${pt('exam')}</h4>${sh.exam.map((x,i)=>`<div class="sx">${tool('exam',i)}<p>(${i+1}) ${x.stem}</p>${x.box?`<div class="xbox">${x.box}</div>`:''}${x.labels[0]===''?'':`<div class="xopts${x.long?' long':''}">${x.opts.map((o,k)=>`<span><b>${x.labels[k]}</b> ${o}</span>`).join('')}</div>`}</div>`).join('')}</section>`;
+    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。${pt('exam')}</h4>${sh.exam.map((x,i)=>`<div class="sx">${tool('exam',i)}<p>(${i+1}) ${x.stem}</p>${x.box?`<div class="xbox">${x.box}</div>`:''}${x.labels[0]===''?'':`<div class="xopts${x.long?' long':''}">${x.opts.map((o,k)=>`<span><b>${x.labels[k]}</b> ${o}</span>`).join('')}</div>`}</div>`).join('')}${addb('exam')}</section>`;
     a+=`<section class="dai"><h4><span class="dn">${dai}</span>${isT()?'テスト形式':'入試形式'}</h4><ol class="alist">${sh.exam.map((x,i)=>`<li>(${i+1}) <b>${x.ansText||x.labels[x.ans]||x.opts[x.ans]}</b><span class="ay">${x.expl}</span></li>`).join('')}</ol></section>`; }
   if(sh.essay.length){ dai++;
-    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。${pt('essay')}</h4>${sh.essay.map((e,i)=>`<div class="sess">${tool('essay',i)}<p>(${i+1}) ${esc(e.q)}<span class="skw">${rule(e,G.hint)}</span></p><div class="lines"></div></div>`).join('')}</section>`;
+    q+=`<section class="dai"><h4><span class="dn">${dai}</span>次の問いに答えなさい。${pt('essay')}</h4>${sh.essay.map((e,i)=>`<div class="sess">${tool('essay',i)}<p>(${i+1}) ${esc(e.q)}<span class="skw">${rule(e,G.hint)}</span></p><div class="lines"></div></div>`).join('')}${addb('essay')}</section>`;
     a+=`<section class="dai"><h4><span class="dn">${dai}</span>記述（解答例）</h4><ol class="alist">${sh.essay.map((e,i)=>`<li>(${i+1}) ${esc(e.a)}<span class="ay">採点のポイント：${e.kw.map(k=>esc(k[0])).join('・')}</span></li>`).join('')}</ol></section>`; }
   if(!dai) return '<div class="empty">問題がありません。</div>';
   // 模擬定期テストには解答用紙をつける
@@ -5280,16 +5285,16 @@ function sheetHTML(){
 function renderPrint(){
   const pr=G.pr, sh=G.sheet;
   const opt=(id,vals,cur,unit)=>`<select class="sel" id="${id}">${vals.map(v=>`<option value="${v}" ${v===cur?'selected':''}>${v}${unit}</option>`).join('')}</select>`;
-  $('#gq').innerHTML=`<div class="pset">
+  $('#gq').innerHTML=`<div class="pwrap"><div class="pleft"><div class="pset">
     <div class="pset-row"><label for="gTitle">タイトル</label><input class="search" id="gTitle" value="${esc(pr.title)}"></div>
     <div class="pset-row"><label>一問一答</label>${opt('gpDrill',[0,4,6,8,10,12,15,20],pr.drill,'問')}</div>
-    <div class="pset-row"><label>${isT()?'テスト形式':'入試形式'}</label>${opt('gpExam',[0,1,2,3,4,5,6,8],pr.exam,'問')}<span class="hint-line">${fmtsFor().map(k=>FMTS[k][0]).join('・')}</span></div>
+    <div class="pset-row"><label>${isT()?'テスト形式':'入試形式'}</label>${opt('gpExam',[0,1,2,3,4,5,6,8,10,12],pr.exam,'問')}<span class="hint-line">${fmtsFor().map(k=>FMTS[k][0]).join('・')}</span></div>
     <div class="pset-row"><label>記述</label>${opt('gpEssay',[0,1,2,3,4],pr.essay,'問')}<span class="hint-line">指定語句：</span><button class="chip" data-ghint="1" aria-pressed="${G.hint}">つける</button><button class="chip" data-ghint="0" aria-pressed="${!G.hint}">つけない</button></div>
     <div class="pset-row"><label>完成テスト</label><button class="btn sm" data-gact="kansei">${G.unit==='all'?'全範囲':'この単元'}の完成テストを作る</button><button class="btn sm" data-gact="mock">${G.unit==='all'?'全範囲':G.unit.startsWith('ch:')?'この章':'この単元'}の模擬定期テスト（100点）を作る</button><span class="hint-line">一問一答10問・テスト形式5問（${G.subj==='tk'?'年表・時期・正誤・組み合わせ・原因と結果':'正誤・組み合わせ・資料など'}を1問ずつ）・記述2問。単元は上の「単元」で選びます。</span></div>
     <div class="pset-row"><label>解答</label><button class="chip" data-gans aria-pressed="${pr.answers}">解答ページをつける</button></div>
     <div class="pset-row"><label>用紙</label><span id="gPg" class="pginfo"></span><button class="btn sm" data-gact="fit" id="gFit" hidden>1枚に収める</button></div>
     <div class="actions"><button class="btn" data-gact="rebuild">問題を作り直す</button><button class="btn primary" data-gact="print">印刷する</button></div>
-    ${sh.note.length?`<p class="warn">${sh.note.map(esc).join('<br>')}</p>`:''}</div><div id="gsheets">${sheetHTML()}</div>`;
+    ${sh.note.length?`<p class="warn">${sh.note.map(esc).join('<br>')}</p>`:''}</div></div><div class="pright"><div id="gsheets">${sheetHTML()}</div></div></div>`;
   showPg();
 }
 function pages(){
@@ -5323,17 +5328,19 @@ document.addEventListener('click',ev=>{
   if(d.grevive){ DEL.delete(d.grevive); saveDel(); G.flash='復活しました。'; const y=window.scrollY; renderList(); window.scrollTo({top:y}); return; }
   if(d.gsel!==undefined&&G.cur&&!G.answered){ const c=G.cur; c.sel=c.sel||[]; const i=+d.gsel; c.sel=c.sel.includes(i)?c.sel.filter(x=>x!==i):[...c.sel,i]; renderQ(); return; }
   if(d.gopt!==undefined&&G.cur&&!G.answered){ const c=G.cur; c.given=+d.gopt; G.answered=true; judge(c.given===c.ans); renderQ(); return; }
-  if(d.gre||d.grm){ const k=d.gre||d.grm, i=+d.gi, sh=G.sheet;
+  // プリントの調整：「消す」はこのプリントから外すだけ（今後の出題には影響しない）。「この問題を変える」「＋1問追加」で入れかえ・追加
+  if(d.gre||d.grm||d.gadd){ const k=d.gre||d.grm||d.gadd, sh=G.sheet; const i=d.gadd?sh[k].length:+d.gi;
+    const newExam=()=>{ const used=new Set(sh.exam.map(x=>x.doc?'doc:'+x.doc:x.stem+'|'+(x.box||''))); for(let t=0;t<15;t++){ const q=mkExam('rand'); if(q&&!used.has(q.doc?'doc:'+q.doc:q.stem+'|'+(q.box||''))) return q; } return null; };
     if(d.grm) sh[k].splice(i,1);
     else if(k==='drill'){ const have=new Set(sh.drill.map(f=>norm(f.key))); const c=shuffle(facts()).find(f=>!have.has(norm(f.key))); if(c) sh.drill[i]=c; }
-    else if(k==='exam'){ const q=mkExam('rand'); if(q) sh.exam[i]=q; }
+    else if(k==='exam'){ const q=newExam(); if(q) sh.exam[i]=q; }
     else { const have=new Set(sh.essay.map(e=>e.id)); const c=shuffle(essays()).find(e=>!have.has(e.id)); if(c) sh.essay[i]=c; }
     G.pr.drill=sh.drill.length; G.pr.exam=sh.exam.length; G.pr.essay=sh.essay.length; const y=window.scrollY; renderPrint(); window.scrollTo({top:y}); return; }
   if(d.gact==='mcheck'&&G.cur&&!G.answered){ const c=G.cur; const a1=(c.sel||[]).slice().sort().join(), a2=c.ansSet.slice().sort().join(); c.okw=a1===a2; c.given=-2; G.answered=true; judge(c.okw); renderQ(); return; }
   switch(d.gact){
     case 'next': newG(); break;
     case 'esshow': { const t=$('#gEs'); G.cur.text=t?t.value:''; G.answered=true; judge(true); renderQ(); break; }
-    case 'del': { const c=G.cur; const id=c.f?c.f.id:null; if(id){ DEL.add(id); saveDel(); G.delMsg=`「${c.f.key}」の問題を出さないようにしました。「用語一覧」の「消したもの」から復活できます。`; } newG(); break; }
+    case 'del': { const c=G.cur; const id=c.f?c.f.id:null; if(id){ DEL.add(id); saveDel(); } newG(); break; }
     case 'rebuild': { let best=null,bp=99; for(let t=0;t<6;t++){ buildSheet(); renderPrint(); const n=pages(); if(n<bp){bp=n;best=G.sheet;} if(n<=1) break; } G.sheet=best; renderPrint(); break; }
     case 'fit': fitPage(); break;
     case 'hideans': G.hideAns=!G.hideAns; renderSumG(); break;
