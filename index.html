@@ -2637,8 +2637,12 @@ function genOrder(){
 
 // まぎらわしい語句（誤りの選択肢）を、ランダムではなく「似ている度合い」で選ぶ
 const perK=e=>({'戦国':'室町','昭和前':'昭和'}[e.per]||e.per);
+// 問題ごとに選んだ「まぎらわしい誤りの語句」（年:語句 → 語句の配列）
+const DMAP={};
+function curated(e,ex){ const L=DMAP[e.y+':'+e.key]||[]; return L.filter(w=>!ex.has(w)&&!e.alts.includes(w)&&!e.text.includes(w)); }
 function confusables(e,exclude){
   const ex=new Set([...(exclude||[]),...e.alts]);
+  const cur=curated(e,ex).map(w=>({x:E.find(z=>!z.deleted&&z.key===w&&z.kind===e.kind)||null,key:w,sc:99,d:0,why:['同じ種類でまぎらわしい語句']}));
   const k1=e.key.replace(/[（）()「」]/g,''); const t1=k1.slice(-1), t2=k1.slice(-2);
   const seen=new Set(); const out=[];
   for(const x of E){
@@ -2655,7 +2659,8 @@ function confusables(e,exclude){
     if(x.world===e.world) sc+=1;
     seen.add(x.key); out.push({x,key:x.key,sc,d,why});
   }
-  return out.sort((a,b)=>b.sc-a.sc||a.d-b.d);
+  const ck=new Set(cur.map(c=>c.key));
+  return [...shuffle(cur),...out.filter(o=>!ck.has(o.key)).sort((a,b)=>b.sc-a.sc||a.d-b.d)];
 }
 function genFill(){
   const P=pool(); let t=S.theme, rows;
@@ -2722,6 +2727,7 @@ function examPool(theme,min){
 }
 function distractorKey(e,ban){
   const bad=new Set([...(ban||[]),...e.alts]);
+  const cu=curated(e,bad); if(cu.length) return rand(cu);
   const base=E.filter(x=>!x.deleted&&x.kind===e.kind&&!bad.has(x.key)&&x.y!==e.y&&x.world===e.world);
   let c=base.filter(x=>x.tags.some(t=>e.tags.includes(t))&&Math.abs(x.y-e.y)<=200);
   if(!c.length) c=base.filter(x=>Math.abs(x.y-e.y)<=150);
@@ -4281,22 +4287,37 @@ function facts(all){ const d=D(); const L=d.facts.filter(f=>(all||!DEL.has(f.id)
 function essays(all){ const d=D(); return d.essays.filter(e=>(all||!DEL.has(e.id))&&um(e.u)); }
 function fresh(list,n){ const c=list.filter(x=>!G.recent.includes(x.id)); return c.length>=n?c:list; }
 function remember(xs){ xs.forEach(x=>{G.recent.push(x.id); if(G.recent.length>40) G.recent.shift();}); }
-// 同じカテゴリから、まぎらわしい誤りの語句を選ぶ
+// まぎらわしい誤りの語句を選ぶ。問題ごとに選んだ語（f.d）を優先し、足りなければ「同じ種類の語」から補う
+const DSUF=['工業地帯','工業地域','議定書','委員会','条約','協定','宣言','憲章','同盟','法度','式目','制度','主義','運動','改革','政策','戦争','の役','の乱','の変','事件','一揆','騒動','時代','文化','神社','機構','機関','銀行','会社','組合','半島','平野','盆地','台地','山脈','山地','高原','砂漠','海流','諸島','帝国','王国','物語','現象','権利','法','令','権','制','税','寺','宮','城','京','院','所','庁','省','党','川','湖','島','県','市','州','族','教','宗','記','集','率','者','国'];
+function dShape(a){
+  if(/[0-9０-９一二三四五六七八九十百千]/.test(a)&&/^[0-9０-９一二三四五六七八九十百千万.．/〜~約以上下分の]+.{0,3}$/.test(a)) return 'n:'+a.replace(/[0-9０-９一二三四五六七八九十百千万.．/〜~約以上下]/g,'');
+  if(/^[A-Za-zＡ-Ｚａ-ｚ0-9・\-]+$/.test(a)) return 'a';
+  const suf=DSUF.find(x=>a.length>x.length&&a.endsWith(x))||'';
+  return ((a.match(/[ァ-ヶー]/g)||[]).length/a.length>0.6?'k:':'j:')+suf;
+}
+const dPerson=f=>/人物/.test(f.c)||/人物|だれ/.test(f.t);
+function dCompat(a,b){ const sa=dShape(a); if(sa!==dShape(b)) return false; if(sa==='j:'||sa==='k:'){ const la=a.length, lb=b.length; if(lb<la/2||lb>la*2) return false; if((la<=2)!==(lb<=2)) return false; } return true; }
 function distract(f,n,ban){
   const bad=new Set([...f.alts.map(norm),...(ban||[]).map(norm)]);
-  const all=D().facts.filter(x=>!DEL.has(x.id)&&x.c===f.c&&!bad.has(norm(x.key)));
-  const uniq=[]; const seen=new Set();
-  const chO=D().chOf; const sc=x=>(x.u===f.u?2:0)+(chO&&chO[x.u]===chO[f.u]?1:0);
-  for(const x of shuffle(all).sort((a,b)=>sc(b)-sc(a))){ const k=norm(x.key); if(!seen.has(k)){seen.add(k);uniq.push(x.key);} }
-  if(uniq.length<n&&D().chapters){ const chO=D().chOf; const more=shuffle(D().facts.filter(x=>!DEL.has(x.id)&&!bad.has(norm(x.key))&&chO[x.u]===chO[f.u]&&!seen.has(norm(x.key)))); for(const x of more){ if(uniq.length>=n) break; seen.add(norm(x.key)); uniq.push(x.key); } }
-  return uniq.slice(0,n);
+  const ok=w=>w&&!bad.has(norm(w))&&!f.t.includes(w)&&!f.alts.some(a=>a.includes(w)||w.includes(a));
+  const out=[]; const seen=new Set();
+  for(const w of shuffle(f.d||[])){ if(out.length>=n) break; if(ok(w)&&!seen.has(norm(w))){ seen.add(norm(w)); out.push(w); } }
+  if(out.length>=n) return out;
+  const chO=D().chOf; const per=dPerson(f);
+  const sc=x=>(x.c===f.c?3:0)+(x.u===f.u?2:0)+(chO&&chO[x.u]===chO[f.u]?1:0)+(dShape(f.key).length>2?2:0);
+  const C=D().facts.filter(x=>!DEL.has(x.id)&&ok(x.key)&&dPerson(x)===per&&dCompat(f.key,x.key)&&sc(x)>=3);
+  for(const x of shuffle(C).sort((a,b)=>sc(b)-sc(a))){ if(out.length>=n) break; const k=norm(x.key); if(!seen.has(k)){ seen.add(k); out.push(x.key); } }
+  return out;
 }
 const fill=(f,w)=>esc(f.t).replace('〔〕',w);
 
 /* ---------- 問題をつくる ---------- */
 function mkDrill(){
   const P=fresh(facts(),1); if(!P.length) return null;
-  const f=rand(P); const ds=distract(f,3); if(ds.length<3) return null; remember([f]);
+  let f=null, ds=[];
+  if(G.write) f=rand(P);
+  else for(let t=0;t<30;t++){ const x=rand(P); const d=distract(x,3); if(d.length>=3){ f=x; ds=d; break; } }
+  if(!f) return null; remember([f]);
   const opts=shuffle([f.key,...ds]);
   return {type:'drill',f,stem:fill(f,'<span class="sblank">　　　</span>'),opts,ans:opts.indexOf(f.key),
     expl:`答え：<b>${esc(f.key)}</b>${f.alts.length>1?`（${f.alts.slice(1).map(esc).join('・')}も正解）`:''}<br>${fill(f,'<b>'+esc(f.key)+'</b>')}`};
