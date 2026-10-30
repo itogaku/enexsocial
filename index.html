@@ -5440,7 +5440,11 @@ function renderSumG(){
   $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="hideans" aria-pressed="${!!G.hideAns}">${G.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${G.unit==='all'?`<p class="hint-line">${showOv?'全体のまとめを表示しています。単元ごとのまとめは、上の「単元」で選んでください。':'上の「単元」でまとめを見たい単元を選んでください（いまは最初の単元を表示しています）。'}</p>`:''}</div><div id="gsheets" class="${G.hideAns?'hideans':''}">${showOv?window.ovHTML(OVK)+(G.subj==='tk'?tkNenpyoHTML():''):U.map(sumUnitHTML).join('')}</div>`;
 }
 function rikaiHTML(u){
-  const R=RIKAI[u.key]; if(!R) return '';
+  const RR=RIKAI[u.key]; if(!RR) return '';
+  if(Array.isArray(RR)) return RR.map(R=>rikaiSheet(u,R)).join(''); // 1つの単元に何枚かある場合
+  return rikaiSheet(u,RR);
+}
+function rikaiSheet(u,R){
   const em=t=>esc(t).replace(/\[\[([^\]]+)\]\]/g,'<b class="rk-em">$1</b>');
   const show=!!G.rkAns; let n=0;
   const fill=(R.fill||[]).map(x=>`<li>${esc(x.t).replace('〔〕',`<span class="rk-blank">${show?esc(x.k):'&nbsp;'}</span>`)}</li>`).join('');
