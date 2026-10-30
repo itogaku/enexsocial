@@ -456,6 +456,7 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .rk-blank{display:inline-block;min-width:5.5em;border:1.5px solid currentColor;border-radius:3px;padding:0 6px;line-height:1.5;text-align:center;font-weight:700;vertical-align:baseline}
 .rk-ok{border:1.5px solid currentColor;border-radius:50%;padding:0 4px}
 .rk-wq{margin:2px 0 4px}.rk-wbox{border:1.5px solid currentColor;border-radius:4px;min-height:4.2em;padding:6px 8px;line-height:1.7}
+/* 入試形式 */.rk-opts{display:flex;flex-wrap:wrap;gap:4px 16px;margin:4px 0}.rk-opts.col{flex-direction:column}.rk-line{margin:2px 0 6px}.rk-ans{font-weight:700;margin:2px 0 8px}.rk-use{font-size:13px;margin-left:4px}.rk-tbl{margin:6px 0 2px}
 .rk-tip{margin:12px 0 0;padding:6px 10px;border-radius:8px;border:1px dashed currentColor;line-height:1.7}.rk-tip b{margin-right:8px}
 </style>
 <style id="gcss">
@@ -518,6 +519,7 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
  <button id="tab-exam" data-mode="exam" aria-pressed="false">入試形式<small>年表・正誤など</small></button>
       <button id="tab-list" data-mode="list" aria-pressed="false">年表一覧<small>選んで出題</small></button>
       <button id="tab-sum" data-mode="sum" aria-pressed="false">まとめ<small>学ぶことの整理</small></button>
+      <button id="tab-rikai" data-mode="rikai" aria-pressed="false">理解<small>説明を読んで解く</small></button>
       <button id="tab-print" data-mode="print" aria-pressed="false">プリント<small>A4で印刷</small></button>
     </div>
     <div class="optrows" id="eraRow"></div>
@@ -2371,7 +2373,7 @@ const S = {mode:'order', eras:new Set(ERAS.map(e=>e[0])), world:true, n:'r', the
   omode:'bank', ordImp:'prefer', noObvious:true, ranks:['A','B','C'], rankWeight:true, cands:[], candOpen:false, candTarget:20, span:'free', recentThemes:[], avoidThemes:[], exclude:null, listTheme:'all', listKind:'ev', listFilter:'all', editing:null, editFocus:false, flash:'', q:'', sel:new Set(), custom:[],
   pr:{title:'歴史 確認プリント', order:4, orderN:'r', fill:6, bank:true, exam:2, essay:1, answers:true}, examFmt:'rand',
   sheet:null, total:0, ok:0, streak:0, qno:0, cur:null, answered:false, lastTheme:null, recent:[], msg:''};
-try{const m=localStorage.getItem('rk-mode'); if(['order','fill','essay','exam','list','print','sum'].includes(m)) S.mode=m;}catch(e){}
+try{const m=localStorage.getItem('rk-mode'); if(['order','fill','essay','exam','list','print','sum','rikai'].includes(m)) S.mode=m;}catch(e){}
 
 const KANA=['ア','イ','ウ','エ','オ','カ','キ','ク'];
 const MARU='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯';
@@ -3443,6 +3445,13 @@ const SUM_PLUS={"e01":{"pts":["旧石器時代は打製石器だけを使った�
 const plusCell=c=>esc(c).replace(/\[\[([^\]]+)\]\]/g,'<b class="ans">$1</b>');
 const plusPts=P=>P&&P.pts&&P.pts.length?`<ul class="sumpt sumplus">${P.pts.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
 const plusTbl=P=>P&&P.tbl&&P.tbl.length?P.tbl.map(t=>`<div class="tsum"><div class="tsum-h">${esc(t.t)}</div><table class="xnen stbl tsumt"><thead><tr>${t.h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.r.map(r=>`<tr>${r.map((c,i)=>i?`<td>${plusCell(c)}</td>`:`<th>${plusCell(c)}</th>`).join('')}</tr>`).join('')}</tbody></table></div>`).join(''):'';
+// 理解プリント（歴史）：表示は地理・公民タブと共通（window.rikaiFor）
+function rkKey(){ return THEMES[S.rkTheme]?S.rkTheme:'e01'; }
+function renderRikaiH(){
+  if(!window.rikaiFor){ setTimeout(renderRikaiH,0); return; } // 地理・公民側のスクリプトの読みこみ後に表示
+  const k=rkKey(); const h=window.rikaiFor?window.rikaiFor('he:'+k,THEMES[k],S.rkAns):'';
+  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-act="rkans" aria-pressed="${!!S.rkAns}">${S.rkAns?'答えをかくす':'答えを表示する'}</button><button class="btn primary" data-act="print">印刷する</button></div>${h?'':'<div class="empty">この単元の理解プリントは準備中です。</div>'}</div><div id="sheets">${h}</div>`;
+}
 function sumKey(){ return (THEMES[S.sumTheme]||S.sumTheme==='ov')?S.sumTheme:'e01'; }
 function sumHTML(t){
   const ev=E.filter(e=>!e.deleted&&e.tags.includes(t)&&S.ranks.includes(e.rank)).sort((a,b)=>a.y-b.y);
@@ -3606,6 +3615,8 @@ function renderControls(){
        <span class="lab" style="min-width:auto">指定語句</span><button class="chip" data-hintset="1" aria-pressed="${S.hint}">あり</button><button class="chip" data-hintset="0" aria-pressed="${!S.hint}">なし</button>`;
   }else if(S.mode==='sum'){
     h=`<span class="lab">単元</span><select class="sel" id="sumTheme" aria-label="単元"><option value="ov" ${sumKey()==='ov'?'selected':''}>全体のまとめ（歴史の流れ）</option>${themeGroups(k=>`<option value="${k}" ${sumKey()===k?'selected':''}>${esc(THEMES[k])}</option>`)}</select>`;
+  }else if(S.mode==='rikai'){
+    h=`<span class="lab">単元</span><select class="sel" id="rkTheme" aria-label="単元">${themeGroups(k=>`<option value="${k}" ${rkKey()===k?'selected':''}>${esc(THEMES[k])}${window.RIKAI&&window.RIKAI['he:'+k]?'':'（準備中）'}</option>`)}</select>`;
   }else if(S.mode==='list'){
     h=`<span class="lab">テーマ</span><select class="sel" id="themeSel" aria-label="テーマで絞り込む"><option value="all">すべてのテーマ</option>${
       themeGroups(k=>`<option value="${k}" ${S.listTheme===k?'selected':''}>${esc(THEMES[k])}（${cnt(k)}）</option>`)
@@ -3625,6 +3636,7 @@ function newQuestion(){
   S.msg='';
   if(S.mode==='list'){S.cur=null;renderList();return;}
   if(S.mode==='sum'){S.cur=null;renderSum();return;}
+  if(S.mode==='rikai'){S.cur=null;renderRikaiH();return;}
   if(S.mode==='print'){S.cur=null;buildSheet();if(!S.prFitted){S.prFitted=true;fitOnePage();}else renderPrint();return;}
   S.answered=false;
   S.cur={order:genOrder,fill:genFill,essay:genEssay,exam:genExam}[S.mode]();
@@ -4231,6 +4243,7 @@ document.addEventListener('click',ev=>{
     case 'bkimport': { let m; try{ m=JSON.parse($('#bkIn').value); }catch(e){ S.flash='貼り付けた文字を読み取れませんでした。コピーした内容をそのまま貼り付けてください。'; renderList(); break; }
       b.disabled=true; if(Array.isArray(m.__ban)){ m.__ban.forEach(x=>BAN.add(x)); saveBan(); } if(Array.isArray(m.__bancombo)){ m.__bancombo.forEach(k=>{ if(!BANC.includes(k)) BANC.push(k); }); saveBanC(); } if(m.__canon){ (m.__canon.add||[]).forEach(x=>CANON_U.add.add(x)); (m.__canon.del||[]).forEach(x=>CANON_U.del.add(x)); saveCanon(); } (async()=>{ let n=0; for(const k in m){ if(ITEM[k]&&m[k]&&typeof m[k]==='object'){ await Store.put(k,m[k]); n++; } } S.flash=`${n}件の編集データを取り込みました。`; renderList(); })(); break; }
     case 'hideans': S.hideAns=!S.hideAns; renderSum(); break;
+    case 'rkans': S.rkAns=!S.rkAns; renderRikaiH(); break;
     case 'print': try{ window.print(); }catch(e){} break;
   }
 });
@@ -4238,6 +4251,7 @@ document.addEventListener('change',ev=>{
   const id=ev.target.id, v=ev.target.value;
   if(id==='themeSel'){S.listTheme=v;renderList();}
   if(id==='sumTheme'){S.sumTheme=v;renderSum();}
+  if(id==='rkTheme'){S.rkTheme=v;renderRikaiH();}
   if(id==='genTheme'){S.theme=v;S.lastTheme=null;const bn=document.querySelector('.bankn'); if(bn&&S.omode==='bank') bn.textContent=`この条件で ${bankFor(S.theme,S.n).length} 問`;newQuestion();}
   if(id==='prOrder'){S.pr.order=+v;buildSheet();renderPrint();}
   if(id==='prOrderN'){S.pr.orderN=v==='r'?'r':+v;buildSheet();renderPrint();}
@@ -5447,16 +5461,31 @@ function rikaiHTML(u){
 function rikaiSheet(u,R){
   const em=t=>esc(t).replace(/\[\[([^\]]+)\]\]/g,'<b class="rk-em">$1</b>');
   const show=!!G.rkAns; let n=0;
+  const tbl=t=>t?`<div class="rk-tbl"><div class="tsum-h">${esc(t.t)}</div><table class="xnen stbl tsumt"><thead><tr>${t.h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.r.map(r=>`<tr>${r.map((c,i)=>i?`<td>${esc(c)}</td>`:`<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</tbody></table>${t.src?`<div class="srcnote">${esc(t.src)}</div>`:''}</div>`:'';
+  const Q=(lab,body)=>body?`<div class="rk-q"><span class="rk-no">${++n}</span>${lab}</div>${body}`:'';
+  const ans=a=>show?`<div class="rk-ans">答え：${esc(a)}</div>`:'';
+  const K='アイウエオ';
   const fill=(R.fill||[]).map(x=>`<li>${esc(x.t).replace('〔〕',`<span class="rk-blank">${show?esc(x.k):'&nbsp;'}</span>`)}</li>`).join('');
   const pick=(R.pick||[]).map(x=>`<li>${esc(x.t).replace(/（([^（）]+・[^（）]+)）/,(m,o)=>'（ '+o.split('・').map(w=>show&&w===x.k?`<b class="rk-ok">${esc(w)}</b>`:esc(w)).join(' ・ ')+' ）')}</li>`).join('');
-  const wr=R.wr?`<div class="rk-q"><span class="rk-no">${fill&&pick?3:2}</span>次の問いに答えましょう。</div><p class="rk-wq">${esc(R.wr.q)}</p><div class="rk-wbox">${show?esc(R.wr.a):''}</div>`:'';
+  const order=(R.order||[]).map(x=>`<li>${esc(x.q||'次のできごとを、古い順に並べましょう。')}<div class="rk-opts">${x.items.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div><div class="rk-line">（　　→　　→　　${x.items.length>3?'→　　':''}）</div>${ans(x.ans)}</li>`).join('');
+  const tf=(R.tf||[]).map(x=>`<li><div class="rk-opts col"><span>X　${esc(x.x)}</span><span>Y　${esc(x.y)}</span></div>${ans('X '+(x.ax?'正':'誤')+'・Y '+(x.ay?'正':'誤')+(x.why?'（'+x.why+'）':''))}</li>`).join('');
+  const data=(R.data||[]).map(x=>`<li>${esc(x.q)}${x.opts?`<div class="rk-opts">${x.opts.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div>`:''}${ans(x.a)}</li>`).join('');
+  const wrs=[].concat(R.wr||[]);
+  const wr=wrs.map(w=>`<li>${esc(w.q)}${w.use&&w.use.length?`<span class="rk-use">（${w.use.map(x=>'「'+esc(x)+'」').join('')}の語を使って${w.lim?w.lim+'字程度で':''}）</span>`:''}<div class="rk-wbox">${show?esc(w.a):''}</div></li>`).join('');
   return `<div class="sheet rksheet"><div class="rk-head"><span class="rk-unit">理解プリント｜${esc(u.name)}</span><h3>${esc(R.q)}</h3></div>
-  <div class="rkgrid"><div class="rk-exp"><p class="rk-lead">${em(R.lead)}</p>${(R.sec||[]).map(x=>`<section class="rk-box"><h4>${esc(x.h)}</h4>${x.b.map(t=>`<p>${em(t)}</p>`).join('')}</section>`).join('')}</div>
-  <div class="rk-pr"><h4 class="rk-pt">基本練習<small>左の説明を見ながら解きましょう</small></h4>
-  ${fill?`<div class="rk-q"><span class="rk-no">${++n}</span>〔　〕にあてはまる語句を書きましょう。</div><ol class="rk-list">${fill}</ol>`:''}
-  ${pick?`<div class="rk-q"><span class="rk-no">${++n}</span>（　）のうち、正しいほうを選びましょう。</div><ol class="rk-list">${pick}</ol>`:''}
-  ${wr}${R.tip?`<p class="rk-tip"><b>ポイント</b>${em(R.tip)}</p>`:''}</div></div></div>`;
+  <div class="rkgrid"><div class="rk-exp"><p class="rk-lead">${em(R.lead)}</p>${(R.sec||[]).map(x=>`<section class="rk-box"><h4>${esc(x.h)}</h4>${x.b.map(t=>`<p>${em(t)}</p>`).join('')}${tbl(x.tbl)}</section>`).join('')}</div>
+  <div class="rk-pr"><h4 class="rk-pt">${R.order||R.tf||R.data?'練習（入試形式）':'基本練習'}<small>左の説明を見ながら解きましょう</small></h4>
+  ${fill?Q('〔　〕にあてはまる語句を書きましょう。',`<ol class="rk-list">${fill}</ol>`):''}
+  ${pick?Q('（　）のうち、正しいほうを選びましょう。',`<ol class="rk-list">${pick}</ol>`):''}
+  ${order?Q('並べかえましょう。',`<ol class="rk-list">${order}</ol>`):''}
+  ${tf?Q('次の文X・Yの正誤を答えましょう。',`<ol class="rk-list">${tf}</ol>`):''}
+  ${data?Q('資料を読み取りましょう。',`<ol class="rk-list">${data}</ol>`):''}
+  ${wr?Q('次の問いに答えましょう。',`<ol class="rk-list">${wr}</ol>`):''}
+  ${R.tip?`<p class="rk-tip"><b>ポイント</b>${em(R.tip)}</p>`:''}</div></div></div>`;
 }
+// 歴史タブからも使う
+window.RIKAI=RIKAI; window.rikaiFor=(key,name,showAns)=>{ const o=G.rkAns; G.rkAns=!!showAns; const h=rikaiHTML({key,name}); G.rkAns=o; return h; };
+
 function renderRikai(){
   const d=D(); const U=sumUnits().filter(u=>RIKAI[u.key]);
   const any=d.units.some(u=>RIKAI[u.key]);
