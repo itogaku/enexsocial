@@ -5564,28 +5564,31 @@ function kFig(f){
 function kOpts(o){ if(o&&o.every(x=>/^[ア-ンA-Z]$/.test(String(x).trim()))) return ''; // 表の記号から選ぶ問題は、選択肢を並べない
   return o&&o.length?`<div class="rk-opts${o.some(x=>x.length>14)?' col':''}">${o.map((t,i)=>`<span>${'アイウエオカキク'[i]}　${esc(t)}</span>`).join('')}</div>`:''; }
 function kQ(x){ return `<p class="k-qt">${esc(x.q)}</p>${[].concat(x.fig||[]).map(kFig).join('')}${kOpts(x.opts)}`; }
+// 選択肢が表の記号（A〜D・ア〜エ）だけのときは、答えもその記号で表示する
+const kOnlyLab=o=>o&&o.length&&o.every(x=>/^[ア-ンA-Z]$/.test(String(x).trim()));
+function kA(x){ const a=String(x.a||''); return kOnlyLab(x.opts)?a.replace(/[アイウエオカキク]/g,c=>{ const i='アイウエオカキク'.indexOf(c); return x.opts[i]!=null?String(x.opts[i]).trim():c; }):a; }
 const kNo=['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
 function kataHTML(K,show){
   let h=`<div class="sheet ksheet"><div class="rk-head k-head"><span class="rk-unit">解き方｜${esc(K.area||'')}</span><h3>${esc(K.t)}</h3>${K.lead?`<p class="k-lead">${esc(K.lead)}</p>`:''}</div>`;
   (K.rei||[]).forEach((R,ri)=>{
     h+=`<section class="k-rei"><h4 class="k-sh">例題と解き方${K.rei.length>1?` ${ri+1}`:''}${R.h?`<small>${esc(R.h)}</small>`:''}</h4><div class="k-box">${kQ(R)}</div>`;
     h+=(R.steps||[]).map((s,i)=>`<div class="k-step"><div class="k-sth"><span class="k-tag">解き方</span><span class="k-ck">✓${i+1}</span>${esc(s.h)}</div>${(s.b||[]).map(t=>`<p>${esc(t).replace(/\[\[([^\]]+)\]\]/g,'<b class="rk-em">$1</b>')}</p>`).join('')}${[].concat(s.fig||[]).map(kFig).join('')}</div>`).join('');
-    h+=`<div class="k-reia">例題の答え　<b>${esc(R.a)}</b></div></section>`;
+    h+=`<div class="k-reia">例題の答え　<b>${esc(kA(R))}</b></div></section>`;
   });
   if((K.chk||[]).length){
     h+=`<section class="k-chk"><h4 class="k-sh">解き方チェック問題<small>解き方を使って実際に解いてみよう</small></h4>`;
     K.chk.forEach((C,ci)=>{ let bn=0;
       h+=`<div class="k-cq"><span class="rk-no">${ci+1}</span>${kQ(C)}</div>`;
       h+=(C.steps||[]).map(s=>{ const ks=[].concat(s.k||[]); let j=0; const body=esc(s.t).replace(/〔〕/g,()=>{ const k=ks[j++]||''; bn++; return `<span class="rk-blank">${show?esc(k):kNo[bn]||''}</span>`; });
-        return `<div class="k-cstep"><span class="k-tag">解き方 ✓${s.no||''}</span>${s.h?`<b>${esc(s.h)}</b>`:''}<p>${body}</p></div>`; }).join('');
-      h+=`<div class="k-ans">答え　<span class="k-aline">${show?esc(C.a):''}</span></div>`;
+        return `<div class="k-cstep"><span class="k-tag">${s.no?'解き方 ✓'+s.no:'手順'}</span>${s.h?`<b>${esc(s.h)}</b>`:''}<p>${body}</p></div>`; }).join('');
+      h+=`<div class="k-ans">答え　<span class="k-aline">${show?esc(kA(C)):''}</span></div>`;
     });
     h+='</section>';
   }
   if((K.jis||[]).length){
     h+=`<section class="k-jis"><h4 class="k-sh">実践問題</h4>`;
     K.jis.forEach((J,ji)=>{
-      h+=`<div class="k-jq"><span class="rk-no">${ji+1}</span>${J.tag?`<span class="k-jtag">${esc(J.tag)}</span>`:''}${kQ(J)}${J.opts&&J.opts.length?`<div class="k-ans">答え　<span class="k-aline">${show?esc(J.a):''}</span></div>`:`<div class="rk-wbox">${show?esc(J.a):''}</div>`}${show&&J.kai?`<div class="k-kai"><b>解説</b>${J.step?`<span class="k-tag">解き方 ${esc(J.step)}</span>`:''}${esc(J.kai)}</div>`:''}</div>`;
+      h+=`<div class="k-jq"><span class="rk-no">${ji+1}</span>${J.tag?`<span class="k-jtag">${esc(J.tag)}</span>`:''}${kQ(J)}${J.opts&&J.opts.length?`<div class="k-ans">答え　<span class="k-aline">${show?esc(kA(J)):''}</span></div>`:`<div class="rk-wbox">${show?esc(J.a):''}</div>`}${show&&J.kai?`<div class="k-kai"><b>解説</b>${J.step?`<span class="k-tag">解き方 ${esc(J.step)}</span>`:''}${esc(J.kai)}</div>`:''}</div>`;
     });
     h+='</section>';
   }
