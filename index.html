@@ -447,6 +447,7 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .cb-text{border:1.5px solid currentColor;padding:6px 12px;margin:6px 0;line-height:1.9}.cb-text p{margin:2px 0}
 .cb-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin:6px 0}.cb-panel{border:1.5px solid currentColor;padding:6px 10px}.cb-ph{font-weight:700}.cb-panel p{margin:4px 0;line-height:1.8}
 .cb-q{display:grid;grid-template-columns:2.4em 1fr;gap:4px;margin:10px 0;break-inside:avoid}.cb-qn{font-weight:700}
+.cb-tools{display:flex;justify-content:flex-end;margin:8px 0 -6px}.cb-tools .qtools{float:none}.cb-gone{margin:4px 0;font-size:13px;opacity:.7}.cb-src{margin:0 0 4px}.cb-srct{font-size:12px;color:var(--muted);margin-right:6px}.cb-srcld{border:1px dashed currentColor;border-radius:6px;padding:4px 10px;margin:4px 0}@media print{.cb-gone,.cb-tools{display:none!important}.cb-srct{display:none}}
 @media print{ .cb-dai{break-before:page} .cb-dai:first-of-type{break-before:auto} .cb-key{break-before:page} }
 /* なぜ？ */
 .nz-stars{float:right;font-size:12px;color:var(--muted)}.nz-q{font-size:24px!important;line-height:1.5}
@@ -5692,16 +5693,48 @@ function cbLead(L){
   h+=[].concat(L.fig||[]).map(kFig).join('');
   return h;
 }
+// 問題ごとの「消す」「入れ替える」（このブラウザに保存。印刷にも反映）
+// CBX[key] = 'del'（消した） / 'si|di|qi'（ほかの回の同じ大問・同じ形式の問題と入れ替えた）
+let CBX={}; try{ CBX=ls.get('cb-x',{})||{}; }catch(e){ CBX={}; }
+const cbSave=()=>ls.set('cb-x',CBX);
+const cbKey=(si,di,qi)=>si+'|'+di+'|'+qi;
+const cbAt=k=>{ const [a,b,c]=String(k).split('|').map(Number); const S=CB[a]; const D_=S&&S.dai[b]; const Q=D_&&D_.qs[c]; return Q?{S,D_,Q,si:a,di:b,qi:c}:null; };
+// 本文の下線部や資料を見ないと解けない問題か
+const cbNeedLead=Q=>/下線部|文章|会話|パネル|カード|レポート|スライド|略年表|本文|資料|図|表|グラフ|メモ|[ⅠⅡⅢ]の(文|資料)/.test(Q.q||'');
+function cbSwapCands(si,di,qi){
+  const Q=CB[si].dai[di].qs[qi], f=cbFmt(Q);
+  const used=new Set(Object.values(CBX).filter(v=>v!=='del'));
+  const L=[]; CB.forEach((S,a)=>{ if(a===si) return; const D_=S.dai[di]; if(!D_) return; D_.qs.forEach((R,c)=>{ if(cbFmt(R)===f) L.push(cbKey(a,di,c)); }); });
+  const free=L.filter(k=>!used.has(k));
+  // 導入を見なくても解ける問題を先に
+  return free.filter(k=>!cbNeedLead(cbAt(k).Q)).concat(free.filter(k=>cbNeedLead(cbAt(k).Q)));
+}
+function cbQHTML(Q,n,show,tools,src){
+  const mc=(Q.opts&&Q.opts.length)||(Q.sub&&Q.sub.length);
+  return `${tools?`<div class="cb-tools">${tools}</div>`:''}<div class="cb-q"><span class="cb-qn">(${n})</span><div>${src||''}${kQ(Q)}${mc||Q.kind==='語句'?`<div class="k-ans">答え　<span class="k-aline">${show?esc(kA(Q)):''}</span></div>`:`<div class="rk-wbox">${show?esc(Q.a):''}</div>`}${show&&Q.kai?`<div class="k-kai"><b>解説</b>${esc(Q.kai)}</div>`:''}</div></div>`;
+}
+const cbTools=(k,swap)=>`<span class="qtools">${swap?`<button class="tbtn" data-cbx="swap" data-cbk="${k}">入れ替える</button>`:''}<button class="tbtn del" data-cbx="del" data-cbk="${k}">消す</button></span>`;
 function cbHTML(S,show){
+  const si=CB.indexOf(S);
   let h=`<div class="sheet cbsheet"><div class="rk-head"><span class="rk-unit">入試演習（千葉県公立入試の形式）</span><h3>社会　${esc(S.t)}</h3></div>`;
-  const key=[];
+  const key=[]; let dn=0;
   (S.dai||[]).forEach((D_,di)=>{
-    h+=`<section class="cb-dai"><h4 class="cb-dh"><span class="cb-no">${di+1}</span>${esc(D_.area||CB_AREA[di]||'')}</h4>${cbLead(D_.lead)}`;
+    const live=(D_.qs||[]).some((Q,qi)=>CBX[cbKey(si,di,qi)]!=='del');
+    if(live) dn++;
+    let b=`<section class="cb-dai${live?'':' cb-gone'}"><h4 class="cb-dh"><span class="cb-no">${live?dn:'－'}</span>${esc(D_.area||CB_AREA[di]||'')}</h4>${live?cbLead(D_.lead):''}`;
+    let n=0;
     (D_.qs||[]).forEach((Q,qi)=>{
-      const mc=(Q.opts&&Q.opts.length)||(Q.sub&&Q.sub.length); key.push([di+1,qi+1,kA(Q)]);
-      h+=`<div class="cb-q"><span class="cb-qn">(${qi+1})</span><div>${kQ(Q)}${mc||Q.kind==='語句'?`<div class="k-ans">答え　<span class="k-aline">${show?esc(kA(Q)):''}</span></div>`:`<div class="rk-wbox">${show?esc(Q.a):''}</div>`}${show&&Q.kai?`<div class="k-kai"><b>解説</b>${esc(Q.kai)}</div>`:''}</div></div>`;
+      const k=cbKey(si,di,qi), x=CBX[k];
+      if(x==='del'){ b+=`<div class="cb-gone"><button class="tbtn" data-cbx="back" data-cbk="${k}">消した (${qi+1}) を元に戻す</button></div>`; return; }
+      n++;
+      let R=Q, src='';
+      const o=x?cbAt(x):null;
+      if(o){ R=o.Q;
+        src=`<div class="cb-src"><span class="cb-srct">${esc(o.S.t)}　大問${o.di+1}の(${o.qi+1})より</span><span class="qtools"><button class="tbtn" data-cbx="back" data-cbk="${k}">もとの問題に戻す</button></span>${cbNeedLead(R)?`<div class="cb-srcld">${cbLead(o.D_.lead)}</div>`:''}</div>`; }
+      key.push([dn,n,kA(R)]);
+      b+=cbQHTML(R,n,show,cbTools(k,true),src);
     });
-    h+='</section>';
+    h+=b+'</section>';
   });
   if(show) h+=`<section class="cb-key"><h4 class="k-sh">解答一覧</h4><table class="xnen stbl"><tbody>${key.map(([d,q,a])=>`<tr><th>${d}－(${q})</th><td>${esc(a)}</td></tr>`).join('')}</tbody></table></section>`;
   return h+'</div>';
@@ -5727,14 +5760,16 @@ function renderCBPanel(){
 }
 function cbFmtHTML(f,show){
   const name=(CB_FMT.find(x=>x[0]===f)||['',''])[1]; let h=`<div class="sheet cbsheet"><div class="rk-head"><span class="rk-unit">入試演習（千葉県公立入試の形式）</span><h3>形式別：${esc(name)}</h3></div>`; let n=0;
-  CB.forEach(S=>S.dai.forEach((D_,di)=>D_.qs.forEach((Q,qi)=>{ if(cbFmt(Q)!==f) return; n++;
-    const mc=(Q.opts&&Q.opts.length)||(Q.sub&&Q.sub.length);
-    h+=`<section class="cb-dai cb-fq"><h4 class="cb-dh"><span class="cb-no">${n}</span>${esc(S.t)}　大問${di+1}（${esc(D_.area||CB_AREA[di]||'')}）の(${qi+1})</h4><details class="cb-ld"><summary>導入の文・資料を見る（下線部はここにあります）</summary>${cbLead(D_.lead)}</details><div class="cb-q"><span class="cb-qn">(${qi+1})</span><div>${kQ(Q)}${mc||Q.kind==='語句'?`<div class="k-ans">答え　<span class="k-aline">${show?esc(kA(Q)):''}</span></div>`:`<div class="rk-wbox">${show?esc(Q.a):''}</div>`}${show&&Q.kai?`<div class="k-kai"><b>解説</b>${esc(Q.kai)}</div>`:''}</div></div></section>`; })));
+  CB.forEach((S,si)=>S.dai.forEach((D_,di)=>D_.qs.forEach((Q,qi)=>{ if(cbFmt(Q)!==f) return; const k=cbKey(si,di,qi);
+    if(CBX[k]==='del'){ h+=`<div class="cb-gone"><button class="tbtn" data-cbx="back" data-cbk="${k}">消した ${esc(S.t)} 大問${di+1}の(${qi+1}) を元に戻す</button></div>`; return; }
+    n++;
+    h+=`<section class="cb-dai cb-fq"><h4 class="cb-dh"><span class="cb-no">${n}</span>${esc(S.t)}　大問${di+1}（${esc(D_.area||CB_AREA[di]||'')}）の(${qi+1})</h4><details class="cb-ld"><summary>導入の文・資料を見る（下線部はここにあります）</summary>${cbLead(D_.lead)}</details>${cbQHTML(Q,qi+1,show,cbTools(k,false),'')}</section>`; })));
   return h+'</div>';
 }
+function cbXCount(){ return Object.entries(CBX).filter(([k,v])=>G.cbFmt?v==='del'&&cbAt(k)&&cbFmt(cbAt(k).Q)===G.cbFmt:k.split('|')[0]===String(G.cb)).length; }
 function renderCB(){
   if(G.cb==null||G.cb>=CB.length) G.cb=0;
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="cbans" aria-pressed="${!!G.cbAns}">${G.cbAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${CB.length?'':'<div class="empty">準備中です。</div>'}</div><div id="gsheets">${CB.length?(G.cbFmt?cbFmtHTML(G.cbFmt,G.cbAns):cbHTML(CB[G.cb],G.cbAns)):''}</div>`;
+  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="cbans" aria-pressed="${!!G.cbAns}">${G.cbAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-gact="print">印刷する</button>${cbXCount()?`<button class="btn" data-cbx="reset">${G.cbFmt?'消した問題をすべて元に戻す':'この回の消す・入れ替えをすべて元に戻す'}（${cbXCount()}問）</button>`:''}</div><p class="hint-line">問題の右上の「消す」「入れ替える」で、プリントを作りかえられます（印刷にも反映。入れ替えは、ほかの回の同じ大問・同じ形式の問題から選びます）。</p>${CB.length?'':'<div class="empty">準備中です。</div>'}</div><div id="gsheets">${CB.length?(G.cbFmt?cbFmtHTML(G.cbFmt,G.cbAns):cbHTML(CB[G.cb],G.cbAns)):''}</div>`;
 }
 
 function renderRikai(){
@@ -6016,6 +6051,13 @@ document.addEventListener('click',ev=>{
     else { const have=new Set(sh.essay.map(e=>e.id)); const c=shuffle(essays()).find(e=>!have.has(e.id)); if(c) sh.essay[i]=c; }
     G.pr.drill=sh.drill.length; G.pr.exam=sh.exam.length; G.pr.essay=sh.essay.length; const y=window.scrollY; renderPrint(); window.scrollTo({top:y}); return; }
   if(d.gact==='mcheck'&&G.cur&&!G.answered){ const c=G.cur; const a1=(c.sel||[]).slice().sort().join(), a2=c.ansSet.slice().sort().join(); c.okw=a1===a2; c.given=-2; G.answered=true; judge(c.okw); renderQ(); return; }
+  if(d.cbx){ const k=d.cbk, y=window.scrollY;
+    if(d.cbx==='del') CBX[k]='del';
+    else if(d.cbx==='back') delete CBX[k];
+    else if(d.cbx==='swap'){ const [a,b2,c]=k.split('|').map(Number); const cur=CBX[k]&&CBX[k]!=='del'?CBX[k]:null; if(cur) delete CBX[k]; const L=cbSwapCands(a,b2,c); if(!L.length){ alert('入れ替えられる問題がありません（同じ大問・同じ形式の問題をすべて使っています）。'); if(cur) CBX[k]=cur; }
+      else { const i=cur?L.indexOf(cur):-1; CBX[k]=L[(i+1)%L.length]; } }
+    else if(d.cbx==='reset'){ for(const kk of Object.keys(CBX)){ if(G.cbFmt?(CBX[kk]==='del'&&cbAt(kk)&&cbFmt(cbAt(kk).Q)===G.cbFmt):kk.split('|')[0]===String(G.cb)) delete CBX[kk]; } }
+    cbSave(); renderCB(); window.scrollTo({top:y}); return; }
   switch(d.gact){
     case 'next': newG(); break;
     case 'esshow': { const t=$('#gEs'); G.cur.text=t?t.value:''; G.answered=true; judge(true); renderQ(); break; }
