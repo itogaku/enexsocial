@@ -441,6 +441,7 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 }
 
 /* 入試演習（千葉） */
+.k-sub{margin:4px 0}.k-sub>b{font-size:13px}.cb-ld{margin:4px 0 6px;border:1px dashed currentColor;border-radius:6px;padding:4px 10px}.cb-ld summary{cursor:pointer;font-size:13px}@media print{.cb-fq{break-before:auto}.cb-ld{border:none;padding:0}}
 .cb-dai{margin:18px 0 10px}.cb-dh{font-size:17px;margin:0 0 8px;display:flex;align-items:center;gap:10px}.cb-no{display:inline-block;width:1.8em;height:1.8em;line-height:1.8em;text-align:center;border:2px solid currentColor;font-weight:700}
 .cb-intro{margin:4px 0;line-height:1.8}.cb-talk{border:1.5px solid currentColor;border-radius:6px;padding:6px 10px;line-height:1.9;margin:6px 0}.cb-talk b{display:inline-block;min-width:3.5em}
 .cb-text{border:1.5px solid currentColor;padding:6px 12px;margin:6px 0;line-height:1.9}.cb-text p{margin:2px 0}
@@ -5598,7 +5599,7 @@ function kFig(f){
 }
 function kOpts(o){ if(o&&o.every(x=>/^[ア-ンA-Z]$/.test(String(x).trim()))) return ''; // 表の記号から選ぶ問題は、選択肢を並べない
   return o&&o.length?`<div class="rk-opts${o.some(x=>x.length>14)?' col':''}">${o.map((t,i)=>`<span>${'アイウエオカキク'[i]}　${esc(t)}</span>`).join('')}</div>`:''; }
-function kQ(x){ return `<p class="k-qt">${esc(x.q)}</p>${[].concat(x.fig||[]).map(kFig).join('')}${kOpts(x.opts)}`; }
+function kQ(x){ return `<p class="k-qt">${esc(x.q)}</p>${[].concat(x.fig||[]).map(kFig).join('')}${kOpts(x.opts)}${(x.sub||[]).map(g=>`<div class="k-sub"><b>${esc(g.h)}の選択肢</b>${kOpts(g.o)}</div>`).join('')}`; }
 // 選択肢が表の記号（A〜D・ア〜エ）だけのときは、答えもその記号で表示する
 const kOnlyLab=o=>o&&o.length&&o.every(x=>/^[ア-ンA-Z]$/.test(String(x).trim()));
 function kA(x){ const a=String(x.a||''); return kOnlyLab(x.opts)?a.replace(/[アイウエオカキク]/g,c=>{ const i='アイウエオカキク'.indexOf(c); return x.opts[i]!=null?String(x.opts[i]).trim():c; }):a; }
@@ -5697,7 +5698,7 @@ function cbHTML(S,show){
   (S.dai||[]).forEach((D_,di)=>{
     h+=`<section class="cb-dai"><h4 class="cb-dh"><span class="cb-no">${di+1}</span>${esc(D_.area||CB_AREA[di]||'')}</h4>${cbLead(D_.lead)}`;
     (D_.qs||[]).forEach((Q,qi)=>{
-      const mc=Q.opts&&Q.opts.length; key.push([di+1,qi+1,kA(Q)]);
+      const mc=(Q.opts&&Q.opts.length)||(Q.sub&&Q.sub.length); key.push([di+1,qi+1,kA(Q)]);
       h+=`<div class="cb-q"><span class="cb-qn">(${qi+1})</span><div>${kQ(Q)}${mc||Q.kind==='語句'?`<div class="k-ans">答え　<span class="k-aline">${show?esc(kA(Q)):''}</span></div>`:`<div class="rk-wbox">${show?esc(Q.a):''}</div>`}${show&&Q.kai?`<div class="k-kai"><b>解説</b>${esc(Q.kai)}</div>`:''}</div></div>`;
     });
     h+='</section>';
@@ -5705,13 +5706,35 @@ function cbHTML(S,show){
   if(show) h+=`<section class="cb-key"><h4 class="k-sh">解答一覧</h4><table class="xnen stbl"><tbody>${key.map(([d,q,a])=>`<tr><th>${d}－(${q})</th><td>${esc(a)}</td></tr>`).join('')}</tbody></table></section>`;
   return h+'</div>';
 }
+// 千葉の入試に出る形式（問題の fmt がなければ問題文と答えから判定する）
+const CB_FMT=[['combo','Ⅰ・Ⅱの組み合わせ'],['sub','Ⅰ・Ⅱをそれぞれ選ぶ'],['order','三つ選んで年代順'],['xy','X・Yの正誤'],['xyz','X・Y・Zの正誤'],['all','あてはまるものをすべて選ぶ'],['mc','資料・文を読んで選ぶ'],['goku','語句を書く'],['num','数値・日時を書く'],['kiju','記述']];
+function cbFmt(Q){
+  if(Q.fmt) return Q.fmt; const t=Q.q||'', o=Q.opts||[];
+  if(Q.sub) return 'sub';
+  if(!o.length) return Q.kind==='語句'?(/^(約|およそ)?[0-9０-９]/.test(Q.a)&&!/^[0-9０-９]+[A-ZＡ-Ｚ]+$/.test(Q.a)?'num':'goku'):'kiju';
+  if(/すべて選/.test(t)) return 'all';
+  if(/X・Y・Z/.test(t)) return 'xyz';
+  if(/X・Y/.test(t)) return 'xy';
+  if(/→/.test(Q.a)) return 'order';
+  if(o.some(x=>/Ⅰ/.test(x))) return 'combo';
+  return 'mc';
+}
 function renderCBPanel(){
   const opt=CB.map((S,i)=>`<option value="${i}"${G.cb===i?' selected':''}>${esc(S.t)}</option>`).join('');
-  $('#gpanel').innerHTML=`<div class="optrows"><div class="row"><span class="lab">回</span>${CB.length?`<select class="sel" id="cbSet" aria-label="回">${opt}</select>`:'<span class="hint-line">準備中</span>'}</div><p class="hint-line">千葉県公立高校の入試と同じ形（大問1 千葉・2 日本地理・3 世界地理・4 歴史前半・5 歴史後半・6 公民政治・7 公民経済）の演習です。問題・資料はすべてこの道場で作成したものです。</p></div>`;
+  const cnt={}; CB.forEach(S=>S.dai.forEach(D_=>D_.qs.forEach(Q=>{ const f=cbFmt(Q); cnt[f]=(cnt[f]||0)+1; })));
+  const fopt=`<option value=""${!G.cbFmt?' selected':''}>回ごとに解く（大問7つ）</option>`+CB_FMT.filter(([k])=>cnt[k]).map(([k,n])=>`<option value="${k}"${G.cbFmt===k?' selected':''}>形式別：${n}（${cnt[k]}問）</option>`).join('');
+  $('#gpanel').innerHTML=`<div class="optrows"><div class="row"><span class="lab">練習</span>${CB.length?`<select class="sel" id="cbFmt" aria-label="練習のしかた">${fopt}</select>`:''}</div>${G.cbFmt?'':`<div class="row"><span class="lab">回</span>${CB.length?`<select class="sel" id="cbSet" aria-label="回">${opt}</select>`:'<span class="hint-line">準備中</span>'}</div>`}<p class="hint-line">千葉県公立高校の入試と同じ形（大問1 千葉・2 日本地理・3 世界地理・4 歴史前半・5 歴史後半・6 公民政治・7 公民経済）の演習です。問題・資料はすべてこの道場で作成したものです。</p></div>`;
+}
+function cbFmtHTML(f,show){
+  const name=(CB_FMT.find(x=>x[0]===f)||['',''])[1]; let h=`<div class="sheet cbsheet"><div class="rk-head"><span class="rk-unit">入試演習（千葉県公立入試の形式）</span><h3>形式別：${esc(name)}</h3></div>`; let n=0;
+  CB.forEach(S=>S.dai.forEach((D_,di)=>D_.qs.forEach((Q,qi)=>{ if(cbFmt(Q)!==f) return; n++;
+    const mc=(Q.opts&&Q.opts.length)||(Q.sub&&Q.sub.length);
+    h+=`<section class="cb-dai cb-fq"><h4 class="cb-dh"><span class="cb-no">${n}</span>${esc(S.t)}　大問${di+1}（${esc(D_.area||CB_AREA[di]||'')}）の(${qi+1})</h4><details class="cb-ld"><summary>導入の文・資料を見る（下線部はここにあります）</summary>${cbLead(D_.lead)}</details><div class="cb-q"><span class="cb-qn">(${qi+1})</span><div>${kQ(Q)}${mc||Q.kind==='語句'?`<div class="k-ans">答え　<span class="k-aline">${show?esc(kA(Q)):''}</span></div>`:`<div class="rk-wbox">${show?esc(Q.a):''}</div>`}${show&&Q.kai?`<div class="k-kai"><b>解説</b>${esc(Q.kai)}</div>`:''}</div></div></section>`; })));
+  return h+'</div>';
 }
 function renderCB(){
   if(G.cb==null||G.cb>=CB.length) G.cb=0;
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="cbans" aria-pressed="${!!G.cbAns}">${G.cbAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${CB.length?'':'<div class="empty">準備中です。</div>'}</div><div id="gsheets">${CB.length?cbHTML(CB[G.cb],G.cbAns):''}</div>`;
+  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="cbans" aria-pressed="${!!G.cbAns}">${G.cbAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${CB.length?'':'<div class="empty">準備中です。</div>'}</div><div id="gsheets">${CB.length?(G.cbFmt?cbFmtHTML(G.cbFmt,G.cbAns):cbHTML(CB[G.cb],G.cbAns)):''}</div>`;
 }
 
 function renderRikai(){
@@ -6017,6 +6040,7 @@ document.addEventListener('change',ev=>{
   if(id==='rkPick'){ G.rkPick=+v; renderRikai(); }
   if(id==='gKata'){ G.kata=+v; renderKata(); }
   if(id==='cbSet'){ G.cb=+v; G.cbAns=false; renderCB(); window.scrollTo({top:0}); }
+  if(id==='cbFmt'){ G.cbFmt=v; G.cbAns=false; renderCBPanel(); renderCB(); window.scrollTo({top:0}); }
   if(id==='gNaze'){ G.nz=+v; G.nzAll=false; renderNaze(); }
   if(id==='gpDrill'){ G.pr.drill=+v; buildSheet(); renderPrint(); }
   if(id==='gpExam'){ G.pr.exam=+v; buildSheet(); renderPrint(); }
