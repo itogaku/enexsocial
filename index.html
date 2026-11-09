@@ -483,6 +483,9 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .rk-head{border-bottom:2px solid currentColor;margin-bottom:10px;padding-bottom:4px}.rk-head h3{margin:2px 0 0;font-family:var(--mincho);font-size:21px;line-height:1.4}.rk-unit{font-size:12px;color:var(--muted)}
 .rksheet .rkgrid{display:grid;gap:14px}
 @media (min-width:900px){ .rksheet .rkgrid{grid-template-columns:1fr 1fr} }
+.rkprint{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 0;font-size:13px}.rkprint .rkp-l{color:var(--muted);margin-left:6px}.rkprint .rkp-l:first-child{margin-left:0}.rkprint .chip[disabled]{opacity:.45}
+@page rkland{size:A4 landscape;margin:10mm}
+@media print{ .rkprint{display:none} body.rkland .rksheet{page:rkland} body.rkland .rksheet .rkgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 8mm;align-items:start} body.rkland .rksheet .rk-pr{margin-top:0} body.rkpack .rksheet{break-after:auto;margin-top:5mm;padding-top:3mm;border-top:1px dashed #999} body.rkpack .rksheet:first-child{margin-top:0;padding-top:0;border-top:0} body.rkpack .rksheet .rk-head{break-after:avoid} body.rkpack .rksheet .rk-lead{break-inside:avoid} }
 @media print{ .rksheet .rkgrid{display:block} .rksheet .rk-pr{margin-top:8px} .rksheet .rk-pt,.rksheet .rk-q{break-after:avoid} .rksheet li,.rksheet .rk-wbox,.rksheet .rk-tip,.rksheet .rk-tbl{break-inside:avoid} .rksheet .rk-head{margin-bottom:6px} .rksheet .rk-lead{margin:2px 0 6px;line-height:1.6} .rksheet .rk-box{padding:4px 10px;margin:0 0 6px} .rksheet .rk-box p{margin:1px 0} .rksheet .rk-box h4{margin:0 0 2px} .rksheet .rk-q{margin:6px 0 2px} .rksheet .rk-wbox{min-height:3.6em} .rksheet .rk-tip{margin-top:8px} }
 .rk-lead{border-left:4px solid var(--accent,#c0392b);padding:4px 10px;margin:4px 0 10px;line-height:1.8}
 .rk-box{border:1.5px solid currentColor;border-radius:10px;padding:8px 12px;margin:0 0 10px;break-inside:avoid}
@@ -3494,7 +3497,7 @@ function renderRikaiH(){
   const k=rkKey(); if(S.rkPickK!==k){ S.rkPickK=k; S.rkPick=0; }
   const n=window.rkCount('he:'+k,THEMES[k]); if(S.rkPick>=n) S.rkPick=0;
   const h=window.rikaiFor('he:'+k,THEMES[k],S.rkAns,S.rkPick);
-  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-act="rkans" aria-pressed="${!!S.rkAns}">${S.rkAns?'答えをかくす':'答えを表示する'}</button><button class="btn primary" data-act="print">印刷する</button></div>${window.rkPickHTML('he:'+k,THEMES[k],S.rkPick,'rkPickH')}${h?'':'<div class="empty">この単元の理解プリントは準備中です。</div>'}</div><div id="sheets">${h}</div>`;
+  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-act="rkans" aria-pressed="${!!S.rkAns}">${S.rkAns?'答えをかくす':'答えを表示する'}</button><button class="btn primary" data-act="print">印刷する</button></div>${h&&window.rkPrintOpts?window.rkPrintOpts():''}${window.rkPickHTML('he:'+k,THEMES[k],S.rkPick,'rkPickH')}${h?'':'<div class="empty">この単元の理解プリントは準備中です。</div>'}</div><div id="sheets">${h}</div>`;
 }
 function renderNazeH(){
   if(!window.nazeFor){ setTimeout(renderNazeH,0); if(S.mode==='naze') setTimeout(renderControls,0); return; }
@@ -5772,13 +5775,22 @@ function renderCB(){
   $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="cbans" aria-pressed="${!!G.cbAns}">${G.cbAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-gact="print">印刷する</button>${cbXCount()?`<button class="btn" data-cbx="reset">${G.cbFmt?'消した問題をすべて元に戻す':'この回の消す・入れ替えをすべて元に戻す'}（${cbXCount()}問）</button>`:''}</div><p class="hint-line">問題の右上の「消す」「入れ替える」で、プリントを作りかえられます（印刷にも反映。入れ替えは、ほかの回の同じ大問・同じ形式の問題から選びます）。</p>${CB.length?'':'<div class="empty">準備中です。</div>'}</div><div id="gsheets">${CB.length?(G.cbFmt?cbFmtHTML(G.cbFmt,G.cbAns):cbHTML(CB[G.cb],G.cbAns)):''}</div>`;
 }
 
+// 理解プリントの印刷のしかた（縦／横、縦のときは1枚ずつ／詰めて）。このブラウザに保存し、歴史タブと共通
+const RKP=(()=>{ const v=ls.get('rk-print',{})||{}; return {ori:v.ori==='l'?'l':'p',pack:!!v.pack}; })();
+function rkApplyPrint(){ document.body.classList.toggle('rkland',RKP.ori==='l'); document.body.classList.toggle('rkpack',RKP.ori==='p'&&RKP.pack); }
+function rkPrintOpts(){
+  const c=(k,v,t,dis)=>`<button class="chip" onclick="rkSetPrint('${k}',${JSON.stringify(v).replace(/"/g,"'")})" aria-pressed="${RKP[k]===v}"${dis?' disabled':''}>${t}</button>`;
+  return `<div class="rkprint"><span class="rkp-l">印刷の向き</span>${c('ori','p','縦（上に説明・下に問題）')}${c('ori','l','横（左に説明・右に問題）')}<span class="rkp-l">並べ方</span>${c('pack',false,'1枚ずつ新しいページから',RKP.ori==='l')}${c('pack',true,'詰めて印刷（ページ数が少ない）',RKP.ori==='l')}</div>`;
+}
+window.rkSetPrint=(k,v)=>{ RKP[k]=v; ls.set('rk-print',RKP); rkApplyPrint(); document.querySelectorAll('.rkprint').forEach(e=>{ e.outerHTML=rkPrintOpts(); }); };
+window.rkPrintOpts=rkPrintOpts; rkApplyPrint();
 function renderRikai(){
   const d=D(); const U=sumUnits().filter(u=>RIKAI[u.key]);
   const any=d.units.some(u=>RIKAI[u.key]);
   // 1つの単元に何枚もあるときは、1枚ずつ選べるようにする（単元を変えたら1枚目から）
   const RR=U.length===1&&G.unit!=='all'&&!G.unit.startsWith('ch:')?rkSheets(U[0].key,U[0].name):null; const pk=!!RR&&RR.length>1;
   if(G.rkPickU!==G.unit){ G.rkPickU=G.unit; G.rkPick=0; } if(pk&&G.rkPick>=RR.length) G.rkPick=0;
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="rkans" aria-pressed="${!!G.rkAns}">${G.rkAns?'答えをかくす':'答えを表示する'}</button><button class="btn primary" data-gact="print">印刷する</button></div>
+  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="rkans" aria-pressed="${!!G.rkAns}">${G.rkAns?'答えをかくす':'答えを表示する'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${any?rkPrintOpts():''}
   ${!any?'<div class="empty">この分野の理解プリントは準備中です。</div>':G.unit==='all'?'<p class="hint-line">単元を選ぶと、その単元の理解プリントを表示します（章を選ぶと章の単元をまとめて表示）。</p>':U.length?'':'<div class="empty">この単元の理解プリントは準備中です。</div>'}
   ${pk?rkPickHTML(U[0].key,U[0].name,G.rkPick,'rkPick'):''}
   </div><div id="gsheets">${G.unit==='all'?'':U.map(u=>rikaiHTML(pk?{...u,pick:G.rkPick<0?null:G.rkPick}:u)).join('')}</div>`;
