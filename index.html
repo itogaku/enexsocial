@@ -483,7 +483,7 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .rk-head{border-bottom:2px solid currentColor;margin-bottom:10px;padding-bottom:4px}.rk-head h3{margin:2px 0 0;font-family:var(--mincho);font-size:21px;line-height:1.4}.rk-unit{font-size:12px;color:var(--muted)}
 .rksheet .rkgrid{display:grid;gap:14px}
 @media (min-width:900px){ .rksheet .rkgrid{grid-template-columns:1fr 1fr} }
-@media print{ .rksheet .rkgrid{display:block} .rksheet .rk-pr{break-before:page} }
+@media print{ .rksheet .rkgrid{display:block} .rksheet .rk-pr{margin-top:8px} .rksheet .rk-pt,.rksheet .rk-q{break-after:avoid} .rksheet li,.rksheet .rk-wbox,.rksheet .rk-tip,.rksheet .rk-tbl{break-inside:avoid} .rksheet .rk-head{margin-bottom:6px} .rksheet .rk-lead{margin:2px 0 6px;line-height:1.6} .rksheet .rk-box{padding:4px 10px;margin:0 0 6px} .rksheet .rk-box p{margin:1px 0} .rksheet .rk-box h4{margin:0 0 2px} .rksheet .rk-q{margin:6px 0 2px} .rksheet .rk-wbox{min-height:3.6em} .rksheet .rk-tip{margin-top:8px} }
 .rk-lead{border-left:4px solid var(--accent,#c0392b);padding:4px 10px;margin:4px 0 10px;line-height:1.8}
 .rk-box{border:1.5px solid currentColor;border-radius:10px;padding:8px 12px;margin:0 0 10px;break-inside:avoid}
 .rk-box h4{margin:0 0 4px;font-size:15px}.rk-box h4::before{content:"● "}
@@ -5558,7 +5558,7 @@ function rikaiSheet(u,R){
   const wr=wrs.map(w=>`<li>${esc(w.q)}${w.use&&w.use.length?`<span class="rk-use">（${w.use.map(x=>'「'+esc(x)+'」').join('')}の語を使って${w.lim?w.lim+'字程度で':''}）</span>`:''}<div class="rk-wbox">${show?esc(w.a):''}</div></li>`).join('');
   return `<div class="sheet rksheet"><div class="rk-head"><span class="rk-unit">理解プリント｜${esc(u.name)}${u.of?`（${u.no}/${u.of}）`:''}${R.lv==='B'?'<span class="rk-lv">くわしく</span>':''}${u.link?'<span class="rk-lv rk-lk">基本の確認</span>':''}</span><h3>${esc(R.q)}</h3></div>
   <div class="rkgrid"><div class="rk-exp"><p class="rk-lead">${em(R.lead)}</p>${(R.sec||[]).map(x=>`<section class="rk-box"><h4>${esc(x.h)}</h4>${x.b.map(t=>`<p>${em(t)}</p>`).join('')}${tbl(x.tbl)}</section>`).join('')}</div>
-  <div class="rk-pr"><h4 class="rk-pt">${R.order||R.tf||R.data?'練習（入試形式）':'基本練習'}<small>左の説明を見ながら解きましょう</small></h4>
+  <div class="rk-pr"><h4 class="rk-pt">${R.order||R.tf||R.data?'練習（入試形式）':'基本練習'}<small>説明を見ながら解きましょう</small></h4>
   ${fill?Q('〔　〕にあてはまる語句を書きましょう。',`<ol class="rk-list">${fill}</ol>`):''}
   ${pick?Q('（　）のうち、正しいほうを選びましょう。',`<ol class="rk-list">${pick}</ol>`):''}
   ${order?Q('並べかえましょう。',`<ol class="rk-list">${order}</ol>`):''}
