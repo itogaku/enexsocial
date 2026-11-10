@@ -537,6 +537,7 @@ main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x
 /* 入試形式 */.rk-opts{display:flex;flex-wrap:wrap;gap:4px 16px;margin:4px 0}.rk-opts.col{flex-direction:column}.rk-line{margin:2px 0 6px}.rk-ans{font-weight:700;margin:2px 0 8px}.rk-use{font-size:13px;margin-left:4px}.rk-pick{display:flex;align-items:center;gap:10px;margin:10px 0 0;font-size:.95em}.rk-pick select{flex:1;min-width:0;max-width:100%}.rk-lk{background:#64748b}.rk-lv{margin-left:6px;padding:0 6px;border-radius:4px;background:var(--accent,#2563eb);color:#fff;font-size:.8em}@media print{.rk-pick{display:none}}
 .rk-tbl{margin:6px 0 2px}
 .rk-tip{margin:12px 0 0;padding:6px 10px;border-radius:8px;border:1px dashed currentColor;line-height:1.7}.rk-tip b{margin-right:8px}
+.moreopt{border:1px dashed var(--line);border-radius:8px;padding:4px 10px}.moreopt summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:700}.moreopt[open]{padding-bottom:8px}.moreopt[open] summary{margin-bottom:6px}.moreopt .row+.row{margin-top:6px}
 </style>
 <style id="gcss">
 /* 分野の切りかえ（歴史・地理・公民） */
@@ -575,6 +576,31 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
 .tlegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}.tlegend span{display:inline-flex;align-items:center;gap:3px;font-size:13px}.tlegend svg{width:18px;height:16px}
 .sheet .stbl td,.sheet .stbl th{border:1px solid #888}
 .tsub{font-size:.45em;margin-left:.4em;color:var(--muted);font-weight:600}
+/* 画面上部をコンパクトに（分野・タブ・設定を少ないスクロールで選べるように） */
+@media screen{
+ body{padding-block:10px 40px}
+ .wrap{gap:10px}
+ header{padding-bottom:6px;gap:8px}
+ .brand h1{font-size:22px}
+ .brand p{font-size:12px;margin-top:1px}
+ .score{gap:10px;font-size:12px}.score b{font-size:18px}
+ .subj{flex-wrap:nowrap;overflow-x:auto;margin:0;gap:4px;padding-bottom:2px;scrollbar-width:thin}
+ .subj button{padding:4px 12px;font-size:13px;white-space:nowrap;flex:0 0 auto}
+ .tabs,.gpanel .tabs{display:flex;overflow-x:auto;scrollbar-width:thin}
+ .tabs button{flex:1 0 auto;padding:6px 10px;font-size:13px;white-space:nowrap}
+ .tabs button small{display:none}
+ .optrows{gap:6px}
+ .panel{gap:8px}
+ /* 印刷用の画面（理解・解き方・まとめ）では、左の設定で選ぶので上の行は出さない */
+ body[data-rkkind="rikai"]:not([data-subj="rk"]):has(#gq .rklay) .gpanel .optrows,
+ body[data-rkkind="kata"]:not([data-subj="rk"]):has(#gq .rklay) .gpanel .optrows,
+ body[data-rkkind="sum"]:not([data-subj="rk"]):has(#gq .rklay) .gpanel .optrows>.row:first-child,
+ body[data-subj="rk"]:has(#q .rklay) #optRow,
+ body[data-subj="rk"][data-rkkind="rikai"]:has(#q .rklay) #eraRow,
+ body[data-subj="rk"][data-rkkind="kata"]:has(#q .rklay) #eraRow,
+ body[data-subj="rk"][data-rkkind="sum"]:has(#q .rklay) #eraRow>.row:not(#rankRow){display:none}
+ .rkside{top:6px;max-height:calc(100vh - 12px)}
+}
 </style>
 
 <div class="wrap">
@@ -3707,6 +3733,7 @@ function themeGroups(opt){
   return `<optgroup label="時代の流れ（教科書の章）">${ks.filter(k=>THEME_ERA.has(k)).map(opt).join('')}</optgroup><optgroup label="分野（時代をまたぐ）">${ks.filter(k=>!THEME_ERA.has(k)).map(opt).join('')}</optgroup>`;
 }
 function renderControls(){
+  setTimeout(()=>window.__scrollActive&&window.__scrollActive(),0);
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));
   $('#eraRow').innerHTML='<div class="row"><span class="lab">時代</span>'+ERAS.map(([n,c])=>`<button class="chip" data-era="${n}" style="--c:var(${c})" aria-pressed="${S.eras.has(n)}"><span class="dot"></span>${n}</button>`).join('')
     +(S.mode!=='essay'?`<button class="chip" data-world style="--c:var(--e-world)" aria-pressed="${S.world}"><span class="dot"></span>世界のできごと</button>`:'')
@@ -3747,6 +3774,8 @@ function renderControls(){
     h=`<span class="lab">テーマ</span>${themeSelect('genTheme',S.theme,true,cnt)}`;
   }
   $('#optRow').innerHTML='<div class="row">'+h+'</div>';
+  // 行が多いときは、3行目以降を「くわしい設定」にたたむ（開いた状態はおぼえておく）
+  { const R=[...document.querySelectorAll('#optRow>.row')]; if(R.length>3){ const d=document.createElement('details'); d.className='moreopt'; if(S.moreOpen) d.open=true; d.innerHTML=`<summary>くわしい設定（${R.length-2}項目）</summary>`; R.slice(2).forEach(r=>d.appendChild(r)); document.querySelector('#optRow').appendChild(d); d.addEventListener('toggle',()=>{ S.moreOpen=d.open; }); } }
   renderSelBar();
 }
 
@@ -5948,7 +5977,7 @@ function renderCB(){
 
 // 理解プリントの印刷のしかた（縦／横、縦のときは1枚ずつ／詰めて）。このブラウザに保存し、歴史タブと共通
 const RKP=(()=>{ const v=ls.get('rk-print',{})||{}; return {ori:v.ori==='l'?'l':'p',pack:!!v.pack,up:1,fit:v.fit!==false}; })();
-function rkApplyPrint(kind){ if(kind) window.__rkKind=kind; const k=window.__rkKind||'rikai'; document.body.classList.remove('rk2up'); document.body.classList.toggle('rkland',k==='rikai'&&RKP.ori==='l'); document.body.classList.toggle('rkpack',RKP.pack); }
+function rkApplyPrint(kind){ if(kind) window.__rkKind=kind; const k=window.__rkKind||'rikai'; document.body.dataset.rkkind=k; document.body.classList.remove('rk2up'); document.body.classList.toggle('rkland',k==='rikai'&&RKP.ori==='l'); document.body.classList.toggle('rkpack',RKP.pack); }
 function rkPrintOpts(){
   const c=(k,v,t,dis)=>`<button class="chip" onclick="rkSetPrint('${k}',${JSON.stringify(v).replace(/"/g,"'")})" aria-pressed="${RKP[k]===v}"${dis?' disabled':''}>${t}</button>`;
   return `<div class="rkprint"><span class="rkp-l">印刷の向き</span>${c('ori','p','縦（上に説明・下に問題）')}${c('ori','l','横（左に説明・右に問題）')}<span class="rkp-l">並べ方</span>${c('pack',false,'1枚ずつ新しいページから',RKP.ori==='l')}${c('pack',true,'詰めて印刷（ページ数が少ない）',RKP.ori==='l')}</div>`;
@@ -6141,7 +6170,9 @@ function setSubj(k){
   window.scrollTo({top:0});
 }
 function score(){ $('#sTotal').textContent=G.total; $('#sOk').textContent=G.ok; $('#sStreak').textContent=G.streak; }
-function renderG(){
+// 横にスクロールする分野・タブの列で、選んでいるものが見えるようにする
+window.__scrollActive=()=>document.querySelectorAll('.tabs,.subj').forEach(c=>{ if(c.scrollWidth<=c.clientWidth+1||!c.offsetParent) return; const a=c.querySelector('[aria-pressed="true"]'); if(a) c.scrollLeft=Math.max(0,a.offsetLeft-c.offsetLeft-(c.clientWidth-a.offsetWidth)/2); });
+function renderG(){ setTimeout(()=>window.__scrollActive(),0);
   if(G.subj==='cb') return renderCBPanel();
   const d=D(); if(!d) return;
   const opt=(v,n)=>`<option value="${v}" ${G.unit===v?'selected':''}>${esc(n)}</option>`;
