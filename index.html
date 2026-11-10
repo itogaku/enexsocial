@@ -478,7 +478,7 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .k-kai{font-size:14px;line-height:1.7;background:color-mix(in srgb,currentColor 6%,transparent);border-radius:6px;padding:6px 10px;margin:4px 0 10px}.k-kai b{margin-right:8px}
 .k-fig{margin:6px 0}.k-doc{border:1.5px solid currentColor;border-radius:6px;padding:6px 10px}.k-doc p{margin:2px 0;line-height:1.8}.k-doch{font-weight:700;font-size:13px}
 .k-clims{display:flex;flex-wrap:wrap;gap:6px 14px}.k-clims>div{flex:0 1 250px;min-width:0}.k-clims .figc{width:auto}.k-clims svg{width:100%}.k-cl{font-weight:700;text-align:center}
-@media print{ .ksheet .k-jis{break-before:page} }
+@media print{ .ksheet .k-jis{break-before:auto} .ksheet .k-cq,.ksheet .k-jq,.ksheet .k-step{break-inside:avoid} }
 /* 理解プリント */
 .rk-head{border-bottom:2px solid currentColor;margin-bottom:10px;padding-bottom:4px}.rk-head h3{margin:2px 0 0;font-family:var(--mincho);font-size:21px;line-height:1.4}.rk-unit{font-size:12px;color:var(--muted)}
 .rksheet .rkgrid{display:grid;gap:14px}
@@ -495,7 +495,9 @@ main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x
 .rksh{display:grid;gap:6px}.rksh-u{border:1px solid var(--line);border-radius:8px;background:var(--surface)}.rksh-u summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-weight:700;font-size:13px}.rksh-c{font-weight:400;color:var(--muted);white-space:nowrap}.rksh-c.part{color:var(--ng)}
 .rksh-bar{display:flex;gap:14px;padding:0 10px 4px}.rksh-i{display:flex;align-items:flex-start;gap:6px;padding:4px 10px;border-top:1px dashed var(--line);font-size:13px;cursor:pointer;line-height:1.5}.rksh-i input{accent-color:var(--ai);width:15px;height:15px;margin:2px 0 0;flex-shrink:0}.rksh-t{flex:1}.rksh-i.off .rksh-t{color:var(--muted);text-decoration:line-through}.rksh-i em{font-style:normal;font-size:11px;border:1px solid var(--ai);color:var(--ai);border-radius:3px;padding:0 4px;white-space:nowrap}.rksh-i em.lk{border-color:var(--muted);color:var(--muted)}
 @page rk2up{size:A4 landscape;margin:8mm}
-@media print{ html:has(body.rkland:not([data-subj="rk"]) #gq .rklay),html:has(body.rkland[data-subj="rk"] #q .rklay){page:rkland} html:has(body.rk2up:not([data-subj="rk"]) #gq .rklay),html:has(body.rk2up[data-subj="rk"] #q .rklay){page:rk2up} .rkmain #gsheets,.rkmain #sheets{display:block} body.rk2up .rkmain #gsheets,body.rk2up .rkmain #sheets{display:block;columns:2;column-gap:10mm;column-fill:balance;zoom:.7} body.rk2up .rksheet{break-after:auto;break-before:column} body.rk2up .rk-sbar:first-child+.rksheet{break-before:auto} body.rk2up.rkpack .rksheet{break-before:auto} body.rk2up .rkkey{break-before:column} body.rk2up .rkkey .rkk-grid{columns:1} body.rk2up .rksheet .rkgrid{display:block} }
+@media print{ html:has(body.rkland:not([data-subj="rk"]) #gq .rklay .rksheet),html:has(body.rkland[data-subj="rk"] #q .rklay .rksheet){page:rkland} html:has(body.rk2up:not([data-subj="rk"]) #gq .rklay),html:has(body.rk2up[data-subj="rk"] #q .rklay){page:rk2up} .rkmain #gsheets,.rkmain #sheets{display:block} body.rk2up .rkmain #gsheets,body.rk2up .rkmain #sheets{display:block;columns:2;column-gap:10mm;column-fill:balance;zoom:.7} body.rk2up .rkmain .sheet{break-after:auto;break-before:column} body.rk2up .rk-sbar:first-child+.sheet,body.rk2up .rkmain #gsheets>.sheet:first-child,body.rk2up .rkmain #sheets>.sheet:first-child,body.rk2up .rkmain .hideans>.sheet:first-child{break-before:auto} body.rk2up.rkpack .rkmain .sheet{break-before:auto} body.rk2up .rkmain .rkkey,body.rk2up .rkmain .sum-ansv>.sheet:first-child{break-before:column} body.rk2up .rkkey{break-before:column} body.rk2up .rkk-note{margin:2px 0 0;font-size:11px;color:var(--muted)}.rkk-j{margin:1px 0 3px}.rkk-kai{display:block;font-size:8.5pt;color:#444;line-height:1.45}
+.sum-ansv .sh-title h3::after{content:'（解答）';font-size:.7em;margin-left:6px}
+.rkkey .rkk-grid{columns:1} body.rk2up .rksheet .rkgrid{display:block} }
 .rkpanel{display:grid;gap:14px}.rkpanel .step{display:grid;gap:12px}.rkpanel .step+.step{border-top:1px dashed var(--line);padding-top:14px}
 .rkpanel .step-h{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;font-family:var(--gothic)}.rkpanel .sn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ai);color:var(--surface);font-size:12px}
 .rkpanel .row{display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:start}.rkpanel .lab{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;padding-top:7px}
@@ -516,7 +518,7 @@ main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x
 @media (max-width:620px){.rkkey .rkk-grid{columns:1}}
 .rkprint{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0 0;font-size:13px}.rkprint .rkp-l{color:var(--muted);margin-left:6px}.rkprint .rkp-l:first-child{margin-left:0}.rkprint .chip[disabled]{opacity:.45}
 @page rkland{size:A4 landscape;margin:10mm}
-@media print{ .rkprint,.rkunits{display:none} .rkkey{break-before:page} body.rkland .rksheet{page:rkland} body.rkland .rksheet .rkgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 8mm;align-items:start} body.rkland .rksheet .rk-pr{margin-top:0} body.rkpack .rksheet{break-after:auto;margin-top:5mm;padding-top:3mm;border-top:1px dashed #999} body.rkpack .rksheet:first-child{margin-top:0;padding-top:0;border-top:0} body.rkpack .rksheet .rk-head{break-after:avoid} body.rkpack .rksheet .rk-lead{break-inside:avoid} }
+@media print{ .rkprint,.rkunits{display:none} .rkkey{break-before:page} body.rkland .rksheet{page:rkland} body.rkland .rksheet .rkgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 8mm;align-items:start} body.rkland .rksheet .rk-pr{margin-top:0} body.rkpack .rkmain .sheet{break-after:auto;margin-top:5mm;padding-top:3mm;border-top:1px dashed #999} body.rkpack .rkmain #gsheets>.sheet:first-child,body.rkpack .rkmain #sheets>.sheet:first-child,body.rkpack .rkmain .rk-sbar:first-child+.sheet,body.rkpack .rkmain .hideans>.sheet:first-child{margin-top:0;padding-top:0;border-top:0} body.rkpack .rkmain .rkkey,body.rkpack .rkmain .sum-ansv>.sheet:first-child{break-before:page;margin-top:0;padding-top:0;border-top:0} body.rkpack .rksheet .rk-head{break-after:avoid} body.rkpack .rksheet .rk-lead{break-inside:avoid} }
 @media print{ .rksheet .rkgrid{display:block} .rksheet .rk-pr{margin-top:8px} .rksheet .rk-pt,.rksheet .rk-q{break-after:avoid} .rksheet li,.rksheet .rk-wbox,.rksheet .rk-tip,.rksheet .rk-tbl{break-inside:avoid} .rksheet .rk-head{margin-bottom:6px} .rksheet .rk-lead{margin:2px 0 6px;line-height:1.6} .rksheet .rk-box{padding:4px 10px;margin:0 0 6px} .rksheet .rk-box p{margin:1px 0} .rksheet .rk-box h4{margin:0 0 2px} .rksheet .rk-q{margin:6px 0 2px} .rksheet .rk-wbox{min-height:3.6em} .rksheet .rk-tip{margin-top:8px} }
 .rk-lead{border-left:4px solid var(--accent,#c0392b);padding:4px 10px;margin:4px 0 10px;line-height:1.8}
 .rk-box{border:1.5px solid currentColor;border-radius:10px;padding:8px 12px;margin:0 0 10px;break-inside:avoid}
@@ -3530,6 +3532,7 @@ function rkHKeys(){ return Object.keys(THEMES).filter(k=>window.rkCount('he:'+k,
 function rkHGroups(){ const ks=rkHKeys(); const c=k=>({key:k,name:THEMES[k],n:window.rkCount('he:'+k,THEMES[k]),items:null}); return [{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
 function renderRikaiH(){
   if(!window.rikaiMulti||!window.rkPanelHTML){ setTimeout(renderRikaiH,0); return; } // 地理・公民側のスクリプトの読みこみ後に表示
+  window.__rkCur=renderRikaiH; window.rkApplyPrint('rikai');
   window.rkRegScope('h',{cards:()=>rkHGroups().flatMap(g=>g.cards),get:()=>rkHSelGet(),set:L=>rkHSelSet(L)});
   const sel=new Set(rkHSelGet()); const ks=rkHKeys().filter(k=>sel.has(k));
   const L=ks.map(k=>['he:'+k,THEMES[k]]);
@@ -3544,9 +3547,14 @@ function renderNazeH(){
   $('#q').innerHTML=`<div class="pset">${window.nazeActions('data-act',S.nzAll)}${h?'':'<div class="empty">「なぜ？」は準備中です。</div>'}</div><div id="sheets">${h}</div>`;
 }
 function renderKataH(){
-  if(!window.kataFor){ setTimeout(renderKataH,0); if(S.mode==='kata') setTimeout(renderControls,0); return; }
-  const n=(window.KATA.he||[]).length; if(!(S.kata<n)) S.kata=0; const h=window.kataFor('he',S.kata,S.kAns);
-  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-act="kans" aria-pressed="${!!S.kAns}">${S.kAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-act="print">印刷する</button></div>${h?'':'<div class="empty">「解き方」は準備中です。</div>'}</div><div id="sheets">${h}</div>`;
+  if(!window.kataMulti||!window.rkPanelHTML){ setTimeout(renderKataH,0); if(S.mode==='kata') setTimeout(renderControls,0); return; }
+  window.__rkCur=renderKataH; window.rkApplyPrint('kata');
+  const n=(window.KATA.he||[]).length;
+  if(!S.kSel){ let L=null; try{ L=JSON.parse(localStorage.getItem('k-sel-he')||'null'); }catch(e){} S.kSel=(Array.isArray(L)?L:[String(S.kata||0)]).filter(k=>+k<n); }
+  window.rkRegScope('hk',{cards:()=>window.kCards('he')[0].cards,get:()=>S.kSel,set:L=>{ S.kSel=L; try{ localStorage.setItem('k-sel-he',JSON.stringify(L)); }catch(e){} }});
+  const sel=new Set(S.kSel);
+  $('#q').innerHTML=n?window.rkLayoutHTML(window.rkPanelHTML('hk',window.kCards('he'),sel,{kind:'kata',lab:'問題の型',word:'型'}),sel.size?'':'左の「問題の型」で、印刷したい型を選んでください（いくつでも選べます）。',window.kataMulti('he',S.kSel),'sheets'):'<div class="empty">「解き方」は準備中です。</div>';
+  window.rkPanelFix();
 }
 function sumKey(){ return (THEMES[S.sumTheme]||S.sumTheme==='ov')?S.sumTheme:'e01'; }
 function sumHTML(t){
@@ -3568,9 +3576,16 @@ function sumHTML(t){
   h+=sec('史料・資料を読もう',docs.length?docs.map(d=>`<div class="sumdoc"><div class="srh"><b>${esc(d.n)}</b>${d.y?`（${esc(d.y)}）`:''}</div>${d.img?`<div class="srfig"><img class="srimg" src="${esc(d.img.f)}" alt="${esc(d.n)}"></div>`:''}${d.fig?`<div class="srfig">${srFig(d.fig)}</div>`:''}${srText(d.L,null).map(x=>`<p class="srl">${x}</p>`).join('')}<div class="srcnote">${esc(d.img?d.img.cr:d.s)}</div><ul class="sumqa">${d.q.map(q=>`<li>${esc(q.q)} → <b>${esc(q.a.replace(/。$/,''))}</b></li>`).join('')}</ul></div>`).join(''):'');
   return h+'</div>';
 }
+function sHGroups(){ const ks=Object.keys(THEMES); const c=k=>({key:k,name:THEMES[k],n:null,items:null}); return [{h:'',cards:[{key:'ov',name:'全体のまとめ（歴史の流れ）',n:null,items:null}]},{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
 function renderSum(){
-  const t=sumKey();
-  $('#q').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-act="hideans" aria-pressed="${!!S.hideAns}">${S.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-act="print">印刷する</button></div><p class="hint-line">重要度のボタンで、年表にのせるできごとをしぼりこめます。</p></div><div id="sheets" class="${S.hideAns?'hideans':''}">${t==='ov'?ovHTML(['reki']):sumHTML(t)}</div>`;
+  if(!window.rkPanelHTML){ setTimeout(renderSum,0); return; }
+  window.__rkCur=renderSum; window.rkApplyPrint('sum');
+  if(!S.sSel){ let L=null; try{ L=JSON.parse(localStorage.getItem('sum-sel-he')||'null'); }catch(e){} S.sSel=(Array.isArray(L)?L:[sumKey()]).filter(k=>k==='ov'||THEMES[k]); }
+  window.rkRegScope('hs',{cards:()=>sHGroups().flatMap(g=>g.cards),get:()=>S.sSel,set:L=>{ S.sSel=L; try{ localStorage.setItem('sum-sel-he',JSON.stringify(L)); }catch(e){} }});
+  const sel=new Set(S.sSel);
+  const body=(sel.has('ov')?ovHTML(['reki']):'')+Object.keys(THEMES).filter(k=>sel.has(k)).map(sumHTML).join('');
+  $('#q').innerHTML=window.rkLayoutHTML(window.rkPanelHTML('hs',sHGroups(),sel,{kind:'sum',lab:'単元'})+'<p class="hint-line">上の「重要度」のボタンで、年表にのせるできごとをしぼりこめます。</p>',sel.size?'':'左の「単元」で、印刷したい単元を選んでください（いくつでも選べます）。',window.sumWrap(body),'sheets');
+  window.rkPanelFix();
 }
 /* ---------- 全体のまとめ（歴史の流れ・世界のまとめ・日本のまとめ）[[語句]]は「答えをかくす」で空欄 ---------- */
 const OV={
@@ -3710,11 +3725,11 @@ function renderControls(){
     h=`<span class="lab">テーマ</span>${themeSelect('genTheme',S.theme,false,ecnt)}</div><div class="row"><span class="lab">設定</span>
        <span class="lab" style="min-width:auto">指定語句</span><button class="chip" data-hintset="1" aria-pressed="${S.hint}">あり</button><button class="chip" data-hintset="0" aria-pressed="${!S.hint}">なし</button>`;
   }else if(S.mode==='sum'){
-    h=`<span class="lab">単元</span><select class="sel" id="sumTheme" aria-label="単元"><option value="ov" ${sumKey()==='ov'?'selected':''}>全体のまとめ（歴史の流れ）</option>${themeGroups(k=>`<option value="${k}" ${sumKey()===k?'selected':''}>${esc(THEMES[k])}</option>`)}</select>`;
+    h=`<span class="lab">単元</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>`;
   }else if(S.mode==='naze'){
     h=`<span class="lab">問い</span>${window.nazeSelHTML?window.nazeSelHTML('he',S.nz||0,'nazeH')||'<span class="hint-line">準備中</span>':''}`;
   }else if(S.mode==='kata'){
-    h=`<span class="lab">問題の型</span>${window.kataSelHTML?window.kataSelHTML('he',S.kata||0,'kataH')||'<span class="hint-line">準備中</span>':''}`;
+    h=`<span class="lab">問題の型</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>`;
   }else if(S.mode==='rikai'){
     h=`<span class="lab">単元</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>`;
   }else if(S.mode==='list'){
@@ -5561,9 +5576,23 @@ function tkNenpyoHTML(){
   const row=e=>{ const t=e.k.slice(e.k.indexOf(':')+1); const x=esc(e.x); const tx=esc(t); return `<tr><td class="y">${yv(e.y)}年</td><td>${x.includes(tx)?x.replace(tx,`<b class="ans">${tx}</b>`):`${x}（<b class="ans">${tx}</b>）`}</td></tr>`; };
   return `<div class="sheet sumsheet"><div class="sh-title"><h3>総まとめ年表</h3><span class="sub">定期テスト（歴史）の全単元のできごと</span></div>${order.filter(c=>by[c]).map(c=>`<div class="tsum-h">${esc(chName[c])}</div><table class="xnen sumtl"><tbody>${by[c].sort((a,b)=>a.y-b.y).map(row).join('')}</tbody></table>`).join('')}</div>`;
 }
+const SUM_OVK=()=>({tk:['reki'],tg:['sekai','nihon'],jg:['nihon'],wg:['sekai'],tc:['suchi'],ko:['suchi']}[G.subj]);
+function sGCards(){ const d=D(); const ov=SUM_OVK(); const U=d.units.map(u=>({key:u.key,name:u.name,n:null,ch:u.ch}));
+  const G0=ov?[{h:'',cards:[{key:'__ov',name:G.subj==='tk'?'全体のまとめ（歴史の流れ・総まとめ年表）':'全体のまとめ',n:null,items:null}]}]:[];
+  if(!d.chapters) return G0.concat([{h:ov?'単元':'',cards:U.map(u=>({...u,items:null}))}]);
+  return G0.concat([{h:ov?'単元':'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:null,items:it}:null; }).filter(Boolean)}]); }
+function sSelGet(){ if(G.sSelSj!==G.subj){ G.sSelSj=G.subj; const ok=new Set(D().units.map(u=>u.key).concat(SUM_OVK()?['__ov']:[]));
+    let L=ls.get('sum-sel-'+G.subj,null); if(!Array.isArray(L)) L=G.unit==='all'?(SUM_OVK()?['__ov']:[D().units[0].key]):sumUnits().map(u=>u.key); G.sSel=L.filter(k=>ok.has(k)); } return G.sSel; }
+rkRegScope('gs',{cards:()=>sGCards().flatMap(g=>g.cards),get:()=>sSelGet(),set:L=>{ G.sSel=L; ls.set('sum-sel-'+G.subj,L); }});
+// まとめの本文を答えの出し方に合わせて包む（end：かくした版のあとに答えつき版）
+function sumWrap(body){ return SMA==='show'?body:SMA==='hide'?`<div class="hideans">${body}</div>`:`<div class="hideans">${body}</div><div class="sum-ansv">${body}</div>`; }
+window.sumWrap=sumWrap;
 function renderSumG(){
-  const U=sumUnits(); const OVK={tk:['reki'],tg:['sekai','nihon'],jg:['nihon'],wg:['sekai'],tc:['suchi'],ko:['suchi']}[G.subj]; const showOv=G.unit==='all'&&OVK;
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="hideans" aria-pressed="${!!G.hideAns}">${G.hideAns?'答えを表示する':'答えをかくす（書きこみ練習）'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${G.unit==='all'?`<p class="hint-line">${showOv?'全体のまとめを表示しています。単元ごとのまとめは、上の「単元」で選んでください。':'上の「単元」でまとめを見たい単元を選んでください（いまは最初の単元を表示しています）。'}</p>`:''}</div><div id="gsheets" class="${G.hideAns?'hideans':''}">${showOv?window.ovHTML(OVK)+(G.subj==='tk'?tkNenpyoHTML():''):U.map(sumUnitHTML).join('')}</div>`;
+  window.__rkCur=renderSumG; rkApplyPrint('sum');
+  const d=D(); const sel=new Set(sSelGet()); const ov=SUM_OVK();
+  const body=(sel.has('__ov')&&ov?window.ovHTML(ov)+(G.subj==='tk'?tkNenpyoHTML():''):'')+d.units.filter(u=>sel.has(u.key)).map(sumUnitHTML).join('');
+  $('#gq').innerHTML=rkLayoutHTML(rkPanelHTML('gs',sGCards(),sel,{kind:'sum',lab:'単元'}),sel.size?'':'左の「単元」で、印刷したい単元を選んでください（いくつでも選べます）。',sumWrap(body),'gsheets');
+  window.rkPanelFix();
 }
 // 1つの単元のプリント一覧：その単元の枚＋関連する定期テスト用の枚（RIKAI_LINK。"単元キー#番号"）
 let RK_UNAME=null;
@@ -5608,7 +5637,11 @@ function rkKeyHTML(acc){
 // 答えの出し方（なし／問題の中に／最後にまとめる）。歴史タブと共通
 let RKA=(()=>{ const v=ls.get('rk-ans','none'); return ['none','in','end'].includes(v)?v:'none'; })();
 function rkAnsOpts(){ const c=(v,t)=>`<button class="chip" onclick="rkSetAns('${v}')" aria-pressed="${RKA===v}">${t}</button>`; return `<div class="rkprint rkans"><span class="rkp-l">答え</span>${c('none','つけない')}${c('in','問題の中に書きこむ')}${c('end','最後にまとめる（解答ページ）')}</div>`; }
-window.rkSetAns=v=>{ RKA=v; ls.set('rk-ans',v); rkRerender(); };
+let KTA=(()=>{ const v=ls.get('k-ans','none'); return ['none','in','end'].includes(v)?v:'none'; })();
+let SMA=(()=>{ const v=ls.get('sum-ans','show'); return ['show','hide','end'].includes(v)?v:'show'; })();
+window.rkSetMode=(kind,v)=>{ if(kind==='kata'){ KTA=v; ls.set('k-ans',v); } else if(kind==='sum'){ SMA=v; ls.set('sum-ans',v); } else { RKA=v; ls.set('rk-ans',v); } rkRerender(); };
+window.rkSetAns=v=>window.rkSetMode('rikai',v);
+window.kAnsMode=()=>KTA; window.sumAnsMode=()=>SMA;
 window.rkAnsOpts=rkAnsOpts; window.rkAnsMode=()=>RKA;
 // 複数の単元を選ぶ（分野ごとにこのブラウザに保存）
 function rkSelGet(){ if(G.rkSelSj!==G.subj){ G.rkSelSj=G.subj; const d=D(); const ok=new Set(d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>u.key)); G.rkSel=(ls.get('rk-sel-'+G.subj,[])||[]).filter(k=>ok.has(k));
@@ -5725,9 +5758,26 @@ function kataHTML(K,show){
 }
 function kataList(sj){ return KATA[sj]||[]; }
 function kataSelHTML(sj,cur,id){ const L=kataList(sj); return L.length?`<select class="sel" id="${id}" aria-label="問題の型">${L.map((K,i)=>`<option value="${i}"${cur===i?' selected':''}>${esc(K.t)}</option>`).join('')}</select>`:''; }
+// 解き方の解答まとめ（最後のページ）
+function kKeyHTML(L){ if(!L.length) return '';
+  const N='①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮';
+  const blocks=L.map(K=>{ let h=`<div class="rkk"><div class="rkk-h">${esc(K.area||'')}　<b>${esc(K.t)}</b></div>`;
+    (K.rei||[]).forEach((R,i)=>{ h+=`<div class="rkk-g"><b class="rkk-n">例</b>${esc(kA(R))}</div>`; });
+    if((K.chk||[]).length) h+=`<div class="rkk-g"><b class="rkk-n">チ</b>${K.chk.map((C,ci)=>{ const ks=(C.steps||[]).flatMap(s=>[].concat(s.k||[])); return `<span class="rkk-i">${ci+1}．${ks.length?ks.map((k,j)=>(N[j]||'')+esc(k)).join(' ')+'　':''}答え ${esc(kA(C))}</span>`; }).join('')}</div>`;
+    if((K.jis||[]).length) h+=`<div class="rkk-g"><b class="rkk-n">実</b>${K.jis.map((J,ji)=>`<div class="rkk-j"><b>${ji+1}．${esc(J.opts&&J.opts.length?kA(J):J.a)}</b>${J.kai?`<span class="rkk-kai">${esc(J.kai)}</span>`:''}</div>`).join('')}</div>`;
+    return h+'</div>'; }).join('');
+  return `<div class="sheet rkkey"><div class="rk-head"><span class="rk-unit">解き方</span><h3>解答・解説（${L.length}型分）</h3><p class="rkk-note">例＝例題、チ＝解き方チェック問題、実＝実践問題</p></div><div class="rkk-grid">${blocks}</div></div>`;
+}
+const kCards=sj=>[{h:'',cards:kataList(sj).map((K,i)=>({key:String(i),name:K.t,n:null,items:null}))}];
+window.kataMulti=(sj,keys,mode)=>{ const L=kataList(sj); const ks=keys.map(Number).filter(i=>L[i]).sort((a,b)=>a-b).map(i=>L[i]); const m=mode||KTA; return ks.map(K=>kataHTML(K,m==='in')).join('')+(m==='end'?kKeyHTML(ks):''); };
+window.kCards=kCards;
+function kSelGet(){ if(G.kSelSj!==G.subj){ G.kSelSj=G.subj; const n=kataList(G.subj).length; G.kSel=(ls.get('k-sel-'+G.subj,null)||[String(G.kata||0)]).filter(k=>+k<n); } return G.kSel; }
+rkRegScope('gk',{cards:()=>kCards(G.subj)[0].cards,get:()=>kSelGet(),set:L=>{ G.kSel=L; ls.set('k-sel-'+G.subj,L); }});
 function renderKata(){
-  const L=kataList(G.subj); if(G.kata==null||G.kata>=L.length) G.kata=0;
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="kans" aria-pressed="${!!G.kAns}">${G.kAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-gact="print">印刷する</button></div>${L.length?'':'<div class="empty">この分野の「解き方」は準備中です。</div>'}</div><div id="gsheets">${L.length?kataHTML(L[G.kata],G.kAns):''}</div>`;
+  window.__rkCur=renderKata; rkApplyPrint('kata');
+  const L=kataList(G.subj); const sel=new Set(kSelGet()); const keys=L.map((K,i)=>String(i)).filter(k=>sel.has(k));
+  $('#gq').innerHTML=L.length?rkLayoutHTML(rkPanelHTML('gk',kCards(G.subj),sel,{kind:'kata',lab:'問題の型',word:'型'}),keys.length?'':'左の「問題の型」で、印刷したい型を選んでください（いくつでも選べます）。',window.kataMulti(G.subj,keys),'gsheets'):'<div class="empty">この分野の「解き方」は準備中です。</div>';
+  window.rkPanelFix();
 }
 window.KATA=KATA; window.kataFor=(sj,i,show)=>{ const L=kataList(sj); return L[i]?kataHTML(L[i],show):''; }; window.kataSelHTML=kataSelHTML;
 /* ---------- なぜ？（身近な疑問から考える：小さなクイズで考えながら進み、答えと解説で学ぶことをまとめる） ---------- */
@@ -5865,7 +5915,7 @@ function renderCB(){
 
 // 理解プリントの印刷のしかた（縦／横、縦のときは1枚ずつ／詰めて）。このブラウザに保存し、歴史タブと共通
 const RKP=(()=>{ const v=ls.get('rk-print',{})||{}; return {ori:v.ori==='l'?'l':'p',pack:!!v.pack,up:v.up===2?2:1}; })();
-function rkApplyPrint(){ const up2=RKP.up===2; document.body.classList.toggle('rk2up',up2); document.body.classList.toggle('rkland',!up2&&RKP.ori==='l'); document.body.classList.toggle('rkpack',RKP.pack&&(up2||RKP.ori==='p')); }
+function rkApplyPrint(kind){ if(kind) window.__rkKind=kind; const k=window.__rkKind||'rikai'; const up2=RKP.up===2; document.body.classList.toggle('rk2up',up2); document.body.classList.toggle('rkland',!up2&&k==='rikai'&&RKP.ori==='l'); document.body.classList.toggle('rkpack',RKP.pack&&(up2||k!=='rikai'||RKP.ori==='p')); }
 function rkPrintOpts(){
   const c=(k,v,t,dis)=>`<button class="chip" onclick="rkSetPrint('${k}',${JSON.stringify(v).replace(/"/g,"'")})" aria-pressed="${RKP[k]===v}"${dis?' disabled':''}>${t}</button>`;
   return `<div class="rkprint"><span class="rkp-l">印刷の向き</span>${c('ori','p','縦（上に説明・下に問題）')}${c('ori','l','横（左に説明・右に問題）')}<span class="rkp-l">並べ方</span>${c('pack',false,'1枚ずつ新しいページから',RKP.ori==='l')}${c('pack',true,'詰めて印刷（ページ数が少ない）',RKP.ori==='l')}</div>`;
@@ -5874,11 +5924,11 @@ window.rkSetPrint=(k,v)=>{ RKP[k]=v; ls.set('rk-print',RKP); rkApplyPrint(); rkR
 window.rkPrintOpts=rkPrintOpts; rkApplyPrint();
 /* 理解プリントの設定パネル（理科のプリントと同じ形：1 印刷する範囲／2 プリントの形）。歴史タブ（s='h'）とほかの分野（s='g'）で共通 */
 window.__rkOpen=window.__rkOpen||new Set();
-const RKSCOPE={};
-function rkRerender(){ const y=window.scrollY; const sel=document.body.dataset.subj==='rk'?'#q .rkside':'#gq .rkside'; const sd=document.querySelector(sel); if(!sd) return; const st=sd.scrollTop;
-  if(document.body.dataset.subj==='rk'){ if(window.renderRikaiH) window.renderRikaiH(); } else renderRikai();
+function rkRegScope(s,M){ (window.__rkS=window.__rkS||{})[s]=M; }
+function rkRerender(){ const y=window.scrollY; const sel=document.body.dataset.subj==='rk'?'#q .rkside':'#gq .rkside'; const sd=document.querySelector(sel); if(!sd||!window.__rkCur) return; const st=sd.scrollTop;
+  window.__rkCur();
   const sd2=document.querySelector(sel); if(sd2) sd2.scrollTop=st; window.scrollTo({top:y}); }
-window.rkPk=(s,op,arg)=>{ const M=RKSCOPE[s]; if(!M) return; const cards=M.cards(); const all=cards.flatMap(c=>c.items?c.items.map(u=>u.key):[c.key]); const ids=k=>{ const c=cards.find(c=>c.key===k); return c?(c.items?c.items.map(u=>u.key):[c.key]):[k]; };
+window.rkPk=(s,op,arg)=>{ const M=(window.__rkS||{})[s]; if(!M) return; const cards=M.cards(); const all=cards.flatMap(c=>c.items?c.items.map(u=>u.key):[c.key]); const ids=k=>{ const c=cards.find(c=>c.key===k); return c?(c.items?c.items.map(u=>u.key):[c.key]):[k]; };
   let L=new Set(M.get());
   if(op==='u'){ L.has(arg)?L.delete(arg):L.add(arg); }
   else if(op==='c'){ const I=ids(arg); const on=I.every(k=>L.has(k)); I.forEach(k=>on?L.delete(k):L.add(k)); }
@@ -5887,39 +5937,45 @@ window.rkPk=(s,op,arg)=>{ const M=RKSCOPE[s]; if(!M) return; const cards=M.cards
   else if(op==='open'){ const k=s+arg; window.__rkOpen.has(k)?window.__rkOpen.delete(k):window.__rkOpen.add(k); rkRerender(); return; }
   else if(op==='openall'){ const ks=cards.filter(c=>c.items).map(c=>s+c.key); const any=ks.some(k=>window.__rkOpen.has(k)); ks.forEach(k=>any?window.__rkOpen.delete(k):window.__rkOpen.add(k)); rkRerender(); return; }
   M.set(all.filter(k=>L.has(k))); rkRerender(); };
-window.rkRegScope=(s,M)=>{ RKSCOPE[s]=M; };
+window.rkRegScope=rkRegScope;
 // groups=[{h:見出しまたは'', cards:[{key,name,n(枚),items:[{key,name,n}]|null}]}]
 function rkPanelHTML(s,groups,sel,o){
+  const kind=o.kind||'rikai', LAB=o.lab||'単元';
   const units=groups.flatMap(g=>g.cards.flatMap(c=>c.items?c.items:[c])); const su=units.filter(u=>sel.has(u.key));
-  const sum=su.length?(su.length===units.length?`すべての単元（${units.length}単元・${o.sheets}枚）`:`${su.slice(0,3).map(u=>esc(u.name)).join('・')}${su.length>3?' ほか':''}（${su.length}単元・${o.sheets}枚）`):'単元を選んでください';
+  const cnt=o.sheets!=null?`・${o.sheets}枚`:''; const W=o.word||'単元';
+  const sum=su.length?(su.length===units.length?`すべて（${units.length}${W}${cnt}）`:`${su.slice(0,3).map(u=>esc(u.name)).join('・')}${su.length>3?' ほか':''}（${su.length}${W}${cnt}）`):`${LAB}を選んでください`;
   const card=c=>{ const ids=c.items?c.items.map(u=>u.key):[c.key]; const n=ids.filter(k=>sel.has(k)).length; const open=!!c.items&&window.__rkOpen.has(s+c.key);
-    return `<div class="theme${open?' open':''}${n?' has':''}"><div class="th-row"><label class="th-main"><input type="checkbox" onchange="rkPk('${s}','c','${c.key}')"${n&&n===ids.length?' checked':''} data-ind="${n>0&&n<ids.length?1:0}"><span class="th-name">${esc(c.name)}</span><span class="th-n">${c.items?`${n}/${ids.length}　`:''}${c.n}枚</span></label><button type="button" class="th-btn" onclick="rkPk('${s}','only','${c.key}')">これだけ</button>${c.items?`<button type="button" class="th-btn" onclick="rkPk('${s}','open','${c.key}')" aria-expanded="${open}">${open?'閉じる ▴':'細かい単元 ▾'}</button>`:''}</div>${open?`<div class="rkp-sub">${c.items.map(u=>`<label class="rkp-chip${sel.has(u.key)?' on':''}"><input type="checkbox" onchange="rkPk('${s}','u','${u.key}')"${sel.has(u.key)?' checked':''}><span>${esc(u.name)}</span><small>${u.n}枚</small></label>`).join('')}</div>`:''}</div>`; };
+    return `<div class="theme${open?' open':''}${n?' has':''}"><div class="th-row"><label class="th-main"><input type="checkbox" onchange="rkPk('${s}','c','${c.key}')"${n&&n===ids.length?' checked':''} data-ind="${n>0&&n<ids.length?1:0}"><span class="th-name">${esc(c.name)}</span><span class="th-n">${c.items?`${n}/${ids.length}　`:''}${c.n!=null?c.n+'枚':''}</span></label><button type="button" class="th-btn" onclick="rkPk('${s}','only','${c.key}')">これだけ</button>${c.items?`<button type="button" class="th-btn" onclick="rkPk('${s}','open','${c.key}')" aria-expanded="${open}">${open?'閉じる ▴':'細かい単元 ▾'}</button>`:''}</div>${open?`<div class="rkp-sub">${c.items.map(u=>`<label class="rkp-chip${sel.has(u.key)?' on':''}"><input type="checkbox" onchange="rkPk('${s}','u','${u.key}')"${sel.has(u.key)?' checked':''}><span>${esc(u.name)}</span>${u.n!=null?`<small>${u.n}枚</small>`:''}</label>`).join('')}</div>`:''}</div>`; };
   const anyOpen=groups.some(g=>g.cards.some(c=>c.items&&window.__rkOpen.has(s+c.key))), hasSub=groups.some(g=>g.cards.some(c=>c.items));
   const seg=(cur,v,t,f)=>`<button type="button" class="seg${cur===v?' on':''}" aria-pressed="${cur===v}" onclick="${f}">${t}</button>`;
-  const ori=RKP.ori, pack=RKP.pack&&(RKP.up===2||RKP.ori==='p');
+  const ori=kind==='rikai'?RKP.ori:'p', pack=RKP.pack&&(RKP.up===2||ori==='p');
   return `<div class="rkpanel">
   <section class="step"><h2 class="step-h"><span class="sn">1</span>印刷する範囲</h2>
-    <div class="row"><div class="lab">単元</div><details class="unitbox"${window.__rkUOpen===false?'':' open'}><summary><span>${sum}</span><span class="ub-open">しぼりこむ ▾</span></summary><div class="units">
+    <div class="row"><div class="lab">${LAB}</div><details class="unitbox"${window.__rkUOpen===false?'':' open'}><summary><span>${sum}</span><span class="ub-open">しぼりこむ ▾</span></summary><div class="units">
     ${groups.map(g=>`<div class="ugrp">${g.h?`<div class="ugh">${esc(g.h)}</div>`:''}<div class="themes">${g.cards.map(card).join('')}</div></div>`).join('')}
     <div class="ubtn"><button type="button" class="link" onclick="rkPk('${s}','all',1)">すべて選ぶ</button><button type="button" class="link" onclick="rkPk('${s}','all',0)">すべて外す</button>${hasSub?`<button type="button" class="link" onclick="rkPk('${s}','openall')">${anyOpen?'すべて閉じる':'すべて開く'}</button>`:''}</div></div></details></div>
     ${o.shs||''}
   </section>
   <section class="step"><h2 class="step-h"><span class="sn">2</span>プリントの形</h2>
-    <div class="row"><div class="lab">解答の印刷</div><div class="segs">${seg(RKA,'none','解答は印刷しない',"rkSetAns('none')")}${seg(RKA,'end','解答を最後のページにまとめる',"rkSetAns('end')")}${seg(RKA,'in','解答を各問題に書きこむ',"rkSetAns('in')")}</div></div>
+    <div class="row"><div class="lab">${kind==='sum'?'答え':'解答の印刷'}</div><div class="segs">${kind==='sum'?seg(SMA,'show','答えを書いたまとめ',"rkSetMode('sum','show')")+seg(SMA,'hide','答えをかくす（書きこみ練習）',"rkSetMode('sum','hide')")+seg(SMA,'end','かくして、最後に答えつきを付ける',"rkSetMode('sum','end')"):kind==='kata'?seg(KTA,'none','解答は印刷しない',"rkSetMode('kata','none')")+seg(KTA,'end','解答・解説を最後のページにまとめる',"rkSetMode('kata','end')")+seg(KTA,'in','解答・解説を各問題に書きこむ',"rkSetMode('kata','in')"):seg(RKA,'none','解答は印刷しない',"rkSetAns('none')")+seg(RKA,'end','解答を最後のページにまとめる',"rkSetAns('end')")+seg(RKA,'in','解答を各問題に書きこむ',"rkSetAns('in')")}</div></div>
     <div class="row"><div class="lab">用紙</div><div><div class="segs">${seg(RKP.up,1,'A4に1枚ずつ',"rkSetPrint('up',1)")}${seg(RKP.up,2,'2in1（A4横に2枚分）',"rkSetPrint('up',2)")}</div><p class="hint">${RKP.up===2?'A4横の左右に、プリント2枚分を縮小して印刷します（文字は約7割の大きさ）。':'プリント1枚分をA4の大きさで印刷します。'}</p></div></div>
-    ${RKP.up===1?`<div class="row"><div class="lab">印刷の向き</div><div class="segs">${seg(ori,'p','縦（上に説明・下に問題）',"rkSetPrint('ori','p')")}${seg(ori,'l','横（左に説明・右に問題）',"rkSetPrint('ori','l')")}</div></div>`:''}
+    ${RKP.up===1&&kind==='rikai'?`<div class="row"><div class="lab">印刷の向き</div><div class="segs">${seg(ori,'p','縦（上に説明・下に問題）',"rkSetPrint('ori','p')")}${seg(ori,'l','横（左に説明・右に問題）',"rkSetPrint('ori','l')")}</div></div>`:''}
     <div class="row"><div class="lab">並べ方</div><div><div class="segs">${seg(pack,false,RKP.up===2?'1枚ずつ左右に分ける':'1枚ずつ新しいページから',"rkSetPrint('pack',false)")}${RKP.up===2||ori==='p'?seg(pack,true,'詰めて印刷する',"rkSetPrint('pack',true)"):''}</div><p class="hint">${RKP.up===2?(pack?'前のプリントのあとに続けて詰めます。最もページ数が少なくなります。':'左右それぞれに1枚ずつ印刷します（長いプリントは次の段に続きます）。'):ori==='p'?'詰めて印刷すると、前のプリントの下があいていれば次のプリントを続けます（ページ数が少なくなります）。':'横向きでは、プリントごとに新しいページから印刷します。'}</p></div></div>
   </section>
   <div class="toolbar"><button type="button" class="btn primary" onclick="window.print()"${su.length?'':' disabled'}>印刷する</button></div>
   </div>`;
 }
 window.rkPanelHTML=rkPanelHTML;
+function rkLayoutHTML(panel,empty,body,id,cls){ return `<div class="rklay"><aside class="rkside"><div class="pset">${panel}</div></aside><div class="rkmain">${empty?`<div class="empty">${empty}</div>`:''}<div id="${id}"${cls?` class="${cls}"`:''}>${body}</div></div></div>`; }
+window.rkLayoutHTML=rkLayoutHTML;
+window.rkApplyPrint=rkApplyPrint;
 window.rkPanelFix=()=>document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; });
 function rkGCards(){ const d=D(); const cnt=u=>rkSheets(u.key,u.name).length; const U=d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>({key:u.key,name:u.name,n:cnt(u),ch:u.ch}));
   if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:null}))}];
   return [{h:'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:new Set(it.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size,items:it}:null; }).filter(Boolean)}]; }
 rkRegScope('g',{cards:()=>rkGCards().flatMap(g=>g.cards),get:()=>rkSelGet(),set:L=>rkSelSet(L)});
 function renderRikai(){
+  window.__rkCur=renderRikai; rkApplyPrint('rikai');
   const d=D(); const any=d.units.some(u=>rkSheets(u.key,u.name,true).length);
   const sel=new Set(rkSelGet()); const U=d.units.filter(u=>sel.has(u.key));
   G.rkAns=RKA==='in'; const acc=[], seen=new Set();
@@ -6022,7 +6078,7 @@ function renderG(){
   const opt=(v,n)=>`<option value="${v}" ${G.unit===v?'selected':''}>${esc(n)}</option>`;
   const units=`<select class="sel" id="gUnit"><option value="all">${d.chapters?'教科書全体':'すべての単元'}</option>${d.chapters?d.chapters.map(c=>`<optgroup label="${esc(c.name)}">${opt('ch:'+c.key,c.name+'（章全体）')}${d.units.filter(u=>u.ch===c.key).map(u=>opt(u.key,'　'+u.name)).join('')}</optgroup>`).join(''):d.units.map(u=>opt(u.key,u.name)).join('')}</select>`;
   let h=`<div class="tabs" role="group" aria-label="問題の種類">${TABS.filter(([k])=>!(k==='kata'&&isT())).map(([k,v,s])=>(k==='exam'&&isT()?[k,'テスト形式',G.subj==='tk'?'並び替え・正誤':'組み合わせ・正誤']:[k,v,s])).map(([k,v,s])=>`<button data-gmode="${k}" aria-pressed="${G.mode===k}">${v}<small>${s}</small></button>`).join('')}</div>
-    <div class="optrows">${G.mode==='naze'?`<div class="row"><span class="lab">問い</span>${nazeSelHTML(G.subj,G.nz||0,'gNaze')||'<span class="hint-line">準備中</span>'}</div>`:G.mode==='kata'&&!isT()?`<div class="row"><span class="lab">問題の型</span>${kataSelHTML(G.subj,G.kata||0,'gKata')||'<span class="hint-line">準備中</span>'}</div>`:`<div class="row"><span class="lab">単元</span>${G.mode==='rikai'?'<span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>':units}</div>
+    <div class="optrows">${G.mode==='naze'?`<div class="row"><span class="lab">問い</span>${nazeSelHTML(G.subj,G.nz||0,'gNaze')||'<span class="hint-line">準備中</span>'}</div>`:G.mode==='kata'&&!isT()?`<div class="row"><span class="lab">問題の型</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span></div>`:`<div class="row"><span class="lab">単元</span>${G.mode==='rikai'||G.mode==='sum'?'<span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>':units}</div>
     <div class="row"><span class="lab">重要度</span>${['A','B'].map(r=>`<button class="chip" data-grank="${r}" aria-pressed="${G.ranks.includes(r)}">${r==='A'?(isT()?'A 重要語句':'A 入試頻出'):'B 標準'}</button>`).join('')}</div>`}`;
   if(G.mode==='drill') h+=`<div class="row"><span class="lab">答え方</span><button class="chip" data-gwrite="0" aria-pressed="${!G.write}">選ぶ</button><button class="chip" data-gwrite="1" aria-pressed="${G.write}">書いて答える</button></div>`;
   if(G.mode==='exam'){ const chip=k=>`<button class="chip" data-gfmt="${k}" aria-pressed="${G.fmt===k}">${FMTS[k][0]}</button>`;
