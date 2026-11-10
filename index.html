@@ -3526,16 +3526,16 @@ const plusTbl=P=>P&&P.tbl&&P.tbl.length?P.tbl.map(t=>`<div class="tsum"><div cla
 // 理解プリント（歴史）：表示は地理・公民タブと共通（window.rikaiFor）
 function rkKey(){ return THEMES[S.rkTheme]?S.rkTheme:'e01'; }
 // 理解プリント：テーマ（単元）を複数選ぶ（このブラウザに保存）
-function rkHSelGet(){ if(!S.rkSel){ let L=null; try{ L=JSON.parse(localStorage.getItem('rk-sel-he')||'null'); }catch(e){} S.rkSel=Array.isArray(L)?L.filter(k=>THEMES[k]):[rkKey()]; } return S.rkSel; }
+function rkHSelGet(){ if(!S.rkSel){ let L=null; try{ L=JSON.parse(localStorage.getItem('rk-sel-he')||'null'); }catch(e){} S.rkSel=(Array.isArray(L)?L:[rkKey()]).filter(k=>THEMES[k.split('::')[0]]).flatMap(k=>{ if(k.includes('::')) return [k]; const it=window.rkTopicItems&&window.rkTopicItems('he:'+k,THEMES[k]); return it?it.map(x=>k+'::'+x.name):[k]; }); } return S.rkSel; }
 function rkHSelSet(L){ S.rkSel=L; try{ localStorage.setItem('rk-sel-he',JSON.stringify(L)); }catch(e){} }
 function rkHKeys(){ return Object.keys(THEMES).filter(k=>window.rkCount('he:'+k,THEMES[k],true)); }
-function rkHGroups(){ const ks=rkHKeys(); const c=k=>({key:k,name:THEMES[k],n:window.rkCount('he:'+k,THEMES[k]),items:null}); return [{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
+function rkHGroups(){ const ks=rkHKeys(); const c=k=>({key:k,name:THEMES[k],n:window.rkCount('he:'+k,THEMES[k]),items:(window.rkTopicItems('he:'+k,THEMES[k])||null)&&window.rkTopicItems('he:'+k,THEMES[k]).map(x=>({...x,key:k+'::'+x.name}))}); return [{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
 function renderRikaiH(){
   if(!window.rikaiMulti||!window.rkPanelHTML){ setTimeout(renderRikaiH,0); return; } // 地理・公民側のスクリプトの読みこみ後に表示
   window.__rkCur=renderRikaiH; window.rkApplyPrint('rikai');
   window.rkRegScope('h',{cards:()=>rkHGroups().flatMap(g=>g.cards),get:()=>rkHSelGet(),set:L=>rkHSelSet(L)});
-  const sel=new Set(rkHSelGet()); const ks=rkHKeys().filter(k=>sel.has(k));
-  const L=ks.map(k=>['he:'+k,THEMES[k]]);
+  const sel=new Set(rkHSelGet()); const hs=new Set([...sel].map(k=>{ const [a,b]=k.split('::'); return b?'he:'+a+'::'+b:'he:'+a; })); const ks=rkHKeys().filter(k=>window.rkOnly(hs,'he:'+k,THEMES[k]));
+  const L=ks.map(k=>['he:'+k,THEMES[k],window.rkOnly(hs,'he:'+k,THEMES[k])]);
   const h=window.rikaiMulti(L,window.rkAnsMode(),-1);
   $('#q').innerHTML=`<div class="rklay"><aside class="rkside"><div class="pset">${window.rkPanelHTML('h',rkHGroups(),sel,{sheets:window.rkSheetCount(L),shs:window.rkShHTML(L)})}</div></aside><div class="rkmain">${ks.length?'':'<div class="empty">左の「単元」で、印刷したい単元を選んでください（いくつでも選べます）。</div>'}<div id="sheets">${h}</div></div></div>`;
   window.rkPanelFix();
@@ -5605,6 +5605,36 @@ function rkSheets(key,name,all){
   const link=(RIKAI_LINK[key]||[]).map(id=>{ const [k,i]=id.split('#'); const R=[].concat(RIKAI[k]||[])[+i]; return R&&{R,name:rkUnitName(k),link:true,id}; }).filter(Boolean);
   const L=own.concat(link); return all?L:L.filter(x=>!RKOFF.has(x.id));
 }
+// 1つの単元のプリントを、内容（分野）ごとに小分けする（6枚以上の単元だけ）
+const RK_TOPIC={
+ geo:[['自然・気候',/気候|雨温|降水|気温|雪|季節風|やませ|地形|山地|山脈|平野|盆地|台地|川|湖|海流|火山|自然|島/],['農業',/農業|稲作|米|果樹|果物|畑|畜産|酪農|野菜|農家|農村|園芸|農産|作物|食料|小麦|綿花|プランテーション/],['水産業',/漁業|水産|養殖|漁港|魚|潮目/],['工業・資源',/工業|工場|製造|工芸|自動車|鉄鋼|石油|化学|エネルギー|発電|資源|鉱|産業/],['商業・観光',/商業|観光|サービス|商店|小売|卸|リゾート/],['人口・都市・交通',/人口|都市|過疎|過密|交通|新幹線|高速|港|空港|通信|物流|鉄道|移民|町/],['歴史・文化',/文化|祭り|歴史|伝統|世界遺産|民族|宗教|言語|くらし|暮らし|生活/],['環境・防災',/災害|防災|津波|地震|環境|公害|温暖化|保全|森林/]],
+ his:[['政治',/政治|政権|幕府|朝廷|天皇|将軍|改革|法|律令|憲法|内閣|議会|選挙|政党|支配|統一|国家|政府/],['外交・戦争',/外交|戦争|戦い|乱|侵略|条約|貿易|使節|遣|元寇|来航|開国|植民|国際|戦|軍/],['社会・経済',/社会|経済|農民|百姓|一揆|土地|税|産業|商業|都市|くらし|暮らし|身分|貨幣|交通|農業|工業|生活/],['文化・宗教',/文化|仏教|宗教|学問|文学|芸術|美術|建築|教育|思想|キリスト|寺|絵|書/]],
+ civ:[['憲法・人権',/憲法|人権|権利|自由|平等|差別|尊重/],['政治のしくみ',/国会|内閣|裁判|三権|選挙|政党|地方自治|議会|民主|政治|行政|司法|立法|首長/],['経済・くらし',/経済|市場|価格|企業|金融|銀行|労働|消費|財政|税|景気|社会保障|お金|働/],['国際社会',/国際|国連|紛争|平和|地球|環境|貿易|南北|核|難民/]]};
+const RK_USJ=(()=>{ const m={}; for(const sj in GDATA) for(const u of (GDATA[sj].units||[])) m[u.key]=sj; return m; })();
+const rkFam=key=>{ if(key.startsWith('he:')) return 'his'; const sj=RK_USJ[key]; return {jg:'geo',wg:'geo',tg:'geo',tk:'his',ko:'civ',tc:'civ'}[sj]||'geo'; };
+const RK_TC={};
+function rkTopicOf(R,fam){ const T=RK_TOPIC[fam]; const q=R.q||'', h=(R.sec||[]).map(x=>x.h).join(' ')+' '+(R.lead||'');
+  let best=null,bs=0; T.forEach(([t,re],i)=>{ const g=new RegExp(re.source,'g'); const sc=(q.match(g)||[]).length*3+(h.match(g)||[]).length; if(sc>bs){ bs=sc; best=t; } }); return best||'そのほか'; }
+// 時代をまたぐ歴史の分野（he:f_…）は、もとの定期テストの単元の時代で分ける
+const RK_ERA=(()=>{ const m={}; const T=GDATA.tk; if(!T) return m; const ch={}; (T.chapters||[]).forEach(c=>ch[c.key]=(c.name.match(/^(古代|中世|近世|近代|現代)/)||[])[1]||''); (T.units||[]).forEach(u=>{ m[u.key]=ch[u.ch]||''; }); return m; })();
+function rkTopics(key,name){
+  if(key in RK_TC) return RK_TC[key];
+  const L=rkSheets(key,name,true); let out=null;
+  if(L.length>=6){
+    const fam=rkFam(key), byEra=key.startsWith('he:f_'); const g=new Map();
+    const order=byEra?['古代','中世','近世','近代','現代','時代をまたぐまとめ']:RK_TOPIC[fam].map(x=>x[0]).concat(['そのほか']);
+    L.forEach(x=>{ const t=byEra?(RK_ERA[x.id.split('#')[0]]||'時代をまたぐまとめ'):rkTopicOf(x.R,fam); if(!g.has(t)) g.set(t,[]); g.get(t).push(x.id); });
+    const T=order.filter(t=>g.has(t)).map(t=>({t,ids:g.get(t)}));
+    if(T.length>=2) out=T;
+  }
+  return RK_TC[key]=out;
+}
+// 選択（単元キー、または「単元::小分け」）から、その単元で印刷するプリントのidの集合を返す（null＝選んでいない）
+function rkOnly(sel,key,name){ if(sel.has(key)) return 'all'; const T=rkTopics(key,name); if(!T) return null; const ids=T.filter(x=>sel.has(key+'::'+x.t)).flatMap(x=>x.ids); return ids.length?new Set(ids):null; }
+window.rkTopics=rkTopics; window.rkOnly=rkOnly;
+// カードの小分け（細かい単元）
+function rkTopicItems(key,name){ const T=rkTopics(key,name); if(!T) return null; return T.map(x=>({key:key+'::'+x.t,name:x.t,full:name+'・'+x.t,n:x.ids.filter(id=>!RKOFF.has(id)).length})); }
+window.rkTopicItems=rkTopicItems;
 window.rkOff=id=>{ RKOFF.add(id); rkOffSave(); rkRerender(); };
 window.rkOn=ids=>{ String(ids).split(',').forEach(id=>RKOFF.delete(id)); rkOffSave(); rkRerender(); };
 // 選んだ単元で外したプリントの一覧
@@ -5617,13 +5647,13 @@ window.rkTog=id=>{ RKOFF.has(id)?RKOFF.delete(id):RKOFF.add(id); rkOffSave(); rk
 window.rkOffMany=ids=>{ String(ids).split(',').forEach(id=>RKOFF.add(id)); rkOffSave(); rkRerender(); };
 function rkShHTML(L){ if(!L.length) return '';
   const one=L.length===1;
-  return `<div class="row"><div class="lab">プリント</div><div class="rksh">${L.map(([k,n])=>{ const S_=rkSheets(k,n,true); const on=S_.filter(x=>!RKOFF.has(x.id)); const ids=S_.map(x=>x.id).join(',');
+  return `<div class="row"><div class="lab">プリント</div><div class="rksh">${L.map(([k,n,only])=>{ const S_=rkSheets(k,n,true).filter(x=>!only||only==='all'||only.has(x.id)); const on=S_.filter(x=>!RKOFF.has(x.id)); const ids=S_.map(x=>x.id).join(',');
     const open=one||window.__rkShOpen.has(k);
     return `<details class="rksh-u" data-k="${esc(k)}"${open?' open':''}><summary><span class="rksh-n">${esc(n)}</span><span class="rksh-c${on.length<S_.length?' part':''}">${on.length}/${S_.length}枚</span></summary><div class="rksh-bar"><button type="button" class="link" onclick="rkOn('${ids}')">すべて印刷する</button><button type="button" class="link" onclick="rkOffMany('${ids}')">すべて外す</button></div>${S_.map((x,i)=>`<label class="rksh-i${RKOFF.has(x.id)?' off':''}"><input type="checkbox" onchange="rkTog('${x.id}')"${RKOFF.has(x.id)?'':' checked'}><span class="rksh-t">${esc(x.R.q)}</span>${x.R.lv==='B'?'<em>くわしく</em>':''}${x.link?'<em class="lk">基本</em>':''}</label>`).join('')}</details>`; }).join('')}</div></div>`; }
 window.rkShHTML=rkShHTML;
 function rikaiHTML(u,acc,seen){
   const L=rkSheets(u.key,u.name); if(!L.length) return '';
-  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link}:{...u,name:x.name}; if(acc) acc.push([m,x.R]); return `<div class="rk-sbar"><button type="button" class="tbtn del" onclick="rkOff('${x.id}')">このプリントを外す</button></div>`+rikaiSheet(m,x.R); }).join('');
+  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))&&!(u.only&&u.only!=='all'&&!u.only.has(x.id))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link}:{...u,name:x.name}; if(acc) acc.push([m,x.R]); return `<div class="rk-sbar"><button type="button" class="tbtn del" onclick="rkOff('${x.id}')">このプリントを外す</button></div>`+rikaiSheet(m,x.R); }).join('');
 }
 // 答えのまとめ（印刷の最後に1つの解答ページとしてつける）
 function rkKeyHTML(acc){
@@ -5644,8 +5674,8 @@ window.rkSetAns=v=>window.rkSetMode('rikai',v);
 window.kAnsMode=()=>KTA; window.sumAnsMode=()=>SMA;
 window.rkAnsOpts=rkAnsOpts; window.rkAnsMode=()=>RKA;
 // 複数の単元を選ぶ（分野ごとにこのブラウザに保存）
-function rkSelGet(){ if(G.rkSelSj!==G.subj){ G.rkSelSj=G.subj; const d=D(); const ok=new Set(d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>u.key)); G.rkSel=(ls.get('rk-sel-'+G.subj,[])||[]).filter(k=>ok.has(k));
-    if(!G.rkSel.length&&G.unit!=='all') G.rkSel=sumUnits().map(u=>u.key).filter(k=>ok.has(k)); } return G.rkSel; }
+function rkSelGet(){ if(G.rkSelSj!==G.subj){ G.rkSelSj=G.subj; const d=D(); const ok=new Set(d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>u.key)); G.rkSel=(ls.get('rk-sel-'+G.subj,[])||[]).flatMap(k=>{ const b=k.split('::')[0]; if(!ok.has(b)) return []; const it=!d.chapters&&!k.includes('::')?rkTopicItems(b,rkUnitName(b)):null; return it?it.map(x=>x.key):[k]; });
+    if(!G.rkSel.length&&G.unit!=='all') G.rkSel=sumUnits().map(u=>u.key).filter(k=>ok.has(k)).flatMap(k=>{ const it=!d.chapters?rkTopicItems(k,rkUnitName(k)):null; return it?it.map(x=>x.key):[k]; }); } return G.rkSel; }
 function rkSelSet(L){ G.rkSel=L; ls.set('rk-sel-'+G.subj,L); }
 function rkUnitPicker(){
   const d=D(); const sel=new Set(rkSelGet()); const cnt=u=>rkSheets(u.key,u.name).length;
@@ -5691,8 +5721,8 @@ function rikaiSheet(u,R){
 }
 // 歴史タブからも使う
 window.RIKAI=RIKAI; window.rikaiFor=(key,name,showAns,pick)=>{ const o=G.rkAns; const m=showAns===true?'in':showAns===false?'none':(showAns||RKA); G.rkAns=m==='in'; const acc=[]; const h=rikaiHTML({key,name,pick:pick==null||pick<0?null:pick},acc); G.rkAns=o; return h+(m==='end'?rkKeyHTML(acc):''); };
-window.rikaiMulti=(L,mode,pick)=>{ const o=G.rkAns; const m=mode||RKA; G.rkAns=m==='in'; const acc=[],seen=new Set(); const h=L.map(([key,name])=>rikaiHTML({key,name,pick:L.length===1&&pick!=null&&pick>=0?pick:null},acc,seen)).join(''); G.rkAns=o; return h+(m==='end'?rkKeyHTML(acc):''); };
-window.rkSheetCount=L=>new Set(L.flatMap(([k,n])=>rkSheets(k,n).map(x=>x.R))).size;
+window.rikaiMulti=(L,mode,pick)=>{ const o=G.rkAns; const m=mode||RKA; G.rkAns=m==='in'; const acc=[],seen=new Set(); const h=L.map(([key,name,only])=>rikaiHTML({key,name,only,pick:L.length===1&&pick!=null&&pick>=0?pick:null},acc,seen)).join(''); G.rkAns=o; return h+(m==='end'?rkKeyHTML(acc):''); };
+window.rkSheetCount=L=>new Set(L.flatMap(([k,n,only])=>rkSheets(k,n).filter(x=>!only||only==='all'||only.has(x.id)).map(x=>x.R))).size;
 window.rkPickHTML=rkPickHTML; window.rkCount=(key,name,all)=>rkSheets(key,name,all).length;
 /* ---------- 解き方（問題の型ごとに：例題と解き方 → 解き方チェック問題 → 実践問題） ---------- */
 // 折れ線・棒グラフ（系列が複数でもよい）
@@ -5942,8 +5972,10 @@ window.rkRegScope=rkRegScope;
 function rkPanelHTML(s,groups,sel,o){
   const kind=o.kind||'rikai', LAB=o.lab||'単元';
   const units=groups.flatMap(g=>g.cards.flatMap(c=>c.items?c.items:[c])); const su=units.filter(u=>sel.has(u.key));
+  // 選んだものを単元ごとにまとめて表示する（小分けが一部だけなら「東北地方（農業・工業）」）
+  const lbl=groups.flatMap(g=>g.cards.flatMap(c=>{ if(!c.items) return sel.has(c.key)?[c.name]:[]; const on=c.items.filter(u=>sel.has(u.key)); if(!on.length) return []; if(c.items[0].full){ return [on.length===c.items.length?c.name:`${c.name}（${on.map(u=>u.name).join('・')}）`]; } return on.map(u=>u.name); }));
   const cnt=o.sheets!=null?`・${o.sheets}枚`:''; const W=o.word||'単元';
-  const sum=su.length?(su.length===units.length?`すべて（${units.length}${W}${cnt}）`:`${su.slice(0,3).map(u=>esc(u.name)).join('・')}${su.length>3?' ほか':''}（${su.length}${W}${cnt}）`):`${LAB}を選んでください`;
+  const sum=su.length?(su.length===units.length?`すべて（${lbl.length}${W}${cnt}）`:`${lbl.slice(0,3).map(esc).join('・')}${lbl.length>3?' ほか':''}（${lbl.length}${W}${cnt}）`):`${LAB}を選んでください`;
   const card=c=>{ const ids=c.items?c.items.map(u=>u.key):[c.key]; const n=ids.filter(k=>sel.has(k)).length; const open=!!c.items&&window.__rkOpen.has(s+c.key);
     return `<div class="theme${open?' open':''}${n?' has':''}"><div class="th-row"><label class="th-main"><input type="checkbox" onchange="rkPk('${s}','c','${c.key}')"${n&&n===ids.length?' checked':''} data-ind="${n>0&&n<ids.length?1:0}"><span class="th-name">${esc(c.name)}</span><span class="th-n">${c.items?`${n}/${ids.length}　`:''}${c.n!=null?c.n+'枚':''}</span></label><button type="button" class="th-btn" onclick="rkPk('${s}','only','${c.key}')">これだけ</button>${c.items?`<button type="button" class="th-btn" onclick="rkPk('${s}','open','${c.key}')" aria-expanded="${open}">${open?'閉じる ▴':'細かい単元 ▾'}</button>`:''}</div>${open?`<div class="rkp-sub">${c.items.map(u=>`<label class="rkp-chip${sel.has(u.key)?' on':''}"><input type="checkbox" onchange="rkPk('${s}','u','${u.key}')"${sel.has(u.key)?' checked':''}><span>${esc(u.name)}</span>${u.n!=null?`<small>${u.n}枚</small>`:''}</label>`).join('')}</div>`:''}</div>`; };
   const anyOpen=groups.some(g=>g.cards.some(c=>c.items&&window.__rkOpen.has(s+c.key))), hasSub=groups.some(g=>g.cards.some(c=>c.items));
@@ -5971,17 +6003,17 @@ window.rkLayoutHTML=rkLayoutHTML;
 window.rkApplyPrint=rkApplyPrint;
 window.rkPanelFix=()=>document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; });
 function rkGCards(){ const d=D(); const cnt=u=>rkSheets(u.key,u.name).length; const U=d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>({key:u.key,name:u.name,n:cnt(u),ch:u.ch}));
-  if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:null}))}];
+  if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:rkTopicItems(u.key,u.name)}))}];
   return [{h:'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:new Set(it.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size,items:it}:null; }).filter(Boolean)}]; }
 rkRegScope('g',{cards:()=>rkGCards().flatMap(g=>g.cards),get:()=>rkSelGet(),set:L=>rkSelSet(L)});
 function renderRikai(){
   window.__rkCur=renderRikai; rkApplyPrint('rikai');
   const d=D(); const any=d.units.some(u=>rkSheets(u.key,u.name,true).length);
-  const sel=new Set(rkSelGet()); const U=d.units.filter(u=>sel.has(u.key));
+  const sel=new Set(rkSelGet()); const U=d.units.map(u=>({...u,only:rkOnly(sel,u.key,u.name)})).filter(u=>u.only);
   G.rkAns=RKA==='in'; const acc=[], seen=new Set();
   const body=U.map(u=>rikaiHTML(u,acc,seen)).join('');
-  const sheets=new Set(U.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size;
-  $('#gq').innerHTML=`<div class="rklay"><aside class="rkside"><div class="pset">${any?rkPanelHTML('g',rkGCards(),sel,{sheets,shs:rkShHTML(U.map(u=>[u.key,u.name]))}):'<div class="empty">この分野の理解プリントは準備中です。</div>'}</div></aside>
+  const sheets=new Set(U.flatMap(u=>rkSheets(u.key,u.name).filter(x=>u.only==='all'||u.only.has(x.id)).map(x=>x.R))).size;
+  $('#gq').innerHTML=`<div class="rklay"><aside class="rkside"><div class="pset">${any?rkPanelHTML('g',rkGCards(),sel,{sheets,shs:rkShHTML(U.map(u=>[u.key,u.name,u.only]))}):'<div class="empty">この分野の理解プリントは準備中です。</div>'}</div></aside>
   <div class="rkmain">${any&&!U.length?'<div class="empty">左の「単元」で、印刷したい単元を選んでください（いくつでも選べます）。</div>':''}<div id="gsheets">${body}${RKA==='end'?rkKeyHTML(acc):''}</div></div></div>`;
   window.rkPanelFix();
 }
