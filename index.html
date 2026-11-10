@@ -483,14 +483,14 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .rk-head{border-bottom:2px solid currentColor;margin-bottom:10px;padding-bottom:4px}.rk-head h3{margin:2px 0 0;font-family:var(--mincho);font-size:21px;line-height:1.4}.rk-unit{font-size:12px;color:var(--muted)}
 .rksheet .rkgrid{display:grid;gap:14px}
 @media (min-width:900px){ .rksheet .rkgrid{grid-template-columns:1fr 1fr} }
-.wrap:has(.rklay){max-width:1480px}.wrap:has(.rklay)>:not(main){width:100%;max-width:780px;margin-inline:auto}
+body:not([data-subj="rk"]) .wrap:has(#gq .rklay),body[data-subj="rk"] .wrap:has(#q .rklay){max-width:1480px}
 .rklay{display:grid;grid-template-columns:minmax(320px,390px) minmax(0,1fr);gap:22px;align-items:start}
 .rkside{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;padding-right:6px}.rkside .pset{border-bottom:0;padding-bottom:0}
 main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x:auto}.rkmain .sheet{margin-left:auto;margin-right:auto}.rkmain #gsheets,.rkmain #sheets{display:flex;flex-direction:column;gap:14px}
 .rkside .rkpanel .row{grid-template-columns:minmax(0,1fr);gap:6px}.rkside .rkpanel .lab{padding-top:0}.rkside .rkpanel .themes{grid-template-columns:1fr}.rkside .rkpanel .units{max-height:none;overflow:visible}.rkside .rkpanel .toolbar{position:sticky;bottom:0;background:var(--surface);padding:8px 0}.rkside .rkpanel .toolbar .btn{width:100%}
 .rk-sbar{display:flex;justify-content:flex-end;width:100%;max-width:210mm;margin:0 auto -8px}
 .rkoff{display:grid;gap:6px}.rkoff-i{display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:13px;border:1px dashed var(--line);border-radius:6px;padding:4px 8px}.rkoff-i span{color:var(--muted);text-decoration:line-through}
-@media (max-width:1100px){.wrap:has(.rklay){max-width:780px}.rklay{display:block}.rkside{position:static;max-height:none;overflow:visible;padding-right:0;margin-bottom:16px}}
+@media (max-width:1100px){body:not([data-subj="rk"]) .wrap:has(#gq .rklay),body[data-subj="rk"] .wrap:has(#q .rklay){max-width:780px}.rklay{display:block}.rkside{position:static;max-height:none;overflow:visible;padding-right:0;margin-bottom:16px}}
 @media print{.rklay{display:block}.rkside,.rk-sbar{display:none!important}.wrap:has(.rklay){max-width:none}}
 .rksh{display:grid;gap:6px}.rksh-u{border:1px solid var(--line);border-radius:8px;background:var(--surface)}.rksh-u summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-weight:700;font-size:13px}.rksh-c{font-weight:400;color:var(--muted);white-space:nowrap}.rksh-c.part{color:var(--ng)}
 .rksh-bar{display:flex;gap:14px;padding:0 10px 4px}.rksh-i{display:flex;align-items:flex-start;gap:6px;padding:4px 10px;border-top:1px dashed var(--line);font-size:13px;cursor:pointer;line-height:1.5}.rksh-i input{accent-color:var(--ai);width:15px;height:15px;margin:2px 0 0;flex-shrink:0}.rksh-t{flex:1}.rksh-i.off .rksh-t{color:var(--muted);text-decoration:line-through}.rksh-i em{font-style:normal;font-size:11px;border:1px solid var(--ai);color:var(--ai);border-radius:3px;padding:0 4px;white-space:nowrap}.rksh-i em.lk{border-color:var(--muted);color:var(--muted)}
@@ -576,6 +576,18 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
 .tlegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}.tlegend span{display:inline-flex;align-items:center;gap:3px;font-size:13px}.tlegend svg{width:18px;height:16px}
 .sheet .stbl td,.sheet .stbl th{border:1px solid #888}
 .tsub{font-size:.45em;margin-left:.4em;color:var(--muted);font-weight:600}
+/* 広い画面の印刷用の画面（理解・解き方・まとめ）は、ウインドウの高さに収め、左の設定と中央のプリントをそれぞれスクロールさせる */
+@media screen and (min-width:1101px){
+ body:not([data-subj="rk"]):has(#gq .rklay),body[data-subj="rk"]:has(#q .rklay){height:100vh;overflow:hidden;margin:0;padding-bottom:10px;box-sizing:border-box}
+ body:not([data-subj="rk"]):has(#gq .rklay) .wrap,body[data-subj="rk"]:has(#q .rklay) .wrap{height:100%;display:flex;flex-direction:column}
+ body:not([data-subj="rk"]):has(#gq .rklay) #gq,body[data-subj="rk"]:has(#q .rklay) #q{flex:1 1 auto;min-height:0;padding:12px 14px}
+ body[data-subj="rk"]:has(#q .rklay) .foot{display:none}
+ main:has(>.rklay){display:flex;flex-direction:column}
+ body:not([data-subj="rk"]):has(#gq .rklay) .wrap>:not(main),body[data-subj="rk"]:has(#q .rklay) .wrap>:not(main){flex-shrink:0}
+ .rklay{flex:1 1 auto;min-height:0;height:100%}
+ .rkside{position:static;top:auto;max-height:none;height:100%;overflow:auto}
+ .rkmain{height:100%;overflow:auto;padding-right:4px}
+}
 /* 画面上部をコンパクトに（分野・タブ・設定を少ないスクロールで選べるように） */
 @media screen{
  body{padding-block:10px 40px}
@@ -5987,9 +5999,9 @@ window.rkPrintOpts=rkPrintOpts; rkApplyPrint();
 /* 理解プリントの設定パネル（理科のプリントと同じ形：1 印刷する範囲／2 プリントの形）。歴史タブ（s='h'）とほかの分野（s='g'）で共通 */
 window.__rkOpen=window.__rkOpen||new Set();
 function rkRegScope(s,M){ (window.__rkS=window.__rkS||{})[s]=M; }
-function rkRerender(){ const y=window.scrollY; const sel=document.body.dataset.subj==='rk'?'#q .rkside':'#gq .rkside'; const sd=document.querySelector(sel); if(!sd||!window.__rkCur) return; const st=sd.scrollTop;
+function rkRerender(){ const y=window.scrollY; const sel=document.body.dataset.subj==='rk'?'#q .rkside':'#gq .rkside'; const sd=document.querySelector(sel); if(!sd||!window.__rkCur) return; const st=sd.scrollTop; const mn=document.querySelector(sel.replace('rkside','rkmain')); const mt=mn?mn.scrollTop:0;
   window.__rkCur();
-  const sd2=document.querySelector(sel); if(sd2) sd2.scrollTop=st; window.scrollTo({top:y}); }
+  const sd2=document.querySelector(sel); if(sd2) sd2.scrollTop=st; const mn2=document.querySelector(sel.replace('rkside','rkmain')); if(mn2) mn2.scrollTop=mt; window.scrollTo({top:y}); }
 window.rkPk=(s,op,arg)=>{ const M=(window.__rkS||{})[s]; if(!M) return; const cards=M.cards(); const all=cards.flatMap(c=>c.items?c.items.map(u=>u.key):[c.key]); const ids=k=>{ const c=cards.find(c=>c.key===k); return c?(c.items?c.items.map(u=>u.key):[c.key]):[k]; };
   let L=new Set(M.get());
   if(op==='u'){ L.has(arg)?L.delete(arg):L.add(arg); }
