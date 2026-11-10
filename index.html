@@ -495,9 +495,11 @@ main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x
 .rksh{display:grid;gap:6px}.rksh-u{border:1px solid var(--line);border-radius:8px;background:var(--surface)}.rksh-u summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-weight:700;font-size:13px}.rksh-c{font-weight:400;color:var(--muted);white-space:nowrap}.rksh-c.part{color:var(--ng)}
 .rksh-bar{display:flex;gap:14px;padding:0 10px 4px}.rksh-i{display:flex;align-items:flex-start;gap:6px;padding:4px 10px;border-top:1px dashed var(--line);font-size:13px;cursor:pointer;line-height:1.5}.rksh-i input{accent-color:var(--ai);width:15px;height:15px;margin:2px 0 0;flex-shrink:0}.rksh-t{flex:1}.rksh-i.off .rksh-t{color:var(--muted);text-decoration:line-through}.rksh-i em{font-style:normal;font-size:11px;border:1px solid var(--ai);color:var(--ai);border-radius:3px;padding:0 4px;white-space:nowrap}.rksh-i em.lk{border-color:var(--muted);color:var(--muted)}
 @page rk2up{size:A4 landscape;margin:8mm}
-@media print{ html:has(body.rkland:not([data-subj="rk"]) #gq .rklay .rksheet),html:has(body.rkland[data-subj="rk"] #q .rklay .rksheet){page:rkland} html:has(body.rk2up:not([data-subj="rk"]) #gq .rklay),html:has(body.rk2up[data-subj="rk"] #q .rklay){page:rk2up} .rkmain #gsheets,.rkmain #sheets{display:block} body.rk2up .rkmain #gsheets,body.rk2up .rkmain #sheets{display:block;columns:2;column-gap:10mm;column-fill:balance;zoom:.7} body.rk2up .rkmain .sheet{break-after:auto;break-before:column} body.rk2up .rk-sbar:first-child+.sheet,body.rk2up .rkmain #gsheets>.sheet:first-child,body.rk2up .rkmain #sheets>.sheet:first-child,body.rk2up .rkmain .hideans>.sheet:first-child{break-before:auto} body.rk2up.rkpack .rkmain .sheet{break-before:auto} body.rk2up .rkmain .rkkey,body.rk2up .rkmain .sum-ansv>.sheet:first-child{break-before:column} body.rk2up .rkkey{break-before:column} body.rk2up .rkk-note{margin:2px 0 0;font-size:11px;color:var(--muted)}.rkk-j{margin:1px 0 3px}.rkk-kai{display:block;font-size:8.5pt;color:#444;line-height:1.45}
+@media print{ html:has(body.rkland:not([data-subj="rk"]) #gq .rklay .rksheet),html:has(body.rkland[data-subj="rk"] #q .rklay .rksheet){page:rkland} .rkmain #gsheets,.rkmain #sheets{display:block} .rkmain .sheet[data-z]{zoom:var(--z)} body.rkpack .rkmain .sheet.pg-fit{break-inside:avoid} body.rkpack .rkmain .sheet.pg-new{break-before:page;margin-top:0;padding-top:0;border-top:0} body.rkpack .rkmain .sheet.pg-cont{break-before:auto} }
+.rkk-note{margin:2px 0 0;font-size:11px;color:var(--muted)}.rkk-j{margin:1px 0 3px}.rkk-kai{display:block;font-size:8.5pt;color:#444;line-height:1.45}
 .sum-ansv .sh-title h3::after{content:'（解答）';font-size:.7em;margin-left:6px}
-.rkkey .rkk-grid{columns:1} body.rk2up .rksheet .rkgrid{display:block} }
+/* 印刷の高さを測るための見えない置き場（印刷時と同じ見た目にする） */
+.rkm{position:absolute;left:-20000px;top:0;visibility:hidden;pointer-events:none}.rkm .sheet{border:0;box-shadow:none;padding:0;max-width:none;width:auto;margin:0;font-size:10.5pt}.rkm .rk-sbar{display:none}.rkm .rksheet .rkgrid{display:block}.rkm.land .rksheet .rkgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 8mm;align-items:start}.rkm.land .rksheet .rk-pr{margin-top:0}
 .rkpanel{display:grid;gap:14px}.rkpanel .step{display:grid;gap:12px}.rkpanel .step+.step{border-top:1px dashed var(--line);padding-top:14px}
 .rkpanel .step-h{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;font-family:var(--gothic)}.rkpanel .sn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ai);color:var(--surface);font-size:12px}
 .rkpanel .row{display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:start}.rkpanel .lab{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;padding-top:7px}
@@ -520,6 +522,7 @@ main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x
 @page rkland{size:A4 landscape;margin:10mm}
 @media print{ .rkprint,.rkunits{display:none} .rkkey{break-before:page} body.rkland .rksheet{page:rkland} body.rkland .rksheet .rkgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 8mm;align-items:start} body.rkland .rksheet .rk-pr{margin-top:0} body.rkpack .rkmain .sheet{break-after:auto;margin-top:5mm;padding-top:3mm;border-top:1px dashed #999} body.rkpack .rkmain #gsheets>.sheet:first-child,body.rkpack .rkmain #sheets>.sheet:first-child,body.rkpack .rkmain .rk-sbar:first-child+.sheet,body.rkpack .rkmain .hideans>.sheet:first-child{margin-top:0;padding-top:0;border-top:0} body.rkpack .rkmain .rkkey,body.rkpack .rkmain .sum-ansv>.sheet:first-child{break-before:page;margin-top:0;padding-top:0;border-top:0} body.rkpack .rksheet .rk-head{break-after:avoid} body.rkpack .rksheet .rk-lead{break-inside:avoid} }
 @media print{ .rksheet .rkgrid{display:block} .rksheet .rk-pr{margin-top:8px} .rksheet .rk-pt,.rksheet .rk-q{break-after:avoid} .rksheet li,.rksheet .rk-wbox,.rksheet .rk-tip,.rksheet .rk-tbl{break-inside:avoid} .rksheet .rk-head{margin-bottom:6px} .rksheet .rk-lead{margin:2px 0 6px;line-height:1.6} .rksheet .rk-box{padding:4px 10px;margin:0 0 6px} .rksheet .rk-box p{margin:1px 0} .rksheet .rk-box h4{margin:0 0 2px} .rksheet .rk-q{margin:6px 0 2px} .rksheet .rk-wbox{min-height:3.6em} .rksheet .rk-tip{margin-top:8px} }
+.rkm .rksheet .rk-pr{margin-top:8px} .rkm .rksheet .rk-head{margin-bottom:6px} .rkm .rksheet .rk-lead{margin:2px 0 6px;line-height:1.6} .rkm .rksheet .rk-box{padding:4px 10px;margin:0 0 6px} .rkm .rksheet .rk-box p{margin:1px 0} .rkm .rksheet .rk-box h4{margin:0 0 2px} .rkm .rksheet .rk-q{margin:6px 0 2px} .rkm .rksheet .rk-wbox{min-height:3.6em} .rkm .rksheet .rk-tip{margin-top:8px} .rkm.land .rksheet .rk-pr{margin-top:0}
 .rk-lead{border-left:4px solid var(--accent,#c0392b);padding:4px 10px;margin:4px 0 10px;line-height:1.8}
 .rk-box{border:1.5px solid currentColor;border-radius:10px;padding:8px 12px;margin:0 0 10px;break-inside:avoid}
 .rk-box h4{margin:0 0 4px;font-size:15px}.rk-box h4::before{content:"● "}
@@ -5653,7 +5656,7 @@ function rkShHTML(L){ if(!L.length) return '';
 window.rkShHTML=rkShHTML;
 function rikaiHTML(u,acc,seen){
   const L=rkSheets(u.key,u.name); if(!L.length) return '';
-  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))&&!(u.only&&u.only!=='all'&&!u.only.has(x.id))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link}:{...u,name:x.name}; if(acc) acc.push([m,x.R]); return `<div class="rk-sbar"><button type="button" class="tbtn del" onclick="rkOff('${x.id}')">このプリントを外す</button></div>`+rikaiSheet(m,x.R); }).join('');
+  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))&&!(u.only&&u.only!=='all'&&!u.only.has(x.id))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link}:{...u,name:x.name}; if(acc) acc.push([m,x.R]); return `<div class="rk-sbar"><button type="button" class="tbtn del" onclick="rkOff('${x.id}')">このプリントを外す</button></div>`+rikaiSheet(m,x.R).replace('<div class="sheet rksheet"',`<div class="sheet rksheet" data-grp="${esc(u.key)}"`); }).join('');
 }
 // 答えのまとめ（印刷の最後に1つの解答ページとしてつける）
 function rkKeyHTML(acc){
@@ -5944,8 +5947,8 @@ function renderCB(){
 }
 
 // 理解プリントの印刷のしかた（縦／横、縦のときは1枚ずつ／詰めて）。このブラウザに保存し、歴史タブと共通
-const RKP=(()=>{ const v=ls.get('rk-print',{})||{}; return {ori:v.ori==='l'?'l':'p',pack:!!v.pack,up:v.up===2?2:1}; })();
-function rkApplyPrint(kind){ if(kind) window.__rkKind=kind; const k=window.__rkKind||'rikai'; const up2=RKP.up===2; document.body.classList.toggle('rk2up',up2); document.body.classList.toggle('rkland',!up2&&k==='rikai'&&RKP.ori==='l'); document.body.classList.toggle('rkpack',RKP.pack&&(up2||k!=='rikai'||RKP.ori==='p')); }
+const RKP=(()=>{ const v=ls.get('rk-print',{})||{}; return {ori:v.ori==='l'?'l':'p',pack:!!v.pack,up:1,fit:v.fit!==false}; })();
+function rkApplyPrint(kind){ if(kind) window.__rkKind=kind; const k=window.__rkKind||'rikai'; document.body.classList.remove('rk2up'); document.body.classList.toggle('rkland',k==='rikai'&&RKP.ori==='l'); document.body.classList.toggle('rkpack',RKP.pack); }
 function rkPrintOpts(){
   const c=(k,v,t,dis)=>`<button class="chip" onclick="rkSetPrint('${k}',${JSON.stringify(v).replace(/"/g,"'")})" aria-pressed="${RKP[k]===v}"${dis?' disabled':''}>${t}</button>`;
   return `<div class="rkprint"><span class="rkp-l">印刷の向き</span>${c('ori','p','縦（上に説明・下に問題）')}${c('ori','l','横（左に説明・右に問題）')}<span class="rkp-l">並べ方</span>${c('pack',false,'1枚ずつ新しいページから',RKP.ori==='l')}${c('pack',true,'詰めて印刷（ページ数が少ない）',RKP.ori==='l')}</div>`;
@@ -5980,7 +5983,7 @@ function rkPanelHTML(s,groups,sel,o){
     return `<div class="theme${open?' open':''}${n?' has':''}"><div class="th-row"><label class="th-main"><input type="checkbox" onchange="rkPk('${s}','c','${c.key}')"${n&&n===ids.length?' checked':''} data-ind="${n>0&&n<ids.length?1:0}"><span class="th-name">${esc(c.name)}</span><span class="th-n">${c.items?`${n}/${ids.length}　`:''}${c.n!=null?c.n+'枚':''}</span></label><button type="button" class="th-btn" onclick="rkPk('${s}','only','${c.key}')">これだけ</button>${c.items?`<button type="button" class="th-btn" onclick="rkPk('${s}','open','${c.key}')" aria-expanded="${open}">${open?'閉じる ▴':'細かい単元 ▾'}</button>`:''}</div>${open?`<div class="rkp-sub">${c.items.map(u=>`<label class="rkp-chip${sel.has(u.key)?' on':''}"><input type="checkbox" onchange="rkPk('${s}','u','${u.key}')"${sel.has(u.key)?' checked':''}><span>${esc(u.name)}</span>${u.n!=null?`<small>${u.n}枚</small>`:''}</label>`).join('')}</div>`:''}</div>`; };
   const anyOpen=groups.some(g=>g.cards.some(c=>c.items&&window.__rkOpen.has(s+c.key))), hasSub=groups.some(g=>g.cards.some(c=>c.items));
   const seg=(cur,v,t,f)=>`<button type="button" class="seg${cur===v?' on':''}" aria-pressed="${cur===v}" onclick="${f}">${t}</button>`;
-  const ori=kind==='rikai'?RKP.ori:'p', pack=RKP.pack&&(RKP.up===2||ori==='p');
+  const ori=kind==='rikai'?RKP.ori:'p', pack=RKP.pack;
   return `<div class="rkpanel">
   <section class="step"><h2 class="step-h"><span class="sn">1</span>印刷する範囲</h2>
     <div class="row"><div class="lab">${LAB}</div><details class="unitbox"${window.__rkUOpen===false?'':' open'}><summary><span>${sum}</span><span class="ub-open">しぼりこむ ▾</span></summary><div class="units">
@@ -5990,18 +5993,52 @@ function rkPanelHTML(s,groups,sel,o){
   </section>
   <section class="step"><h2 class="step-h"><span class="sn">2</span>プリントの形</h2>
     <div class="row"><div class="lab">${kind==='sum'?'答え':'解答の印刷'}</div><div class="segs">${kind==='sum'?seg(SMA,'show','答えを書いたまとめ',"rkSetMode('sum','show')")+seg(SMA,'hide','答えをかくす（書きこみ練習）',"rkSetMode('sum','hide')")+seg(SMA,'end','かくして、最後に答えつきを付ける',"rkSetMode('sum','end')"):kind==='kata'?seg(KTA,'none','解答は印刷しない',"rkSetMode('kata','none')")+seg(KTA,'end','解答・解説を最後のページにまとめる',"rkSetMode('kata','end')")+seg(KTA,'in','解答・解説を各問題に書きこむ',"rkSetMode('kata','in')"):seg(RKA,'none','解答は印刷しない',"rkSetAns('none')")+seg(RKA,'end','解答を最後のページにまとめる',"rkSetAns('end')")+seg(RKA,'in','解答を各問題に書きこむ',"rkSetAns('in')")}</div></div>
-    <div class="row"><div class="lab">用紙</div><div><div class="segs">${seg(RKP.up,1,'A4に1枚ずつ',"rkSetPrint('up',1)")}${seg(RKP.up,2,'2in1（A4横に2枚分）',"rkSetPrint('up',2)")}</div><p class="hint">${RKP.up===2?'A4横の左右に、プリント2枚分を縮小して印刷します（文字は約7割の大きさ）。':'プリント1枚分をA4の大きさで印刷します。'}</p></div></div>
-    ${RKP.up===1&&kind==='rikai'?`<div class="row"><div class="lab">印刷の向き</div><div class="segs">${seg(ori,'p','縦（上に説明・下に問題）',"rkSetPrint('ori','p')")}${seg(ori,'l','横（左に説明・右に問題）',"rkSetPrint('ori','l')")}</div></div>`:''}
-    <div class="row"><div class="lab">並べ方</div><div><div class="segs">${seg(pack,false,RKP.up===2?'1枚ずつ左右に分ける':'1枚ずつ新しいページから',"rkSetPrint('pack',false)")}${RKP.up===2||ori==='p'?seg(pack,true,'詰めて印刷する',"rkSetPrint('pack',true)"):''}</div><p class="hint">${RKP.up===2?(pack?'前のプリントのあとに続けて詰めます。最もページ数が少なくなります。':'左右それぞれに1枚ずつ印刷します（長いプリントは次の段に続きます）。'):ori==='p'?'詰めて印刷すると、前のプリントの下があいていれば次のプリントを続けます（ページ数が少なくなります）。':'横向きでは、プリントごとに新しいページから印刷します。'}</p></div></div>
+    <div class="row"><div class="lab">文字の大きさ</div><div><div class="segs">${seg(RKP.fit,true,'1ページに収まるよう自動で調整',"rkSetPrint('fit',true)")}${seg(RKP.fit,false,'調整しない',"rkSetPrint('fit',false)")}</div><p class="hint">1ページを少しこえるプリントは、文字を小さくして（4分の3まで）1ページに収めます。</p></div></div>
+    ${kind==='rikai'?`<div class="row"><div class="lab">印刷の向き</div><div class="segs">${seg(ori,'p','縦（上に説明・下に問題）',"rkSetPrint('ori','p')")}${seg(ori,'l','横（左に説明・右に問題）',"rkSetPrint('ori','l')")}</div></div>`:''}
+    <div class="row"><div class="lab">並べ方</div><div><div class="segs">${seg(pack,false,'1枚ずつ新しいページから',"rkSetPrint('pack',false)")}${seg(pack,true,'短いものは同じページにまとめる',"rkSetPrint('pack',true)")}</div><p class="hint">${pack?'1枚のプリントが2ページに分かれないようにしたうえで、半分ほどのプリントどうしを同じページにまとめます（近くの同じくらいの長さのものと組み合わせます）。':'プリントごとに新しいページから印刷します。'}</p></div></div>
   </section>
   <div class="toolbar"><button type="button" class="btn primary" onclick="window.print()"${su.length?'':' disabled'}>印刷する</button></div>
   </div>`;
 }
 window.rkPanelHTML=rkPanelHTML;
+// 印刷の高さを測って、①少しだけ1ページをこえるプリントは文字を縮小、②「まとめる」なら短いプリントを同じページに並べる
+// 文字を縮小したときの実際の高さを測って、1ページに収まる倍率（0.75以上）を探す
+function rkFitZ(e,land,PH){ const MM=96/25.4; const m=document.createElement('div'); m.className='rkm'+(land?' land':''); m.style.width=(land?277:190)+'mm'; const w=document.createElement('div'); const c=e.cloneNode(true); w.appendChild(c); m.appendChild(w); document.body.appendChild(m);
+  let res=null; for(let z=0.97;z>=0.745;z-=0.025){ c.style.zoom=z; const h=w.getBoundingClientRect().height/MM; if(h<=PH-2){ res=[z,h]; break; } }
+  m.remove(); return res; }
+function rkLayoutPrint(){
+  const box=document.querySelector(document.body.dataset.subj==='rk'?'#q .rkmain':'#gq .rkmain'); if(!box) return;
+  const land=document.body.classList.contains('rkland'), H=land?190:277, W=land?277:190, GAP=9, MM=96/25.4;
+  const S_=[...box.querySelectorAll('.sheet')];
+  S_.forEach(e=>{ e.removeAttribute('data-z'); e.style.removeProperty('--z'); e.classList.remove('pg-new','pg-cont','pg-fit'); });
+  if(!S_.length) return;
+  const m=document.createElement('div'); m.className='rkm'+(land?' land':''); m.style.width=W+'mm';
+  S_.forEach(e=>{ const c=e.cloneNode(true); c.removeAttribute('id'); m.appendChild(c); }); document.body.appendChild(m);
+  const hs=[...m.children].map(c=>c.getBoundingClientRect().height/MM); m.remove();
+  const it=S_.map((e,i)=>{ let h=hs[i]; const isLand=land&&e.classList.contains('rksheet'); const PH=isLand?190:277;
+    if(RKP.fit&&h>PH&&h<=PH/0.62){ const r=rkFitZ(e,isLand,PH); if(r){ e.style.setProperty('--z',r[0].toFixed(3)); e.setAttribute('data-z','1'); h=r[1]; } }
+    return {e,h,PH,grp:e.dataset.grp||'',par:e.parentNode,key:e.classList.contains('rkkey')||(e.parentNode.classList.contains('sum-ansv')&&e===e.parentNode.querySelector('.sheet'))}; });
+  if(!RKP.pack) return;
+  // 前から順に詰める。入らないときは、同じ単元の近く（3枚先まで）で入るものを先に入れる
+  const pend=it.slice(); let rem=0, first=true; const out=[];
+  const put=(x,cont)=>{ x.e.classList.add(cont?'pg-cont':'pg-new'); if(x.h<=x.PH) x.e.classList.add('pg-fit'); out.push(x); if(cont) rem-=x.h+GAP; else { const ph=x.PH; rem=x.h<=ph?ph-x.h:ph-(x.h%ph); } first=false; };
+  while(pend.length){ const x=pend.shift();
+    if(!first&&!x.key&&x.h+GAP<=rem){ put(x,true); continue; }
+    // 1ページに収まらない長いプリントは、どうせ分かれるので、残りが3分の1以上あれば続けて始める
+    if(!first&&!x.key&&x.h>x.PH&&rem>=x.PH/3){ const r0=rem; put(x,true); const over=x.h+GAP-r0; rem=x.PH-(over%x.PH); continue; }
+    if(!first&&!x.key&&rem>30){ const j=pend.slice(0,3).findIndex(y=>!y.key&&y.par===x.par&&y.grp===x.grp&&y.h+GAP<=rem); if(j>=0){ const y=pend.splice(j,1)[0]; put(y,true); pend.unshift(x); continue; } }
+    put(x,false); }
+  // 並べかえた順に、DOMの順も合わせる（プリントの上の「外す」ボタンもいっしょに動かす）
+  out.forEach(x=>{ const sb=x.e.previousElementSibling&&x.e.previousElementSibling.classList.contains('rk-sbar')?x.e.previousElementSibling:null; if(sb) x.par.appendChild(sb); x.par.appendChild(x.e); });
+  // 解答ページなど、あとに続く要素は最後に
+  [...box.querySelectorAll('.rkkey')].forEach(k=>k.parentNode.appendChild(k));
+}
+window.rkLayoutPrint=rkLayoutPrint;
+window.addEventListener('beforeprint',()=>{ try{ rkLayoutPrint(); }catch(e){} });
 function rkLayoutHTML(panel,empty,body,id,cls){ return `<div class="rklay"><aside class="rkside"><div class="pset">${panel}</div></aside><div class="rkmain">${empty?`<div class="empty">${empty}</div>`:''}<div id="${id}"${cls?` class="${cls}"`:''}>${body}</div></div></div>`; }
 window.rkLayoutHTML=rkLayoutHTML;
 window.rkApplyPrint=rkApplyPrint;
-window.rkPanelFix=()=>document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; });
+window.rkPanelFix=()=>{ document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; }); try{ rkLayoutPrint(); }catch(e){} };
 function rkGCards(){ const d=D(); const cnt=u=>rkSheets(u.key,u.name).length; const U=d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>({key:u.key,name:u.name,n:cnt(u),ch:u.ch}));
   if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:rkTopicItems(u.key,u.name)}))}];
   return [{h:'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:new Set(it.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size,items:it}:null; }).filter(Boolean)}]; }
