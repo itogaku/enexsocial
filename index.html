@@ -483,6 +483,15 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .rk-head{border-bottom:2px solid currentColor;margin-bottom:10px;padding-bottom:4px}.rk-head h3{margin:2px 0 0;font-family:var(--mincho);font-size:21px;line-height:1.4}.rk-unit{font-size:12px;color:var(--muted)}
 .rksheet .rkgrid{display:grid;gap:14px}
 @media (min-width:900px){ .rksheet .rkgrid{grid-template-columns:1fr 1fr} }
+.wrap:has(.rklay){max-width:1480px}.wrap:has(.rklay)>:not(main){width:100%;max-width:780px;margin-inline:auto}
+.rklay{display:grid;grid-template-columns:minmax(320px,390px) minmax(0,1fr);gap:22px;align-items:start}
+.rkside{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;padding-right:6px}.rkside .pset{border-bottom:0;padding-bottom:0}
+main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x:auto}.rkmain .sheet{margin-left:auto;margin-right:auto}.rkmain #gsheets,.rkmain #sheets{display:flex;flex-direction:column;gap:14px}
+.rkside .rkpanel .row{grid-template-columns:minmax(0,1fr);gap:6px}.rkside .rkpanel .lab{padding-top:0}.rkside .rkpanel .themes{grid-template-columns:1fr}.rkside .rkpanel .units{max-height:none;overflow:visible}.rkside .rkpanel .toolbar{position:sticky;bottom:0;background:var(--surface);padding:8px 0}.rkside .rkpanel .toolbar .btn{width:100%}
+.rk-sbar{display:flex;justify-content:flex-end;width:100%;max-width:210mm;margin:0 auto -8px}
+.rkoff{display:grid;gap:6px}.rkoff-i{display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:13px;border:1px dashed var(--line);border-radius:6px;padding:4px 8px}.rkoff-i span{color:var(--muted);text-decoration:line-through}
+@media (max-width:1100px){.wrap:has(.rklay){max-width:780px}.rklay{display:block}.rkside{position:static;max-height:none;overflow:visible;padding-right:0;margin-bottom:16px}}
+@media print{.rklay{display:block}.rkside,.rk-sbar{display:none!important}.wrap:has(.rklay){max-width:none}}
 .rkpanel{display:grid;gap:14px}.rkpanel .step{display:grid;gap:12px}.rkpanel .step+.step{border-top:1px dashed var(--line);padding-top:14px}
 .rkpanel .step-h{margin:0;font-size:15px;display:flex;align-items:center;gap:8px;font-family:var(--gothic)}.rkpanel .sn{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ai);color:var(--surface);font-size:12px}
 .rkpanel .row{display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:start}.rkpanel .lab{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;padding-top:7px}
@@ -495,7 +504,7 @@ b.neg{text-decoration:underline;text-underline-offset:3px}
 .rkpanel .th-name{flex:1;min-width:0}.rkpanel .th-n{font-weight:400;font-size:12px;color:var(--muted);white-space:nowrap}.rkpanel .th-btn{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--surface);color:var(--ai);border-radius:999px;padding:2px 10px;cursor:pointer}
 .rkpanel .rkp-sub{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}.rkpanel .rkp-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:13px;cursor:pointer;background:var(--surface)}.rkpanel .rkp-chip.on{border-color:var(--ai)}.rkpanel .rkp-chip small{color:var(--muted);font-size:11px}
 .rkpanel .ubtn{display:flex;gap:14px;margin-top:10px}.rkpanel .link{font:inherit;font-size:12px;background:none;border:0;color:var(--ai);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
-.rkpanel .toolbar{display:flex;justify-content:flex-end}.rkpanel .rk-pick{margin:0}.rkpanel .rk-pick{font-size:0}.rkpanel .rk-pick select{font-size:14px}
+.rkpanel .toolbar{display:flex;justify-content:flex-end}.rkpanel .rk-pick{margin:0;display:block;font-size:0;min-width:0}.rkpanel .rk-pick select{font-size:14px;width:100%;max-width:100%;min-width:0}.rkpanel .row>*{min-width:0}
 @media (max-width:620px){.rkpanel .row{grid-template-columns:1fr;gap:6px}.rkpanel .lab{padding-top:0}.rkpanel .themes{grid-template-columns:1fr}}
 @media print{.rkpanel{display:none}}
 .rkunits{margin:10px 0 0;border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface)}.rkunits summary{cursor:pointer;font-weight:700;font-size:14px}.rku-sum{font-weight:400;font-size:12px;color:var(--muted);margin-left:8px}.rku-body{max-height:min(55vh,520px);overflow:auto;padding-right:4px}.rku-bar{display:flex;gap:6px;margin:6px 0}.rku-ch{margin:8px 0}.rku-chb{border:0;background:none;font-weight:700;font-size:13px;padding:2px 0;cursor:pointer;color:inherit}.rku-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.rku small{color:var(--muted);font-size:11px}.rku[aria-pressed="true"] small{color:inherit;opacity:.85}
@@ -3513,7 +3522,7 @@ function rkKey(){ return THEMES[S.rkTheme]?S.rkTheme:'e01'; }
 // 理解プリント：テーマ（単元）を複数選ぶ（このブラウザに保存）
 function rkHSelGet(){ if(!S.rkSel){ let L=null; try{ L=JSON.parse(localStorage.getItem('rk-sel-he')||'null'); }catch(e){} S.rkSel=Array.isArray(L)?L.filter(k=>THEMES[k]):[rkKey()]; } return S.rkSel; }
 function rkHSelSet(L){ S.rkSel=L; try{ localStorage.setItem('rk-sel-he',JSON.stringify(L)); }catch(e){} }
-function rkHKeys(){ return Object.keys(THEMES).filter(k=>window.rkCount('he:'+k,THEMES[k])); }
+function rkHKeys(){ return Object.keys(THEMES).filter(k=>window.rkCount('he:'+k,THEMES[k],true)); }
 function rkHGroups(){ const ks=rkHKeys(); const c=k=>({key:k,name:THEMES[k],n:window.rkCount('he:'+k,THEMES[k]),items:null}); return [{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
 function renderRikaiH(){
   if(!window.rikaiMulti||!window.rkPanelHTML){ setTimeout(renderRikaiH,0); return; } // 地理・公民側のスクリプトの読みこみ後に表示
@@ -3523,7 +3532,7 @@ function renderRikaiH(){
   const one=ks.length===1&&window.rkCount('he:'+ks[0],THEMES[ks[0]])>1; if(one&&S.rkPick>=window.rkCount('he:'+ks[0],THEMES[ks[0]])) S.rkPick=-1;
   const L=ks.map(k=>['he:'+k,THEMES[k]]);
   const h=window.rikaiMulti(L,window.rkAnsMode(),one?S.rkPick:-1);
-  $('#q').innerHTML=`<div class="pset">${window.rkPanelHTML('h',rkHGroups(),sel,{sheets:window.rkSheetCount(L),pick:one?window.rkPickHTML('he:'+ks[0],THEMES[ks[0]],S.rkPick,'rkPickH'):''})}${ks.length?'':'<p class="hint-line">「単元」の一覧で、印刷したい単元を選んでください（いくつでも選べます）。</p>'}</div><div id="sheets">${h}</div>`;
+  $('#q').innerHTML=`<div class="rklay"><aside class="rkside"><div class="pset">${window.rkPanelHTML('h',rkHGroups(),sel,{sheets:window.rkSheetCount(L),pick:one?window.rkPickHTML('he:'+ks[0],THEMES[ks[0]],S.rkPick,'rkPickH'):'',off:window.rkOffHTML(L)})}</div></aside><div class="rkmain">${ks.length?'':'<div class="empty">左の「単元」で、印刷したい単元を選んでください（いくつでも選べます）。</div>'}<div id="sheets">${h}</div></div></div>`;
   window.rkPanelFix();
 }
 window.renderRikaiH=()=>{ if(S.mode==='rikai') renderRikaiH(); };
@@ -5557,14 +5566,23 @@ function renderSumG(){
 // 1つの単元のプリント一覧：その単元の枚＋関連する定期テスト用の枚（RIKAI_LINK。"単元キー#番号"）
 let RK_UNAME=null;
 function rkUnitName(k){ if(!RK_UNAME){ RK_UNAME={}; for(const sj in GDATA) for(const u of (GDATA[sj].units||[])) RK_UNAME[u.key]=u.name; } return RK_UNAME[k]||k; }
-function rkSheets(key,name){
-  const own=[].concat(RIKAI[key]||[]).map(R=>({R,name}));
-  const link=(RIKAI_LINK[key]||[]).map(id=>{ const [k,i]=id.split('#'); const R=[].concat(RIKAI[k]||[])[+i]; return R&&{R,name:rkUnitName(k),link:true}; }).filter(Boolean);
-  return own.concat(link);
+// 外したプリント（このブラウザに保存。印刷・枚数・解答から除く）
+let RKOFF=new Set(); try{ RKOFF=new Set(JSON.parse(localStorage.getItem('rk-off')||'[]')); }catch(e){}
+const rkOffSave=()=>{ try{ localStorage.setItem('rk-off',JSON.stringify([...RKOFF])); }catch(e){} };
+function rkSheets(key,name,all){
+  const own=[].concat(RIKAI[key]||[]).map((R,i)=>({R,name,id:key+'#'+i}));
+  const link=(RIKAI_LINK[key]||[]).map(id=>{ const [k,i]=id.split('#'); const R=[].concat(RIKAI[k]||[])[+i]; return R&&{R,name:rkUnitName(k),link:true,id}; }).filter(Boolean);
+  const L=own.concat(link); return all?L:L.filter(x=>!RKOFF.has(x.id));
 }
+window.rkOff=id=>{ RKOFF.add(id); rkOffSave(); rkRerender(); };
+window.rkOn=ids=>{ String(ids).split(',').forEach(id=>RKOFF.delete(id)); rkOffSave(); rkRerender(); };
+// 選んだ単元で外したプリントの一覧
+function rkOffHTML(L){ const seen=new Set(); const off=L.flatMap(([k,n])=>rkSheets(k,n,true)).filter(x=>RKOFF.has(x.id)&&!seen.has(x.id)&&seen.add(x.id)); if(!off.length) return '';
+  return `<div class="row"><div class="lab">外したプリント</div><div class="rkoff">${off.map(x=>`<div class="rkoff-i"><span>${esc(x.R.q)}</span><button type="button" class="th-btn" onclick="rkOn('${x.id}')">元に戻す</button></div>`).join('')}${off.length>1?`<button type="button" class="link" onclick="rkOn('${off.map(x=>x.id).join(',')}')">${off.length}枚をすべて元に戻す</button>`:''}</div></div>`; }
+window.rkOffHTML=rkOffHTML;
 function rikaiHTML(u,acc,seen){
   const L=rkSheets(u.key,u.name); if(!L.length) return '';
-  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link}:{...u,name:x.name}; if(acc) acc.push([m,x.R]); return rikaiSheet(m,x.R); }).join('');
+  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link}:{...u,name:x.name}; if(acc) acc.push([m,x.R]); return `<div class="rk-sbar"><button type="button" class="tbtn del" onclick="rkOff('${x.id}')">このプリントを外す</button></div>`+rikaiSheet(m,x.R); }).join('');
 }
 // 答えのまとめ（印刷の最後に1つの解答ページとしてつける）
 function rkKeyHTML(acc){
@@ -5581,7 +5599,7 @@ function rkAnsOpts(){ const c=(v,t)=>`<button class="chip" onclick="rkSetAns('${
 window.rkSetAns=v=>{ RKA=v; ls.set('rk-ans',v); rkRerender(); };
 window.rkAnsOpts=rkAnsOpts; window.rkAnsMode=()=>RKA;
 // 複数の単元を選ぶ（分野ごとにこのブラウザに保存）
-function rkSelGet(){ if(G.rkSelSj!==G.subj){ G.rkSelSj=G.subj; const d=D(); const ok=new Set(d.units.filter(u=>rkSheets(u.key,u.name).length).map(u=>u.key)); G.rkSel=(ls.get('rk-sel-'+G.subj,[])||[]).filter(k=>ok.has(k));
+function rkSelGet(){ if(G.rkSelSj!==G.subj){ G.rkSelSj=G.subj; const d=D(); const ok=new Set(d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>u.key)); G.rkSel=(ls.get('rk-sel-'+G.subj,[])||[]).filter(k=>ok.has(k));
     if(!G.rkSel.length&&G.unit!=='all') G.rkSel=sumUnits().map(u=>u.key).filter(k=>ok.has(k)); } return G.rkSel; }
 function rkSelSet(L){ G.rkSel=L; ls.set('rk-sel-'+G.subj,L); }
 function rkUnitPicker(){
@@ -5630,7 +5648,7 @@ function rikaiSheet(u,R){
 window.RIKAI=RIKAI; window.rikaiFor=(key,name,showAns,pick)=>{ const o=G.rkAns; const m=showAns===true?'in':showAns===false?'none':(showAns||RKA); G.rkAns=m==='in'; const acc=[]; const h=rikaiHTML({key,name,pick:pick==null||pick<0?null:pick},acc); G.rkAns=o; return h+(m==='end'?rkKeyHTML(acc):''); };
 window.rikaiMulti=(L,mode,pick)=>{ const o=G.rkAns; const m=mode||RKA; G.rkAns=m==='in'; const acc=[],seen=new Set(); const h=L.map(([key,name])=>rikaiHTML({key,name,pick:L.length===1&&pick!=null&&pick>=0?pick:null},acc,seen)).join(''); G.rkAns=o; return h+(m==='end'?rkKeyHTML(acc):''); };
 window.rkSheetCount=L=>new Set(L.flatMap(([k,n])=>rkSheets(k,n).map(x=>x.R))).size;
-window.rkPickHTML=rkPickHTML; window.rkCount=(key,name)=>rkSheets(key,name).length;
+window.rkPickHTML=rkPickHTML; window.rkCount=(key,name,all)=>rkSheets(key,name,all).length;
 /* ---------- 解き方（問題の型ごとに：例題と解き方 → 解き方チェック問題 → 実践問題） ---------- */
 // 折れ線・棒グラフ（系列が複数でもよい）
 function kChart(f,bar){
@@ -5871,6 +5889,7 @@ function rkPanelHTML(s,groups,sel,o){
     ${groups.map(g=>`<div class="ugrp">${g.h?`<div class="ugh">${esc(g.h)}</div>`:''}<div class="themes">${g.cards.map(card).join('')}</div></div>`).join('')}
     <div class="ubtn"><button type="button" class="link" onclick="rkPk('${s}','all',1)">すべて選ぶ</button><button type="button" class="link" onclick="rkPk('${s}','all',0)">すべて外す</button>${hasSub?`<button type="button" class="link" onclick="rkPk('${s}','openall')">${anyOpen?'すべて閉じる':'すべて開く'}</button>`:''}</div></div></details></div>
     ${o.pick?`<div class="row"><div class="lab">プリント</div><div>${o.pick}</div></div>`:''}
+    ${o.off||''}
   </section>
   <section class="step"><h2 class="step-h"><span class="sn">2</span>プリントの形</h2>
     <div class="row"><div class="lab">解答の印刷</div><div class="segs">${seg(RKA,'none','解答は印刷しない',"rkSetAns('none')")}${seg(RKA,'end','解答を最後のページにまとめる',"rkSetAns('end')")}${seg(RKA,'in','解答を各問題に書きこむ',"rkSetAns('in')")}</div></div>
@@ -5882,12 +5901,12 @@ function rkPanelHTML(s,groups,sel,o){
 }
 window.rkPanelHTML=rkPanelHTML;
 window.rkPanelFix=()=>document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; });
-function rkGCards(){ const d=D(); const cnt=u=>rkSheets(u.key,u.name).length; const U=d.units.filter(u=>cnt(u)).map(u=>({key:u.key,name:u.name,n:cnt(u),ch:u.ch}));
+function rkGCards(){ const d=D(); const cnt=u=>rkSheets(u.key,u.name).length; const U=d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>({key:u.key,name:u.name,n:cnt(u),ch:u.ch}));
   if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:null}))}];
   return [{h:'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:new Set(it.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size,items:it}:null; }).filter(Boolean)}]; }
 rkRegScope('g',{cards:()=>rkGCards().flatMap(g=>g.cards),get:()=>rkSelGet(),set:L=>rkSelSet(L)});
 function renderRikai(){
-  const d=D(); const any=d.units.some(u=>rkSheets(u.key,u.name).length);
+  const d=D(); const any=d.units.some(u=>rkSheets(u.key,u.name,true).length);
   const sel=new Set(rkSelGet()); const U=d.units.filter(u=>sel.has(u.key));
   // 1つの単元だけ選んでいて何枚もあるときは、1枚ずつ選べるようにする（単元を変えたら「すべて」から）
   const RR=U.length===1?rkSheets(U[0].key,U[0].name):null; const pk=!!RR&&RR.length>1; const pkey=U.map(u=>u.key).join(',');
@@ -5895,9 +5914,8 @@ function renderRikai(){
   G.rkAns=RKA==='in'; const acc=[], seen=new Set();
   const body=U.map(u=>rikaiHTML(pk?{...u,pick:G.rkPick<0?null:G.rkPick}:u,acc,seen)).join('');
   const sheets=new Set(U.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size;
-  $('#gq').innerHTML=`<div class="pset">${any?rkPanelHTML('g',rkGCards(),sel,{sheets,pick:pk?rkPickHTML(U[0].key,U[0].name,G.rkPick,'rkPick'):''}):'<div class="empty">この分野の理解プリントは準備中です。</div>'}
-  ${any&&!U.length?'<p class="hint-line">「単元」の一覧で、印刷したい単元を選んでください（いくつでも選べます）。</p>':''}
-  </div><div id="gsheets">${body}${RKA==='end'?rkKeyHTML(acc):''}</div>`;
+  $('#gq').innerHTML=`<div class="rklay"><aside class="rkside"><div class="pset">${any?rkPanelHTML('g',rkGCards(),sel,{sheets,pick:pk?rkPickHTML(U[0].key,U[0].name,G.rkPick,'rkPick'):'',off:rkOffHTML(U.map(u=>[u.key,u.name]))}):'<div class="empty">この分野の理解プリントは準備中です。</div>'}</div></aside>
+  <div class="rkmain">${any&&!U.length?'<div class="empty">左の「単元」で、印刷したい単元を選んでください（いくつでも選べます）。</div>':''}<div id="gsheets">${body}${RKA==='end'?rkKeyHTML(acc):''}</div></div></div>`;
   window.rkPanelFix();
 }
 /* ---------- 年表の問題（定期テスト・歴史）：単元の年表データから作る ---------- */
