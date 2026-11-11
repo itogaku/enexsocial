@@ -2568,7 +2568,9 @@ const plain=e=>esc(e.text).replace('〔〕',esc(e.key));
 const norm=s=>s.normalize('NFKC').replace(/[\s・･,、。（）()「」]/g,'').toLowerCase().replace(/[\u3041-\u3096]/g,c=>String.fromCharCode(c.charCodeAt(0)+0x60));
 const byId=id=>E[id];
 
-function pool(){return E.filter(e=>!e.deleted&&S.ranks.includes(e.rank)&&S.eras.has(e.era)&&(S.world||!e.world)&&!(S.exclude&&S.exclude.has(e.id)))}
+// テスト作成で選んだ単元（テーマ）。すべて選んでいるときは null（しぼりこまない）
+function prSel(){ if(S.mode!=='print') return null; if(!S.pSel){ let L=null; try{ L=JSON.parse(localStorage.getItem('p-sel-he')||'null'); }catch(e){} S.pSel=new Set((Array.isArray(L)?L:Object.keys(THEMES)).filter(k=>THEMES[k])); } return S.pSel.size===Object.keys(THEMES).length?null:S.pSel; }
+function pool(){ const T=prSel(); return E.filter(e=>!e.deleted&&S.ranks.includes(e.rank)&&S.eras.has(e.era)&&(S.world||!e.world)&&!(S.exclude&&S.exclude.has(e.id))&&(!T||e.tags.some(t=>T.has(t)))); }
 const distinctYears=l=>new Set(l.map(e=>e.y)).size;
 
 // 年の間隔をあけて n 件選ぶ（avoid にある id はなるべく避ける）
@@ -3774,7 +3776,7 @@ function essayRule(e,useWords){
   return `${w}${essayLimit(e)}字以内（読点を含む。）で書きなさい。`;
 }
 function essayPool(theme){
-  let P=ESSAY.filter(e=>!e.deleted&&S.eras.has(e.era));
+  const T=prSel(); let P=ESSAY.filter(e=>!e.deleted&&S.eras.has(e.era)&&(!T||e.tags.some(t=>T.has(t))));
   if(theme!=='auto'&&theme!=='mix') P=P.filter(e=>e.tags.includes(theme));
   return P;
 }
@@ -3839,6 +3841,8 @@ function renderControls(){
       <span class="sep"></span>
       <button class="chip" data-lf="all" aria-pressed="${S.listFilter==='all'}">ふつう</button><button class="chip" data-lf="edited" aria-pressed="${S.listFilter==='edited'}">変更したもの</button><button class="chip" data-lf="deleted" aria-pressed="${S.listFilter==='deleted'}">消したもの</button>
     </div><div class="row"><span class="lab">検索</span><input class="search" id="listQ" type="search" placeholder="語句で検索（例：条約）" value="${esc(S.q)}" aria-label="語句で検索">`;
+  }else if(S.mode==='print'){
+    h=`<span class="lab">単元</span><span class="hint-line">「1 出題する範囲」で選びます（複数えらべます）</span>`;
   }else{
     h=`<span class="lab">テーマ</span>${themeSelect('genTheme',S.theme,true,cnt)}`;
   }
@@ -4060,26 +4064,27 @@ function customQuestion(ids){ return {type:'order',custom:ids.slice(),theme:'え
 
 /* ---------- プリント ---------- */
 function buildSheet(){
-  const pr=S.pr; const used=new Set(); const sheet={orders:[],fill:null,essays:[],note:[]};
+  if(prSel()&&!prSel().size){ S.sheet={orders:[],fill:null,exams:[],essays:[],note:['「1 出題する範囲」で単元を選んでください。']}; return; }
+  const pr=S.pr; const TH=prSel()?'auto':S.theme; const used=new Set(); const sheet={orders:[],fill:null,essays:[],note:[]};
   for(const ids of S.custom){ const items=shuffle(ids.map(byId).filter(e=>!e.deleted)); sheet.orders.push({theme:'えらんだできごと',custom:ids,items}); items.forEach(e=>used.add(e.id)); }
   const keepLast=S.lastTheme; S.lastTheme=null;
   for(let i=0;i<pr.order;i++){
     S.avoidThemes=sheet.orders.map(o=>o.tk).filter(Boolean);
-    let q=makeOrder(S.theme,pr.orderN,used); if(!q){ S.avoidThemes=[]; q=makeOrder(S.theme,pr.orderN,used); }
+    let q=makeOrder(TH,pr.orderN,used); if(!q){ S.avoidThemes=[]; q=makeOrder(TH,pr.orderN,used); }
     if(!q) {sheet.note.push('並び替え問題を指定の数だけ作れませんでした。');break;}
     q.items.forEach(e=>used.add(e.id)); sheet.orders.push({theme:q.theme,tk:q.tk,gx:q.gx,bi:q.bi,items:q.items});
   }
   S.lastTheme=keepLast; S.avoidThemes=[];
-  if(pr.fill>0){ sheet.fill=makeFill(pr.fill); if(!sheet.fill) sheet.note.push('年表の穴埋めを作れるだけのできごとがありません。'); }
-  sheet.exams=[]; for(let i=0;i<pr.exam;i++){ const q=makeExam('rand',S.theme); if(q) sheet.exams.push(q); }
-  const EP=shuffle(essayPool(S.theme)); sheet.essays=EP.slice(0,pr.essay);
+  if(pr.fill>0){ sheet.fill=makeFill(pr.fill,prSel()?'auto':undefined); if(!sheet.fill) sheet.note.push('年表の穴埋めを作れるだけのできごとがありません。'); }
+  sheet.exams=[]; for(let i=0;i<pr.exam;i++){ const q=makeExam('rand',TH); if(q) sheet.exams.push(q); }
+  const EP=shuffle(essayPool(TH)); sheet.essays=EP.slice(0,pr.essay);
   if(pr.essay>EP.length) sheet.note.push(`記述問題は${EP.length}問だけ入れました（この条件の問題が${EP.length}問しかありません）。`);
   S.sheet=sheet;
 }
 
 function makeFill(n,tkFixed){
   const P=pool(); let t=tkFixed||S.theme;
-  if(t==='auto'){ const c=Object.keys(THEMES).filter(k=>P.filter(e=>e.tags.includes(k)).length>=Math.min(n,6)); t=c.length?rand(c):'mix'; }
+  if(t==='auto'){ const T=prSel(); const c=Object.keys(THEMES).filter(k=>(!T||T.has(k))&&P.filter(e=>e.tags.includes(k)).length>=Math.min(n,6)); t=c.length?rand(c):'mix'; }
   const L = t==='mix'?P:P.filter(e=>e.tags.includes(t));
   const keys=new Set(); const rows=[];
   for(const e of shuffle(L)){ if(!keys.has(e.key)){keys.add(e.key);rows.push(e);} if(rows.length===n)break; }
@@ -4229,10 +4234,15 @@ function candsHTML(){
   }).join('')+'</div></section>';
   return h;
 }
+function prGroups(){ const ks=Object.keys(THEMES); const c=k=>({key:k,name:THEMES[k],n:null,items:null}); return [{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
 function renderPrint(){
+  if(!window.rkPanelHTML){ setTimeout(renderPrint,0); return; }
+  prSel();
+  window.rkRegScope('hp',{cards:()=>prGroups().flatMap(g=>g.cards),get:()=>[...S.pSel],set:L=>{ S.pSel=new Set(L); try{ localStorage.setItem('p-sel-he',JSON.stringify(L)); }catch(e){} }});
+  window.__rkCur=()=>{ buildSheet(); renderPrint(); };
   const pr=S.pr, sh=S.sheet;
   const opt=(id,vals,cur,unit)=>`<select class="sel" id="${id}">${vals.map(v=>`<option value="${v}" ${v===cur?'selected':''}>${v}${unit}</option>`).join('')}</select>`;
-  let h=`<div class="pwrap"><div class="pleft"><div class="pset">
+  let h=`<div class="pwrap"><div class="pleft">${window.rkPanelHTML('hp',prGroups(),S.pSel,{kind:'test',lab:'単元'})}<div class="pset">
     <div class="pset-row"><label for="prTitle">タイトル</label><input class="search" id="prTitle" value="${esc(pr.title)}"></div>
     <div class="pset-row"><label>並び替えの出し方</label>${omodeChips()}</div>
     <div class="pset-row"><label>並び替えの時代</label>${spanChips()}</div>
@@ -4251,7 +4261,7 @@ function renderPrint(){
     ${sh.note.length?`<p class="warn">${sh.note.map(esc).join('<br>')}</p>`:''}
   </div>${candsHTML()}${essCandsHTML()}</div><div class="pright"><div id="sheets">${sheetHTML(sh)}</div></div></div>`;
   $('#q').innerHTML=h;
-  showPages();
+  showPages(); window.rkPanelFix();
 }
 // 問題用紙が A4 何枚分になるかを測る（印刷時と同じ幅・余白で、ボタン類を除いて）
 function sheetPages(){
@@ -4295,7 +4305,7 @@ function sheetHTML(sh){
   const themeNames=[...new Set([...sh.orders.map(o=>o.theme),sh.fill&&sh.fill.theme].filter(Boolean))];
   const eras=ERAS.map(e=>e[0]).filter(e=>S.eras.has(e)).join('・');
   const head=(sub)=>`<div class="sh-head"><div><div class="sh-title">${esc(pr.title)}${sub?`<span class="sh-sub">${sub}</span>`:''}</div>
-    <div class="sh-meta">範囲：${esc(eras)}${S.theme!=='auto'&&S.theme!=='mix'?`／テーマ：${esc(THEMES[S.theme])}`:''}</div></div>
+    <div class="sh-meta">範囲：${esc(eras)}${prSel()?`／単元：${esc([...prSel()].slice(0,3).map(k=>THEMES[k]).join('・')+(prSel().size>3?' ほか':''))}`:S.theme!=='auto'&&S.theme!=='mix'?`／テーマ：${esc(THEMES[S.theme])}`:''}</div></div>
     ${sub?'':`<table class="sh-name"><tr><td>組</td><td>番</td><td class="nm">名前</td><td class="pt">／100</td></tr></table>`}</div>`;
   if(sh.orders.length){
     dai++;
