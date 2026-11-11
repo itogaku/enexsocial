@@ -1,4 +1,4 @@
-<title>歴史ならべ道場</title>
+<title>中学社会道場</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@500;700;900&family=BIZ+UDPGothic:wght@400;700&display=swap">
@@ -576,6 +576,52 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
 .tlegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}.tlegend span{display:inline-flex;align-items:center;gap:3px;font-size:13px}.tlegend svg{width:18px;height:16px}
 .sheet .stbl td,.sheet .stbl th{border:1px solid #888}
 .tsub{font-size:.45em;margin-left:.4em;color:var(--muted);font-weight:600}
+/* ===== 全体の整理（分野・タブのまとまり、幅のそろえ方） ===== */
+@media screen{
+ body{margin:0}
+ .wrap{max-width:1480px}
+/* 問題を解く画面も、広い画面では「左に設定・中央に問題」に（狭い画面では上下に並べる） */
+}
+@media screen and (min-width:1101px){
+ body[data-layout="std"] .wrap{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);grid-template-rows:auto auto auto auto auto 1fr auto;column-gap:22px;row-gap:10px;align-items:start}
+ body[data-layout="std"] .wrap>header,body[data-layout="std"] .wrap>.subj,body[data-layout="std"] .tabs{grid-column:1/-1}
+ body[data-layout="std"] .gpanel,body[data-layout="std"] .panel:not(.gpanel){display:contents}
+ body[data-layout="std"] .gpanel .optrows,body[data-layout="std"] #eraRow{grid-column:1;grid-row:4}
+ body[data-layout="std"] #optRow{grid-column:1;grid-row:5}
+ body[data-layout="std"] .optrows .row{flex-wrap:wrap}
+ body[data-layout="std"] .wrap>main{grid-column:2;grid-row:4/7;max-width:980px;width:100%;box-sizing:border-box}
+ body[data-layout="std"] .wrap>.foot{grid-column:2;grid-row:7}
+}
+@media screen{
+ /* 分野 */
+ .subj{display:flex;flex-wrap:nowrap;gap:14px;align-items:flex-end}
+ .subj .sg{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
+ .subj .sgl,.tabs .tgl{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.08em;padding-left:2px}
+ .subj .sgb{display:flex;gap:4px}
+ /* タブ */
+ .tabs,.gpanel .tabs{display:flex;gap:12px;border:0;border-radius:0;overflow-x:auto;align-items:flex-end}
+ .tabs .tgp{display:flex;flex-direction:column;gap:2px;flex:1 0 auto}
+ .tabs .tgb{display:flex;border:1.5px solid var(--ink);border-radius:6px;overflow:hidden}
+ .tabs .tgb button{flex:1 0 auto;border:0;border-left:1.5px solid var(--ink);padding:6px 12px;font-size:13px;white-space:nowrap;background:var(--surface);font-weight:700}
+ .tabs .tgb button:first-child{border-left:0}
+ .tabs .tgb button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+ .tabs .tgb button:not([aria-pressed="true"]):hover{background:var(--ai-soft)}
+ /* 広い画面（設定＋内容）のときは、点数表示は使わないので出さない */
+ body[data-layout="wide"] .score{visibility:hidden}
+ /* なぜ？は左の設定で問いを選ぶので、上の行は出さない */
+ body:not([data-subj="rk"]):has(#gq .rklay .nzsheet) .gpanel .optrows,body[data-subj="rk"]:has(#q .rklay .nzsheet) #eraRow{display:none}
+}
+@media screen and (min-width:1101px){
+ body[data-layout="wide"]{height:100vh;overflow:hidden;margin:0;padding-bottom:10px;box-sizing:border-box}
+ body[data-layout="wide"] .wrap{height:100%;display:flex;flex-direction:column}
+ body[data-layout="wide"] .wrap>:not(main){flex-shrink:0}
+ body[data-layout="wide"]:not([data-subj="rk"]) #gq,body[data-layout="wide"][data-subj="rk"] #q{flex:1 1 auto;min-height:0;padding:12px 14px;display:flex;flex-direction:column}
+ body[data-layout="wide"][data-subj="rk"] .foot,body[data-layout="wide"][data-subj="rk"] #selBar{display:none}
+ body[data-layout="wide"] .pwrap{flex:1 1 auto;min-height:0;height:100%}
+ body[data-layout="wide"] .pleft{position:static;max-height:none;height:100%;overflow:auto}
+ body[data-layout="wide"] .pright{height:100%;overflow:auto}
+ body[data-layout="wide"] .wrap>main>.pset:first-child:has(+.pwrap){flex-shrink:0}
+}
 /* 広い画面の印刷用の画面（理解・解き方・まとめ）は、ウインドウの高さに収め、左の設定と中央のプリントをそれぞれスクロールさせる */
 @media screen and (min-width:1101px){
  body:not([data-subj="rk"]):has(#gq .rklay),body[data-subj="rk"]:has(#q .rklay){height:100vh;overflow:hidden;margin:0;padding-bottom:10px;box-sizing:border-box}
@@ -618,8 +664,8 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
 <div class="wrap">
   <header>
     <div class="brand">
-      <h1>歴史ならべ<span>道場</span></h1>
-      <p>中学歴史の並び替え・穴埋め・記述を、何問でも。</p>
+      <h1>中学社会<span>道場</span></h1>
+      <p>入試対策｜歴史　並び替え・穴埋め・記述を、何問でも。</p>
     </div>
     <div class="score" aria-live="polite">
       <span>解いた<b id="sTotal">0</b>問</span>
@@ -630,16 +676,24 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
 
   <section class="panel" aria-label="出題設定">
     <div class="tabs" role="group" aria-label="問題の種類">
-      <button id="tab-order" data-mode="order" aria-pressed="true">並び替え<small>年代の古い順に</small></button>
-      <button id="tab-fill" data-mode="fill" aria-pressed="false">穴埋め<small>年表の空欄</small></button>
-      <button id="tab-essay" data-mode="essay" aria-pressed="false">記述<small>理由を説明</small></button>
- <button id="tab-exam" data-mode="exam" aria-pressed="false">入試形式<small>年表・正誤など</small></button>
-      <button id="tab-list" data-mode="list" aria-pressed="false">年表一覧<small>選んで出題</small></button>
-      <button id="tab-sum" data-mode="sum" aria-pressed="false">まとめ<small>学ぶことの整理</small></button>
-      <button id="tab-rikai" data-mode="rikai" aria-pressed="false">理解<small>説明を読んで解く</small></button>
-      <button id="tab-kata" data-mode="kata" aria-pressed="false">解き方<small>問題の型と解き方</small></button>
-      <button id="tab-naze" data-mode="naze" aria-pressed="false">なぜ？<small>疑問から考える</small></button>
-      <button id="tab-print" data-mode="print" aria-pressed="false">プリント<small>A4で印刷</small></button>
+      <div class="tgp"><span class="tgl">問題を解く</span><div class="tgb">
+        <button id="tab-order" data-mode="order" aria-pressed="true" title="年代の古い順に">並び替え</button>
+        <button id="tab-fill" data-mode="fill" aria-pressed="false" title="年表の空欄">穴埋め</button>
+        <button id="tab-essay" data-mode="essay" aria-pressed="false" title="理由を説明">記述</button>
+        <button id="tab-exam" data-mode="exam" aria-pressed="false" title="年表・正誤など">入試形式</button>
+      </div></div>
+      <div class="tgp"><span class="tgl">学習プリント</span><div class="tgb">
+        <button id="tab-rikai" data-mode="rikai" aria-pressed="false" title="説明を読んで解く">理解</button>
+        <button id="tab-kata" data-mode="kata" aria-pressed="false" title="問題の型と解き方">解き方</button>
+        <button id="tab-naze" data-mode="naze" aria-pressed="false" title="疑問から考える">なぜ？</button>
+        <button id="tab-sum" data-mode="sum" aria-pressed="false" title="学ぶことの整理">まとめ</button>
+      </div></div>
+      <div class="tgp"><span class="tgl">テストを作る</span><div class="tgb">
+        <button id="tab-print" data-mode="print" aria-pressed="false" title="A4で印刷">テスト作成</button>
+      </div></div>
+      <div class="tgp"><span class="tgl">調べる</span><div class="tgb">
+        <button id="tab-list" data-mode="list" aria-pressed="false" title="選んで出題">年表一覧</button>
+      </div></div>
     </div>
     <div class="optrows" id="eraRow"></div>
     <div class="optrows" id="optRow"></div>
@@ -3584,8 +3638,10 @@ function renderRikaiH(){
 window.renderRikaiH=()=>{ if(S.mode==='rikai') renderRikaiH(); };
 function renderNazeH(){
   if(!window.nazeFor){ setTimeout(renderNazeH,0); if(S.mode==='naze') setTimeout(renderControls,0); return; }
+  if(!window.nazePanel){ setTimeout(renderNazeH,0); return; }
+  window.noRkPrint();
   const n=window.nazeCount('he'); if(!(S.nz<n)) S.nz=0; const h=window.nazeFor('he',S.nz,S.nzAll);
-  $('#q').innerHTML=`<div class="pset">${window.nazeActions('data-act',S.nzAll)}${h?'':'<div class="empty">「なぜ？」は準備中です。</div>'}</div><div id="sheets">${h}</div>`;
+  $('#q').innerHTML=h?window.rkLayoutHTML(window.nazePanel('he','data-act',S.nzAll,'nazeH',S.nz||0),'',h,'sheets'):'<div class="empty">「なぜ？」は準備中です。</div>';
 }
 function renderKataH(){
   if(!window.kataMulti||!window.rkPanelHTML){ setTimeout(renderKataH,0); if(S.mode==='kata') setTimeout(renderControls,0); return; }
@@ -5892,9 +5948,17 @@ window.nzPick=(el,i,j)=>{
 };
 function nazeSelHTML(sj,cur,id){ const L=nazeList(sj); return L.length?`<select class="sel" id="${id}" aria-label="問い">${L.map((N,i)=>`<option value="${i}"${cur===i?' selected':''}>Q${i+1}. ${esc(N.q)}</option>`).join('')}</select>`:''; }
 function nazeActions(act,all){ return `<div class="actions"><button class="btn" ${act}="nzall" aria-pressed="${!!all}">${all?'考えながら進む':'答えと解説をすべて表示'}</button><button class="btn" ${act}="nznext">次の問い</button><button class="btn primary" ${act}="print">印刷する</button></div>`; }
+// なぜ？・入試演習の左の設定（理解プリントと同じ形）
+function sidePanel(steps,printBtn){ return `<div class="rkpanel">${steps.map(([t,rows],i)=>`<section class="step"><h2 class="step-h"><span class="sn">${i+1}</span>${t}</h2>${rows.map(([l,b])=>`<div class="row"><div class="lab">${l}</div><div>${b}</div></div>`).join('')}</section>`).join('')}<div class="toolbar">${printBtn}</div></div>`; }
+function noRkPrint(){ window.__rkCur=null; document.body.classList.remove('rkpack','rkland'); document.body.dataset.rkkind=''; }
+window.sidePanel=sidePanel; window.noRkPrint=noRkPrint;
+function nazePanel(sj,act,all,selId,cur){ const seg=(on,t,attr)=>`<button type="button" class="seg${on?' on':''}" ${on?'':attr}>${t}</button>`;
+  return sidePanel([['問い',[['問い',nazeSelHTML(sj,cur,selId)||'<span class="hint">準備中</span>'],['',`<button type="button" class="btn" ${act}="nznext">次の問いへ</button>`]]],['表示',[['答えと解説',`<div class="segs">${seg(!all,'考えながら進む',`${act}="nzall"`)}${seg(all,'すべて表示（印刷用）',`${act}="nzall"`)}</div><p class="hint">「考えながら進む」は、小さな問いに答えるたびに次が出ます。印刷するときは「すべて表示」にします。</p>`]]]],`<button type="button" class="btn primary" onclick="window.print()">印刷する</button>`); }
+window.nazePanel=nazePanel;
 function renderNaze(){
+  noRkPrint();
   const L=nazeList(G.subj); if(G.nz==null||G.nz>=L.length) G.nz=0;
-  $('#gq').innerHTML=`<div class="pset">${nazeActions('data-gact',G.nzAll)}${L.length?'':'<div class="empty">この分野の「なぜ？」は準備中です。</div>'}</div><div id="gsheets">${L.length?nazeHTML(L[G.nz],G.nzAll):''}</div>`;
+  $('#gq').innerHTML=L.length?rkLayoutHTML(nazePanel(G.subj,'data-gact',G.nzAll,'gNaze',G.nz||0),'',nazeHTML(L[G.nz],G.nzAll),'gsheets'):'<div class="empty">この分野の「なぜ？」は準備中です。</div>';
 }
 window.NAZE=NAZE; window.nazeFor=(sj,i,all)=>{ const L=nazeList(sj); return L[i]?nazeHTML(L[i],all):''; }; window.nazeSelHTML=nazeSelHTML; window.nazeActions=nazeActions; window.nazeCount=sj=>nazeList(sj).length;
 /* ---------- 入試演習（千葉県公立入試の形式）：1回＝大問7つ（千葉・日本地理・世界地理・歴史前半・歴史後半・公民政治・公民経済） ---------- */
@@ -5967,12 +6031,17 @@ function cbFmt(Q){
   if(o.some(x=>/Ⅰ/.test(x))) return 'combo';
   return 'mc';
 }
-function renderCBPanel(){
+function cbPanelHTML(){
   const opt=CB.map((S,i)=>`<option value="${i}"${G.cb===i?' selected':''}>${esc(S.t)}</option>`).join('');
   const cnt={}; CB.forEach(S=>S.dai.forEach(D_=>D_.qs.forEach(Q=>{ const f=cbFmt(Q); cnt[f]=(cnt[f]||0)+1; })));
   const fopt=`<option value=""${!G.cbFmt?' selected':''}>回ごとに解く（大問7つ）</option>`+CB_FMT.filter(([k])=>cnt[k]).map(([k,n])=>`<option value="${k}"${G.cbFmt===k?' selected':''}>形式別：${n}（${cnt[k]}問）</option>`).join('');
-  $('#gpanel').innerHTML=`<div class="optrows"><div class="row"><span class="lab">練習</span>${CB.length?`<select class="sel" id="cbFmt" aria-label="練習のしかた">${fopt}</select>`:''}</div>${G.cbFmt?'':`<div class="row"><span class="lab">回</span>${CB.length?`<select class="sel" id="cbSet" aria-label="回">${opt}</select>`:'<span class="hint-line">準備中</span>'}</div>`}<p class="hint-line">千葉県公立高校の入試と同じ形（大問1 千葉・2 日本地理・3 世界地理・4 歴史前半・5 歴史後半・6 公民政治・7 公民経済）の演習です。問題・資料はすべてこの道場で作成したものです。</p></div>`;
+  const seg=(on,t)=>`<button type="button" class="seg${on?' on':''}" ${on?'':'data-gact="cbans"'}>${t}</button>`;
+  const xc=cbXCount();
+  return sidePanel([['練習する問題',[['練習のしかた',`<select class="sel" id="cbFmt" aria-label="練習のしかた">${fopt}</select>`]].concat(G.cbFmt?[]:[['回',`<select class="sel" id="cbSet" aria-label="回">${opt}</select>`]]).concat([['',`<p class="hint">千葉県公立高校の入試と同じ形（大問1 千葉・2 日本地理・3 世界地理・4 歴史前半・5 歴史後半・6 公民政治・7 公民経済）の演習です。問題・資料はすべてこの道場で作成したものです。</p>`]])],
+    ['プリントの形',[['答え',`<div class="segs">${seg(!G.cbAns,'答えをかくす')}${seg(!!G.cbAns,'答えと解説を表示')}</div>`],['問題の調整',`<p class="hint">問題の右上の「消す」「入れ替える」で、プリントを作りかえられます（入れ替えは、ほかの回の同じ大問・同じ形式の問題から選びます）。</p>${xc?`<button class="btn" data-cbx="reset">${G.cbFmt?'消した問題をすべて元に戻す':'この回の消す・入れ替えをすべて元に戻す'}（${xc}問）</button>`:''}`]]]],
+    `<button type="button" class="btn primary" onclick="window.print()">印刷する</button>`);
 }
+function renderCBPanel(){ $('#gpanel').innerHTML=''; }
 function cbFmtHTML(f,show){
   const name=(CB_FMT.find(x=>x[0]===f)||['',''])[1]; let h=`<div class="sheet cbsheet"><div class="rk-head"><span class="rk-unit">入試演習（千葉県公立入試の形式）</span><h3>形式別：${esc(name)}</h3></div>`; let n=0;
   CB.forEach((S,si)=>S.dai.forEach((D_,di)=>D_.qs.forEach((Q,qi)=>{ if(cbFmt(Q)!==f) return; const k=cbKey(si,di,qi);
@@ -5983,8 +6052,9 @@ function cbFmtHTML(f,show){
 }
 function cbXCount(){ return Object.entries(CBX).filter(([k,v])=>G.cbFmt?v==='del'&&cbAt(k)&&cbFmt(cbAt(k).Q)===G.cbFmt:k.split('|')[0]===String(G.cb)).length; }
 function renderCB(){
+  noRkPrint();
   if(G.cb==null||G.cb>=CB.length) G.cb=0;
-  $('#gq').innerHTML=`<div class="pset"><div class="actions"><button class="btn" data-gact="cbans" aria-pressed="${!!G.cbAns}">${G.cbAns?'答えをかくす':'答えと解説を表示する'}</button><button class="btn primary" data-gact="print">印刷する</button>${cbXCount()?`<button class="btn" data-cbx="reset">${G.cbFmt?'消した問題をすべて元に戻す':'この回の消す・入れ替えをすべて元に戻す'}（${cbXCount()}問）</button>`:''}</div><p class="hint-line">問題の右上の「消す」「入れ替える」で、プリントを作りかえられます（印刷にも反映。入れ替えは、ほかの回の同じ大問・同じ形式の問題から選びます）。</p>${CB.length?'':'<div class="empty">準備中です。</div>'}</div><div id="gsheets">${CB.length?(G.cbFmt?cbFmtHTML(G.cbFmt,G.cbAns):cbHTML(CB[G.cb],G.cbAns)):''}</div>`;
+  $('#gq').innerHTML=CB.length?rkLayoutHTML(cbPanelHTML(),'',G.cbFmt?cbFmtHTML(G.cbFmt,G.cbAns):cbHTML(CB[G.cb],G.cbAns),'gsheets'):'<div class="empty">準備中です。</div>';
 }
 
 // 理解プリントの印刷のしかた（縦／横、縦のときは1枚ずつ／詰めて）。このブラウザに保存し、歴史タブと共通
@@ -6075,7 +6145,7 @@ function rkLayoutPrint(){
   [...box.querySelectorAll('.rkkey')].forEach(k=>k.parentNode.appendChild(k));
 }
 window.rkLayoutPrint=rkLayoutPrint;
-window.addEventListener('beforeprint',()=>{ try{ rkLayoutPrint(); }catch(e){} });
+window.addEventListener('beforeprint',()=>{ try{ if(window.__rkCur) rkLayoutPrint(); }catch(e){} });
 function rkLayoutHTML(panel,empty,body,id,cls){ return `<div class="rklay"><aside class="rkside"><div class="pset">${panel}</div></aside><div class="rkmain">${empty?`<div class="empty">${empty}</div>`:''}<div id="${id}"${cls?` class="${cls}"`:''}>${body}</div></div></div>`; }
 window.rkLayoutHTML=rkLayoutHTML;
 window.rkApplyPrint=rkApplyPrint;
@@ -6167,16 +6237,19 @@ function rule(e,useW){ const N=['','','二つの','三つの']; return `${useW&&
 
 /* ---------- 画面 ---------- */
 const TABS=[['drill','一問一答','語句を答える'],['exam','入試形式','組み合わせ・正誤'+(0?'':'')],['essay','記述','理由を説明'],['list','用語一覧','確認・削除'],['sum','まとめ','学ぶことの整理'],['rikai','理解','説明を読んで解く'],['kata','解き方','問題の型と解き方'],['naze','なぜ？','疑問から考える'],['print','プリント','A4で印刷']];
+// 分野のボタン：入試対策／定期テスト／入試演習 に分けて並べる
+const SUBJ_G=[['入試対策',[['rk','歴史'],['jg','日本地理'],['wg','世界地理'],['ko','公民']]],['定期テスト',[['tk','歴史'],['tg','地理'],['tc','公民']]],['入試演習',[['cb','千葉県']]]];
 function subjBar(){
-  return `<nav class="subj" aria-label="分野">${SUBJ.map(([k,v])=>`<button data-gsubj="${k}" aria-pressed="${G.subj===k}">${v}</button>`).join('')}</nav>`;
+  const ok=new Set(SUBJ.map(x=>x[0]));
+  return `<nav class="subj" aria-label="分野">${SUBJ_G.map(([g,L])=>{ const B=L.filter(([k])=>ok.has(k)); return B.length?`<div class="sg"><span class="sgl">${g}</span><div class="sgb">${B.map(([k,v])=>`<button data-gsubj="${k}" aria-pressed="${G.subj===k}">${v}</button>`).join('')}</div></div>`:''; }).join('')}</nav>`;
 }
 function setSubj(k){
   if(document.body.dataset.subj==='rk'&&k!=='rk'){ G.rkScore=['sTotal','sOk','sStreak'].map(id=>$('#'+id).textContent); }
   G.subj=k; ls.set('g-subj',k); document.body.dataset.subj=k; G.unit='all'; G.sheet=null; G.fitted=false;
-  const h1=$('header h1'); const sub=$('header .brand p');
-  if(k==='rk'){ h1.innerHTML='歴史ならべ<span>道場</span>'; sub.textContent='中学歴史の並び替え・穴埋め・記述を、何問でも。'; if(G.rkScore) ['sTotal','sOk','sStreak'].forEach((id,i)=>$('#'+id).textContent=G.rkScore[i]); }
-  else if(k==='cb'){ h1.innerHTML='千葉県入試<span>演習</span>'; sub.textContent='千葉県公立高校入試と同じ形の社会の問題を、大問7つの1回分ずつ。'; }
-  else { const n=SUBJ.find(x=>x[0]===k)[1]; h1.innerHTML=`${n}<span>道場</span>`; sub.textContent=k==='tk'?'教科書の章・節ごとに、一問一答・並び替え・原因と結果・記述を。':k==='tg'?'教科書の章・節ごとに、一問一答・正誤・記述を。':k==='tc'?'単元ごとに、一問一答・正誤・資料の読み取り・記述を。':`中学${n}の一問一答・入試形式・記述を、何問でも。`; if(isT()) h1.innerHTML=`定期テスト<span>道場</span><small class="tsub">${k==='tk'?'歴史':k==='tg'?'地理':'公民'}</small>`; score(); }
+  const sub=$('header .brand p');
+  const SUBD={rk:'入試対策｜歴史　並び替え・穴埋め・記述を、何問でも。',jg:'入試対策｜日本地理　一問一答・入試形式・記述を、何問でも。',wg:'入試対策｜世界地理　一問一答・入試形式・記述を、何問でも。',ko:'入試対策｜公民　一問一答・入試形式・記述を、何問でも。',tk:'定期テスト｜歴史　教科書の章・節ごとに練習とプリント。',tg:'定期テスト｜地理　教科書の章・節ごとに練習とプリント。',tc:'定期テスト｜公民　教科書の章・節ごとに練習とプリント。',cb:'入試演習｜千葉県公立高校入試と同じ形の社会を、1回分ずつ。'};
+  sub.textContent=SUBD[k]||'';
+  if(k==='rk'&&G.rkScore) ['sTotal','sOk','sStreak'].forEach((id,i)=>$('#'+id).textContent=G.rkScore[i]);
   document.querySelectorAll('[data-gsubj]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.gsubj===k));
   if(k!=='rk'){ renderG(); newG(); }
   window.scrollTo({top:0});
@@ -6184,12 +6257,17 @@ function setSubj(k){
 function score(){ $('#sTotal').textContent=G.total; $('#sOk').textContent=G.ok; $('#sStreak').textContent=G.streak; }
 // 横にスクロールする分野・タブの列で、選んでいるものが見えるようにする
 window.__scrollActive=()=>document.querySelectorAll('.tabs,.subj').forEach(c=>{ if(c.scrollWidth<=c.clientWidth+1||!c.offsetParent) return; const a=c.querySelector('[aria-pressed="true"]'); if(a) c.scrollLeft=Math.max(0,a.offsetLeft-c.offsetLeft-(c.clientWidth-a.offsetWidth)/2); });
+// いま表示している画面が「左に設定・中央に内容」の広い形かどうかを body[data-layout] に出す（CSSで幅や高さを切りかえる）
+function updLayout(){ const m=document.querySelector(document.body.dataset.subj==='rk'?'#q':'#gq'); document.body.dataset.layout=m&&m.querySelector('.rklay,.pwrap')?'wide':'std'; }
+new MutationObserver(updLayout).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-subj']});
 function renderG(){ setTimeout(()=>window.__scrollActive(),0);
   if(G.subj==='cb') return renderCBPanel();
   const d=D(); if(!d) return;
   const opt=(v,n)=>`<option value="${v}" ${G.unit===v?'selected':''}>${esc(n)}</option>`;
   const units=`<select class="sel" id="gUnit"><option value="all">${d.chapters?'教科書全体':'すべての単元'}</option>${d.chapters?d.chapters.map(c=>`<optgroup label="${esc(c.name)}">${opt('ch:'+c.key,c.name+'（章全体）')}${d.units.filter(u=>u.ch===c.key).map(u=>opt(u.key,'　'+u.name)).join('')}</optgroup>`).join(''):d.units.map(u=>opt(u.key,u.name)).join('')}</select>`;
-  let h=`<div class="tabs" role="group" aria-label="問題の種類">${TABS.filter(([k])=>!(k==='kata'&&isT())).map(([k,v,s])=>(k==='exam'&&isT()?[k,'テスト形式',G.subj==='tk'?'並び替え・正誤':'組み合わせ・正誤']:[k,v,s])).map(([k,v,s])=>`<button data-gmode="${k}" aria-pressed="${G.mode===k}">${v}<small>${s}</small></button>`).join('')}</div>
+  const TN=Object.fromEntries(TABS.map(([k,v,s])=>[k,[k==='exam'&&isT()?'テスト形式':k==='print'?'テスト作成':v,k==='exam'&&isT()?(G.subj==='tk'?'並び替え・正誤':'組み合わせ・正誤'):s]]));
+  const TG=[['問題を解く',['drill','exam','essay']],['学習プリント',['rikai','kata','naze','sum']],['テストを作る',['print']],['調べる',['list']]];
+  let h=`<div class="tabs" role="group" aria-label="問題の種類">${TG.map(([g,L])=>`<div class="tgp"><span class="tgl">${g}</span><div class="tgb">${L.filter(k=>TN[k]&&!(k==='kata'&&isT())).map(k=>`<button data-gmode="${k}" aria-pressed="${G.mode===k}" title="${esc(TN[k][1])}">${TN[k][0]}</button>`).join('')}</div></div>`).join('')}</div>
     <div class="optrows">${G.mode==='naze'?`<div class="row"><span class="lab">問い</span>${nazeSelHTML(G.subj,G.nz||0,'gNaze')||'<span class="hint-line">準備中</span>'}</div>`:G.mode==='kata'&&!isT()?`<div class="row"><span class="lab">問題の型</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span></div>`:`<div class="row"><span class="lab">単元</span>${G.mode==='rikai'||G.mode==='sum'?'<span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>':units}</div>
     <div class="row"><span class="lab">重要度</span>${['A','B'].map(r=>`<button class="chip" data-grank="${r}" aria-pressed="${G.ranks.includes(r)}">${r==='A'?(isT()?'A 重要語句':'A 入試頻出'):'B 標準'}</button>`).join('')}</div>`}`;
   if(G.mode==='drill') h+=`<div class="row"><span class="lab">答え方</span><button class="chip" data-gwrite="0" aria-pressed="${!G.write}">選ぶ</button><button class="chip" data-gwrite="1" aria-pressed="${G.write}">書いて答える</button></div>`;
