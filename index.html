@@ -577,6 +577,11 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
 .tlegend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}.tlegend span{display:inline-flex;align-items:center;gap:3px;font-size:13px}.tlegend svg{width:18px;height:16px}
 .sheet .stbl td,.sheet .stbl th{border:1px solid #888}
 .tsub{font-size:.45em;margin-left:.4em;color:var(--muted);font-weight:600}
+/* ふりがな */
+rt{font-size:.5em;font-weight:400;letter-spacing:0;line-height:1}
+.furibtn{border:1.5px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:2px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;align-self:center;margin-left:auto}
+.furibtn[aria-pressed="true"]{background:var(--ai-soft);color:var(--ink);border-color:var(--ai)}
+@media print{.furibtn{display:none}}
 /* ===== 全体の整理（分野・タブのまとまり、幅のそろえ方） ===== */
 @media screen{
  body{margin:0}
@@ -668,6 +673,7 @@ body:not([data-subj="rk"]) .panel:not(.gpanel),body:not([data-subj="rk"]) #q,bod
       <h1>中学社会<span>道場</span></h1>
       <p>入試対策｜歴史　並び替え・穴埋め・記述を、何問でも。</p>
     </div>
+    <button type="button" id="furiBtn" class="furibtn" aria-pressed="true" title="小学校で習わない漢字に読みがなをつけます">ふりがな</button>
     <div class="score" aria-live="polite">
       <span>解いた<b id="sTotal">0</b>問</span>
       <span>正解<b id="sOk">0</b>問</span>
@@ -6129,7 +6135,7 @@ function rkFitZ(e,land,PH){ const MM=96/25.4; const m=document.createElement('di
   let res=null; for(let z=0.97;z>=0.745;z-=0.025){ c.style.zoom=z; const h=w.getBoundingClientRect().height/MM; if(h<=PH-2){ res=[z,h]; break; } }
   m.remove(); return res; }
 function rkLayoutPrint(){
-  const box=document.querySelector(document.body.dataset.subj==='rk'?'#q .rkmain':'#gq .rkmain'); if(!box) return;
+  const box=document.querySelector(document.body.dataset.subj==='rk'?'#q .rkmain':'#gq .rkmain'); if(!box) return; if(window.furiApply) furiApply(box);
   const land=document.body.classList.contains('rkland'), H=land?190:277, W=land?277:190, GAP=9, MM=96/25.4;
   const S_=[...box.querySelectorAll('.sheet')];
   S_.forEach(e=>{ e.removeAttribute('data-z'); e.style.removeProperty('--z'); e.classList.remove('pg-new','pg-cont','pg-fit'); });
@@ -6526,5 +6532,41 @@ document.addEventListener('keydown',ev=>{
 const hdr=document.querySelector('header'); hdr.insertAdjacentHTML('afterend',subjBar()+'<section class="panel gpanel" id="gpanel" aria-label="出題設定"></section><main id="gq" class="q gq" aria-live="polite"></main>');
 document.body.dataset.subj='rk';
 if(G.subj!=='rk') setSubj(G.subj);
+/* ---------- ふりがな：小学校で習わない漢字をふくむ語に、各プリント・各問題で最初の1回だけ読みをつける ---------- */
+const FURI=/*FURI*/{}/*FURIEND*/;
+let FURI_ON=ls.get('furi',true);
+const reEsc=t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const kata2hira=t=>t.replace(/[ァ-ヶ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const FURI_RE=(()=>{ const K=Object.keys(FURI).sort((a,b)=>b.length-a.length); return K.length?new RegExp(K.map(reEsc).join('|'),'g'):null; })();
+const HAN=/[\p{Script=Han}々〆ヶ]/u;
+// 語と読みから、漢字の部分にだけ読みをのせる（送りがなはそのまま）
+function furiRuby(w,r){
+  const parts=w.match(/[\p{Script=Han}々〆ヶ]+|[^\p{Script=Han}々〆ヶ]+/gu)||[w];
+  const rb=(k,y)=>`<ruby>${k}<rt>${y}</rt></ruby>`;
+  if(parts.length===1) return rb(w,r);
+  const m=r.match(new RegExp('^'+parts.map(p=>HAN.test(p)?'(.+?)':reEsc(kata2hira(p))).join('')+'$','u'));
+  if(!m) return rb(w,r);
+  let k=1; return parts.map(p=>HAN.test(p)?rb(p,m[k++]):p).join('');
+}
+const FURI_SKIP='script,style,textarea,input,select,option,ruby,rt,svg,header,.subj,.tabs,.optrows,.rkpanel,.pset,.fu,.no-furi,[contenteditable]';
+function furiApply(root){
+  if(!FURI_ON||!FURI_RE||!root) return;
+  const used=new Map(); const scopeOf=el=>el.closest('.sheet,.nzsheet,.k-box,main')||document.body;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{ const p=n.parentElement; if(!p||!n.nodeValue||!HAN.test(n.nodeValue)) return NodeFilter.FILTER_REJECT; return p.closest(FURI_SKIP)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT; }});
+  const T=[]; while(w.nextNode()) T.push(w.currentNode);
+  for(const n of T){ const t=n.nodeValue; FURI_RE.lastIndex=0; if(!FURI_RE.test(t)) continue;
+    const sc=scopeOf(n.parentElement); const keep=sc.tagName!=='MAIN'&&sc!==document.body; if(!used.has(sc)) used.set(sc,new Set(keep?(sc.__furi||[]):[])); const U=used.get(sc);
+    let out='',last=0,hit=false; FURI_RE.lastIndex=0; let m;
+    while((m=FURI_RE.exec(t))){ const wd=m[0]; out+=esc(t.slice(last,m.index)); if(!U.has(wd)){ U.add(wd); out+=furiRuby(esc(wd),FURI[wd]); hit=true; } else out+=esc(wd); last=m.index+wd.length; }
+    if(!hit) continue; out+=esc(t.slice(last));
+    const sp=document.createElement('span'); sp.className='fu'; sp.innerHTML=out; n.parentNode.replaceChild(sp,n); if(keep) sc.__furi=U; }
+}
+function furiClear(root){ (root||document).querySelectorAll('.fu').forEach(sp=>{ sp.querySelectorAll('rt').forEach(x=>x.remove()); sp.replaceWith(document.createTextNode(sp.textContent)); }); document.querySelectorAll('.sheet,.nzsheet,.k-box,main').forEach(e=>{ e.__furi=null; }); }
+window.furiApply=furiApply;
+{ let pend=[],sch=false; new MutationObserver(ms=>{ if(!FURI_ON) return; for(const m of ms) m.addedNodes.forEach(x=>{ if(x.nodeType===1&&!x.classList.contains('fu')) pend.push(x); }); if(!sch&&pend.length){ sch=true; requestAnimationFrame(()=>{ sch=false; const L=pend; pend=[]; L.forEach(x=>{ if(x.isConnected) furiApply(x); }); }); } }).observe(document.body,{childList:true,subtree:true}); }
+function furiBtn(){ const b=document.getElementById('furiBtn'); if(b) b.setAttribute('aria-pressed',FURI_ON); }
+document.getElementById('furiBtn').addEventListener('click',()=>{ FURI_ON=!FURI_ON; ls.set('furi',FURI_ON); furiBtn(); if(FURI_ON){ document.querySelectorAll('main').forEach(furiApply); } else furiClear(); });
+furiBtn(); document.querySelectorAll('main').forEach(furiApply);
+
 })();
 </script>
