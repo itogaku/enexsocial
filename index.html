@@ -6617,9 +6617,13 @@ function furiRuby(w,r){
   if(!m) return rb(w,r);
   let k=1; return parts.map(p=>HAN.test(p)?rb(p,m[k++]):p).join('');
 }
-const FURI_SKIP='script,style,textarea,input,select,option,ruby,rt,svg,header,.subj,.tabs,.optrows,.rkpanel,.pset,.fu,.no-furi,[contenteditable],.btn,.tbtn,.chip,.actions,.qtools,.rk-sbar,.cb-tools,.cb-gone,.empty';
+const FURI_SKIP='script,style,textarea,input,select,option,ruby,rt,svg,header,.subj,.tabs,.optrows,.rkpanel,.pset,.fu,.no-furi,[contenteditable],.btn,.tbtn,.chip,.actions,.qtools,.rk-sbar,.cb-tools,.cb-gone,.empty,.k-jis';
+// 入試の形で解く画面（入試演習・入試形式・テスト作成）は、本番と同じくふりがなを付けない
+function furiExamMode(){ const sj=document.body.dataset.subj; if(sj==='cb') return true;
+  const m=sj==='rk'?(document.querySelector('.panel:not(.gpanel) .tabs [data-mode][aria-pressed="true"]')||{dataset:{}}).dataset.mode:G.mode;
+  return m==='exam'||m==='print'; }
 function furiApply(root){
-  if(!FURI_ON||!FURI_RE||!root) return;
+  if(!FURI_ON||!FURI_RE||!root||furiExamMode()) return;
   const used=new Map(); const scopeOf=el=>el.closest('.sheet,.nzsheet,.k-box,main')||document.body;
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{ const p=n.parentElement; if(!p||!n.nodeValue||!HAN.test(n.nodeValue)) return NodeFilter.FILTER_REJECT; return p.closest(FURI_SKIP)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT; }});
   const T=[]; while(w.nextNode()) T.push(w.currentNode);
