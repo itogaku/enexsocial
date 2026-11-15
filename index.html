@@ -3543,11 +3543,12 @@ function srBar(f){
   const n=f.v.length, bw=(W-l-r)/n; let s=`<line x1="${l}" y1="${t}" x2="${l}" y2="${H-b}" stroke="currentColor"/><line x1="${l}" y1="${H-b}" x2="${W-r}" y2="${H-b}" stroke="currentColor"/>`;
   const st=ymax>60?20:10; for(let k=0;k<=ymax;k+=st){ const y=H-b-(H-b-t)*k/ymax; s+=`<line x1="${l-3}" y1="${y}" x2="${W-r}" y2="${y}" stroke="currentColor" stroke-opacity="${k?0.15:0}"/><text x="${l-6}" y="${y+4}" font-size="11" text-anchor="end" fill="currentColor">${k}</text>`; }
   f.v.forEach((v,i)=>{ const x=l+bw*i+bw*0.2, h=(H-b-t)*v/ymax; s+=`<rect x="${x}" y="${H-b-h}" width="${bw*0.6}" height="${h}" fill="currentColor" fill-opacity="0.35" stroke="currentColor"/><text x="${x+bw*0.3}" y="${H-b-h-4}" font-size="11" text-anchor="middle" fill="currentColor">${v}</text><text x="${x+bw*0.3}" y="${H-b+16}" font-size="11" text-anchor="middle" fill="currentColor">${f.lab[i]}</text>`; });
-  s+=`<text x="${l-6}" y="${t-8}" font-size="11" text-anchor="end" fill="currentColor">（${f.u}）</text>`;
+  s+=`<text x="4" y="${t-8}" font-size="11" text-anchor="start" fill="currentColor">（${f.u}）</text>`;
   return `<svg class="gfig" viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%;height:auto" role="img">${s}</svg>`;
 }
 function srBand(f){
-  const W=400,rh=34,l=50,w=W-l-10,H=f.rows.length*(rh+14)+6; const OP=[0.42,0.26,0.14,0.06,0.2,0.02]; let s='';
+  const tw=t=>[...String(t)].reduce((a,c)=>a+(c.charCodeAt(0)<256?0.62:1),0)*12*1.12;
+  const W=400,rh=34,l=Math.min(150,Math.max(50,...f.rows.map(([n])=>tw(String(n).replace(/<[^>]+>/g,''))+14))),w=W-l-10,H=f.rows.length*(rh+14)+6; const OP=[0.42,0.26,0.14,0.06,0.2,0.02]; let s='';
   f.rows.forEach(([name,parts],j)=>{ const y=6+j*(rh+14); let x=l; s+=`<text x="${l-8}" y="${y+rh/2+4}" font-size="12" text-anchor="end" fill="currentColor" font-weight="700">${name}</text>`;
     parts.forEach(([p,v],i)=>{ const pw=w*v/100; s+=`<rect x="${x}" y="${y}" width="${pw}" height="${rh}" fill="currentColor" fill-opacity="${OP[i%OP.length]}" stroke="currentColor"/>`;
       if(pw>=46) s+=`<text x="${x+pw/2}" y="${y+rh/2-2}" font-size="11" text-anchor="middle" fill="currentColor">${p}</text><text x="${x+pw/2}" y="${y+rh/2+11}" font-size="10" text-anchor="middle" fill="currentColor">${v}</text>`;
@@ -3565,7 +3566,7 @@ function srLine(f){
   f.ser.forEach(([nm,vs],j)=>{ const pts=vs.map((v,i)=>v==null?null:`${X(i)},${Y(v)}`).filter(Boolean).join(' ');
     s+=`<polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${DASH[j%4]}"/>`+vs.map((v,i)=>v==null?'':j%2?`<rect x="${X(i)-3}" y="${Y(v)-3}" width="6" height="6" fill="currentColor"/>`:`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="currentColor"/>`).join('');
     const e=ends.find(z=>z.nm===nm); s+=`<line x1="${X(n-1)+4}" y1="${Y(vs[n-1])}" x2="${X(n-1)+14}" y2="${e.y}" stroke="currentColor" stroke-opacity=".5"/><text x="${X(n-1)+16}" y="${e.y+4}" font-size="11" fill="currentColor">${nm}</text>`; });
-  s+=`<text x="${l-6}" y="${t-8}" font-size="11" text-anchor="end" fill="currentColor">（${f.u}）</text>`;
+  s+=`<text x="4" y="${t-8}" font-size="11" text-anchor="start" fill="currentColor">（${f.u}）</text>`;
   return `<svg class="gfig" viewBox="0 0 ${W} ${H}" width="${W}" style="max-width:100%;height:auto" role="img">${s}</svg>`;
 }
 function srFig(f){
@@ -3834,7 +3835,7 @@ function renderControls(){
   }else if(S.mode==='sum'){
     h=`<span class="lab">単元</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>`;
   }else if(S.mode==='naze'){
-    h=`<span class="lab">問い</span>${window.nazeSelHTML?window.nazeSelHTML('he',S.nz||0,'nazeH')||'<span class="hint-line">準備中</span>':''}`;
+    h=`<span class="lab">問い</span><span class="hint-line">「1 問い」で選びます</span>`;
   }else if(S.mode==='kata'){
     h=`<span class="lab">問題の型</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>`;
   }else if(S.mode==='rikai'){
@@ -5052,15 +5053,24 @@ function mkHiddenKo(){
   }
   return null;
 }
+// 文字列のおおよその幅（全角＝1文字分、半角＝0.6文字分）
+const txW=(t,fs)=>[...String(t)].reduce((a,c)=>a+(c.charCodeAt(0)<256?0.6:1),0)*fs;
+// 長い文字列を、幅に収まるように何行かに分ける（区切り sep ごとにまとめる）
+function txWrap(items,fs,maxw,sep){ const L=[]; let cur=''; items.forEach(it=>{ const nx=cur?cur+sep+it:it; if(cur&&txW(nx,fs)>maxw){ L.push(cur); cur=it; } else cur=nx; }); if(cur) L.push(cur); return L; }
 function bandRows(rows,cats){
-  // 帯の中に書ききれない小さな値も読めるよう、各帯の下に全部の値を書く
-  const W=380,rh=26,l=24,w=W-l-10,gap=22; let s='';
-  rows.forEach((r,k)=>{ let x=l; const y=6+k*(rh+gap); s+=T(10,y+17,r.h,{fs:12,b:1});
-    r.p.forEach((p,i)=>{ const ww=w*p/100; s+=`<rect x="${x}" y="${y}" width="${ww}" height="${rh}" fill="currentColor" opacity="${[.55,.35,.2,.06][i]}" stroke="currentColor" stroke-width=".8"/>`+(ww>26?T(x+ww/2,y+17,nf(p,1),{fs:9}):''); x+=ww; });
-    s+=T(l,y+rh+12,r.p.map((p,i)=>`${cats[i]} ${nf(p,1)}`).join('　'),{fs:9,a:'start'}); });
-  const ly=6+rows.length*(rh+gap)+2; let lx=l; cats.forEach((c,i)=>{ s+=`<rect x="${lx}" y="${ly}" width="12" height="10" fill="currentColor" opacity="${[.55,.35,.2,.06][i]}" stroke="currentColor" stroke-width=".8"/>`+T(lx+16,ly+9,c,{fs:10,a:'start'}); lx+=c.length*10+30; });
-  s+=T(W-10,ly+24,'（単位：%）',{fs:9,a:'end'});
-  return SVG(W,ly+30,s);
+  // 左の見出しの幅を、いちばん長い見出しに合わせて決める（はみ出し・重なりを防ぐ）
+  const W=380,rh=24; const lfs=12; const lw=Math.min(150,Math.max(30,...rows.map(r=>txW(r.h,lfs)*1.15)))+8; const l=lw+4, w=W-l-8; let s='', y=6;
+  const OPS=[.55,.35,.2,.06,.42,.12];
+  rows.forEach(r=>{ const fs=txW(r.h,lfs)*1.15>lw-8?Math.max(8,Math.floor(lfs*(lw-8)/(txW(r.h,lfs)*1.15))):lfs;
+    s+=T(l-6,y+rh/2+4,r.h,{fs,a:'end',b:1}); let x=l;
+    r.p.forEach((p,i)=>{ const ww=w*p/100; s+=`<rect x="${x}" y="${y}" width="${ww}" height="${rh}" fill="currentColor" opacity="${OPS[i%OPS.length]}" stroke="currentColor" stroke-width=".8"/>`+(ww>txW(nf(p,1),9)+6?T(x+ww/2,y+rh/2+4,nf(p,1),{fs:9}):''); x+=ww; });
+    // 帯の中に書ききれない小さな値も読めるよう、各帯の下に全部の値を書く（長いときは折り返す）
+    const ln=txWrap(r.p.map((p,i)=>`${cats[i]} ${nf(p,1)}`),9,W-l-4,'　');
+    ln.forEach((t,k)=>{ s+=T(l,y+rh+11+k*11,t,{fs:9,a:'start'}); }); y+=rh+ln.length*11+10; });
+  // 凡例（入りきらないときは次の行へ）
+  let lx=l, ly=y; cats.forEach((c,i)=>{ const iw=16+txW(c,10)+14; if(lx>l&&lx+iw>W-4){ lx=l; ly+=15; } s+=`<rect x="${lx}" y="${ly}" width="12" height="10" fill="currentColor" opacity="${OPS[i%OPS.length]}" stroke="currentColor" stroke-width=".8"/>`+T(lx+16,ly+9,c,{fs:10,a:'start'}); lx+=iw; });
+  s+=T(W-6,ly+26,'（単位：%）',{fs:9,a:'end'});
+  return SVG(W,ly+32,s);
 }
 
 // ---- 対蹠点（世界地理） ----
@@ -5844,19 +5854,28 @@ window.rkPickHTML=rkPickHTML; window.rkCount=(key,name,all)=>rkSheets(key,name,a
 /* ---------- 解き方（問題の型ごとに：例題と解き方 → 解き方チェック問題 → 実践問題） ---------- */
 // 折れ線・棒グラフ（系列が複数でもよい）
 function kChart(f,bar){
-  const S_=f.s||[]; const all=S_.flatMap(x=>x.v); const W=380,H=230,l=48,r=12,t=30,b=34;
+  const S_=f.s||[]; const all=S_.flatMap(x=>x.v); const W=380,l=48,r=12,t=30;
+  const n=f.x.length, slot=(W-l-r)/n;
+  // 下の目もりの文字が長くて重なるときは、ななめに書く（その分、図を高くする）
+  const xw=Math.max(0,...f.x.map(x=>txW(x,10))); const tilt=xw>slot-4; const extra=tilt?Math.ceil(xw*0.64)+4:0;
+  // 凡例（入りきらないときは次の行へ）
+  const LG=[]; if(S_.length>1||(S_[0]&&S_[0].n)){ let lx=l,row=0; S_.forEach((sr,j)=>{ const iw=20+txW(sr.n||'',10)+16; if(lx>l&&lx+iw>W-4){ lx=l; row++; } LG.push([lx,row,sr,j]); lx+=iw; }); }
+  const lrows=LG.length?Math.max(...LG.map(x=>x[1]))+1:0;
+  const H=230+extra+(lrows>1?(lrows-1)*14:0);
   const mx=Math.max(...all,0)*1.12||1; const top=Math.pow(10,Math.floor(Math.log10(mx))); const ymax=Math.ceil(mx/top*2)/2*top; const ymin=Math.min(0,...all);
-  const n=f.x.length, X=i=>l+(W-l-r)*(i+0.5)/n, Y=v=>H-b-(H-b-t)*(v-ymin)/(ymax-ymin); let s='';
-  for(let k=0;k<=4;k++){ const v=ymin+(ymax-ymin)*k/4; s+=`<line x1="${l}" x2="${W-r}" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" stroke-opacity=".18"/>`+T(l-5,Y(v)+4,nf(v,Math.abs(v)<10&&v%1?1:0),{fs:10,a:'end'}); }
-  s+=`<line x1="${l}" x2="${W-r}" y1="${Y(0)}" y2="${Y(0)}" stroke="currentColor"/>`+(f.unit?T(4,12,`（${esc(f.unit)}）`,{fs:10,a:'start'}):'');
-  const dash=['','6 3','2 3'], op=[.55,.3,.15]; const bw=Math.min(26,(W-l-r)/n/(S_.length+1));
+  const X=i=>l+slot*(i+0.5); let s='';
+  const Yb=v=>(230-34)-(230-34-t)*(v-ymin)/(ymax-ymin); // グラフ本体の高さは変えない
+  for(let k=0;k<=4;k++){ const v=ymin+(ymax-ymin)*k/4; s+=`<line x1="${l}" x2="${W-r}" y1="${Yb(v)}" y2="${Yb(v)}" stroke="currentColor" stroke-opacity=".18"/>`+T(l-5,Yb(v)+4,nf(v,Math.abs(v)<10&&v%1?1:0),{fs:10,a:'end'}); }
+  s+=`<line x1="${l}" x2="${W-r}" y1="${Yb(0)}" y2="${Yb(0)}" stroke="currentColor"/>`+(f.unit?T(4,12,`（${esc(f.unit)}）`,{fs:10,a:'start'}):'');
+  const dash=['','6 3','2 3'], op=[.55,.3,.15]; const bw=Math.min(26,slot/(S_.length+1));
   S_.forEach((sr,j)=>{
-    if(bar) sr.v.forEach((v,i)=>{ const x=X(i)-bw*S_.length/2+bw*j; s+=`<rect x="${x}" y="${Math.min(Y(v),Y(0))}" width="${bw}" height="${Math.abs(Y(0)-Y(v))}" fill="currentColor" fill-opacity="${op[j]}" stroke="currentColor" stroke-width=".7"/>`; });
-    else s+=`<polyline points="${sr.v.map((v,i)=>X(i)+','+Y(v)).join(' ')}" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${dash[j]||''}"/>`+sr.v.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="2.6" fill="currentColor"/>`).join('');
+    if(bar) sr.v.forEach((v,i)=>{ const x=X(i)-bw*S_.length/2+bw*j; s+=`<rect x="${x}" y="${Math.min(Yb(v),Yb(0))}" width="${bw}" height="${Math.abs(Yb(0)-Yb(v))}" fill="currentColor" fill-opacity="${op[j]}" stroke="currentColor" stroke-width=".7"/>`; });
+    else s+=`<polyline points="${sr.v.map((v,i)=>X(i)+','+Yb(v)).join(' ')}" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="${dash[j]||''}"/>`+sr.v.map((v,i)=>`<circle cx="${X(i)}" cy="${Yb(v)}" r="2.6" fill="currentColor"/>`).join('');
   });
-  f.x.forEach((x,i)=>{ s+=T(X(i),H-b+15,esc(x),{fs:10}); });
-  if(S_.length>1||(S_[0]&&S_[0].n)){ let lx=l; S_.forEach((sr,j)=>{ s+=bar?`<rect x="${lx}" y="${H-12}" width="12" height="9" fill="currentColor" fill-opacity="${op[j]}" stroke="currentColor" stroke-width=".7"/>`:`<line x1="${lx}" x2="${lx+16}" y1="${H-7}" y2="${H-7}" stroke="currentColor" stroke-width="2" stroke-dasharray="${dash[j]||''}"/>`; s+=T(lx+20,H-3,esc(sr.n||''),{fs:10,a:'start'}); lx+=String(sr.n||'').length*10+40; }); }
-  return SVG(W,H,s);
+  const by=230-34; // 横軸の位置
+  f.x.forEach((x,i)=>{ s+=tilt?`<text x="${X(i)+4}" y="${by+12}" font-size="10" text-anchor="end" fill="currentColor" transform="rotate(-40 ${X(i)+4} ${by+12})">${esc(x)}</text>`:T(X(i),by+15,esc(x),{fs:10}); });
+  LG.forEach(([lx,row,sr,j])=>{ const ly=by+22+extra+row*14; s+=bar?`<rect x="${lx}" y="${ly}" width="12" height="9" fill="currentColor" fill-opacity="${op[j]}" stroke="currentColor" stroke-width=".7"/>`:`<line x1="${lx}" x2="${lx+16}" y1="${ly+5}" y2="${ly+5}" stroke="currentColor" stroke-width="2" stroke-dasharray="${dash[j]||''}"/>`; s+=T(lx+20,ly+9,esc(sr.n||''),{fs:10,a:'start'}); });
+  return SVG(W,Math.max(H,by+22+extra+lrows*14+4),s);
 }
 function kFig(f){
   if(!f) return '';
@@ -6285,7 +6304,7 @@ function renderG(){ setTimeout(()=>window.__scrollActive(),0);
   const TN=Object.fromEntries(TABS.map(([k,v,s])=>[k,[k==='exam'&&isT()?'テスト形式':k==='print'?'テスト作成':v,k==='exam'&&isT()?(G.subj==='tk'?'並び替え・正誤':'組み合わせ・正誤'):s]]));
   const TG=[['問題を解く',['drill','exam','essay']],['学習プリント',['rikai','kata','naze','sum']],['テストを作る',['print']],['調べる',['list']]];
   let h=`<div class="tabs" role="group" aria-label="問題の種類">${TG.map(([g,L])=>`<div class="tgp"><span class="tgl">${g}</span><div class="tgb">${L.filter(k=>TN[k]&&!(k==='kata'&&isT())).map(k=>`<button data-gmode="${k}" aria-pressed="${G.mode===k}" title="${esc(TN[k][1])}">${TN[k][0]}</button>`).join('')}</div></div>`).join('')}</div>
-    <div class="optrows">${G.mode==='naze'?`<div class="row"><span class="lab">問い</span>${nazeSelHTML(G.subj,G.nz||0,'gNaze')||'<span class="hint-line">準備中</span>'}</div>`:G.mode==='kata'&&!isT()?`<div class="row"><span class="lab">問題の型</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span></div>`:`<div class="row"><span class="lab">単元</span>${G.mode==='rikai'||G.mode==='sum'||G.mode==='print'?'<span class="hint-line">「1 '+(G.mode==='print'?'出題する範囲':'印刷する範囲')+'」で選びます（複数えらべます）</span>':units}</div>
+    <div class="optrows">${G.mode==='naze'?`<div class="row"><span class="lab">問い</span><span class="hint-line">「1 問い」で選びます</span></div>`:G.mode==='kata'&&!isT()?`<div class="row"><span class="lab">問題の型</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span></div>`:`<div class="row"><span class="lab">単元</span>${G.mode==='rikai'||G.mode==='sum'||G.mode==='print'?'<span class="hint-line">「1 '+(G.mode==='print'?'出題する範囲':'印刷する範囲')+'」で選びます（複数えらべます）</span>':units}</div>
     <div class="row"><span class="lab">重要度</span>${['A','B'].map(r=>`<button class="chip" data-grank="${r}" aria-pressed="${G.ranks.includes(r)}">${r==='A'?(isT()?'A 重要語句':'A 入試頻出'):'B 標準'}</button>`).join('')}</div>`}`;
   if(G.mode==='drill') h+=`<div class="row"><span class="lab">答え方</span><button class="chip" data-gwrite="0" aria-pressed="${!G.write}">選ぶ</button><button class="chip" data-gwrite="1" aria-pressed="${G.write}">書いて答える</button></div>`;
   if(G.mode==='exam'){ const chip=k=>`<button class="chip" data-gfmt="${k}" aria-pressed="${G.fmt===k}">${FMTS[k][0]}</button>`;
