@@ -4657,17 +4657,33 @@ function mkJisa(){
   const tk=CITY[0]; const others=CITY.slice(1); const c=rand(others); const diff=(tk[2]-c[2])/15;
   const kind=Math.random();
   const note=`<p class="gnote">（注）時刻は標準時で考え、サマータイムは考えないものとする。${c[0]}の標準時子午線は${c[1]}、東京は東経135度。</p>`;
-  if(kind<0.3){
+  if(kind<0.22){
     const ans=Math.abs(diff); const set=new Set([ans]); for(const v of shuffle([ans-1,ans+1,ans+2,ans-2,ans*2,Math.abs(ans-3)+1,ans+3])){ if(v>0&&v<=24) set.add(v); if(set.size>=4) break; }
     const opts=shuffle([...set]);
     return {type:'exam',fmt:'jisa',stem:`東京と${c[0]}の時差は何時間か。最も適当なものを、次のア〜エのうちから一つ選び、その符号を答えなさい。`,box:note,labels:KANA.slice(0,4),opts:opts.map(v=>v+'時間'),ans:opts.indexOf(ans),
       expl:`経度差は ${Math.abs(tk[2]-c[2])}度。経度15度で1時間の時差なので、${Math.abs(tk[2]-c[2])}÷15＝<b>${ans}時間</b>。`};
   }
   const base=new Date(2026,rand([0,2,4,6,8,10]),1+Math.floor(Math.random()*27),1+Math.floor(Math.random()*22));
-  if(kind<0.7){
+  if(kind<0.48){
     const real=at(base,-diff); const opts=shuffle([real.s,at(base,diff).s,at(base,-diff+(diff>0?2:-2)).s,at(base,-diff+12).s].filter((v,i,a)=>a.indexOf(v)===i)); while(opts.length<4) opts.push(at(base,-diff+opts.length+3).s);
     return {type:'exam',fmt:'jisa',stem:`東京が${fmtT(base,base.getHours())}のとき、${c[0]}は何月何日の何時か。最も適当なものを、次のア〜エのうちから一つ選び、その符号を答えなさい。`,box:note,labels:KANA.slice(0,4),opts,ans:opts.indexOf(real.s),
       expl:`経度差 ${Math.abs(tk[2]-c[2])}度 ÷15＝${Math.abs(diff)}時間。${c[0]}は東京より${diff>0?'西':'東'}にあるので、時刻は${diff>0?'遅れて':'進んで'}いる。東京の時刻から${Math.abs(diff)}時間${diff>0?'もどす':'進める'}と <b>${real.s}</b>。`};
+  }
+  // 飛行時間を求める（出発・到着とも現地時刻）
+  if(kind>=0.72&&kind<0.88){
+    const fl=6+Math.floor(Math.random()*9); const arr=at(base,fl-diff); const ans=fl;
+    const set=new Set([ans]); for(const v of shuffle([ans+Math.abs(diff),Math.abs(ans-Math.abs(diff))||ans+3,ans+2,ans-2,ans+1])){ if(v>0&&v<30) set.add(v); if(set.size>=4) break; }
+    const opts=shuffle([...set]);
+    return {type:'exam',fmt:'jisa',stem:`東京を${fmtT(base,base.getHours())}に出発した飛行機が、${c[0]}に現地時刻の${arr.s}に着いた。飛行時間は何時間か。最も適当なものを、次のア〜エのうちから一つ選び、その符号を答えなさい。`,box:note,labels:KANA.slice(0,4),opts:opts.map(v=>v+'時間'),ans:opts.indexOf(ans),
+      expl:`到着時刻を東京の時刻に直してから引き算する。${c[0]}は東京より${Math.abs(diff)}時間${diff>0?'遅れている':'進んでいる'}ので、到着は東京の時刻で${at(base,fl).s}。出発から <b>${ans}時間</b>。`};
+  }
+  // 時差から標準時の経線を求める
+  if(kind>=0.88){
+    const lon=c[2]; const name=lon===0?'経度0度':lon>0?`東経${lon}度`:`西経${-lon}度`; const cand=[name];
+    for(const v of shuffle([lon+15,lon-15,lon+30,-lon,lon-30,lon+45])){ if(v>=-180&&v<=180){ const n=v===0?'経度0度':v>0?`東経${v}度`:`西経${-v}度`; if(!cand.includes(n)) cand.push(n); } if(cand.length>=4) break; }
+    const opts=shuffle(cand); const loc=at(base,-diff);
+    return {type:'exam',fmt:'jisa',stem:`東京が${fmtT(base,base.getHours())}のとき、ある都市の標準時は${loc.s}だった。この都市の標準時の基準となる経線として最も適当なものを、次のア〜エのうちから一つ選び、その符号を答えなさい。`,box:'<p class="gnote">（注）東京の標準時子午線は東経135度。サマータイムは考えないものとする。</p>',labels:KANA.slice(0,4),opts,ans:opts.indexOf(name),
+      expl:`時差は${Math.abs(diff)}時間で、この都市は東京より時刻が${diff>0?'遅れている（西にある）':'進んでいる（東にある）'}。経度差は${Math.abs(diff)}×15＝${Math.abs(diff)*15}度なので、東経135度から${diff>0?'西':'東'}へ${Math.abs(diff)*15}度の <b>${name}</b>（${esc(c[0])}など）。`};
   }
   const fl=6+Math.floor(Math.random()*9); const arr=at(base,fl-diff);
   const opts=shuffle([arr.s,at(base,fl+diff).s,at(base,fl).s,at(base,-diff).s].filter((v,i,a)=>a.indexOf(v)===i)); while(opts.length<4) opts.push(at(base,fl-diff+opts.length+1).s);
@@ -5304,7 +5320,15 @@ const CLIM={
     {n:'ローマ',t:[8.2,9.0,11.4,14.0,18.2,22.3,25.2,25.4,21.7,17.6,12.6,9.1],p:[67,73,58,81,53,34,19,37,73,113,111,81],z:'温帯（地中海性気候）',w:'夏は気温が高く雨が少なく乾燥し、冬に雨が多い。'},
     {n:'パリ',t:[5.0,5.6,8.8,11.6,15.2,18.3,20.4,20.2,16.9,13.0,8.4,5.6],p:[50,41,47,52,64,51,62,52,47,62,54,61],z:'温帯（西岸海洋性気候）',w:'暖流（北大西洋海流）と偏西風の影響で、高緯度のわりに冬が温暖。一年を通して降水量は少なめで平均している。'},
     {n:'モスクワ',t:[-6.2,-5.9,-0.8,6.9,13.5,17.1,19.2,17.0,11.4,5.7,-0.4,-4.4],p:[53,44,38,37,59,80,85,82,68,71,55,52],z:'亜寒帯（冷帯）',w:'冬の寒さがきびしく、月平均気温が0℃を下回る月が多い。夏は比較的気温が上がる。'},
-    {n:'シドニー',t:[23.5,23.4,22.1,19.5,16.6,14.2,13.4,14.5,17.0,18.9,20.5,22.2],p:[91,131,117,114,100,142,80,75,63,77,84,77],z:'温帯（温暖湿潤気候）・南半球',w:'南半球にあるため、1月ごろが夏で7月ごろが冬になる。'}]}
+    {n:'シドニー',t:[23.5,23.4,22.1,19.5,16.6,14.2,13.4,14.5,17.0,18.9,20.5,22.2],p:[91,131,117,114,100,142,80,75,63,77,84,77],z:'温帯（温暖湿潤気候）・南半球',w:'南半球にあるため、1月ごろが夏で7月ごろが冬になる。'},
+    {n:'マナオス',t:[26.5,26.5,26.6,26.7,26.9,27.0,27.2,28.0,28.4,28.3,27.8,27.1],p:[290,300,320,310,230,110,80,60,80,120,180,240],z:'熱帯（熱帯雨林気候）',w:'赤道に近いアマゾン川の流域にあり、一年中気温が高く、雨が多い。'},
+    {n:'バンコク',t:[27.0,28.3,29.5,30.4,30.0,29.5,29.1,28.9,28.5,28.2,27.8,26.6],p:[13,20,42,91,250,180,190,220,330,240,48,10],z:'熱帯（サバナ気候）',w:'一年中気温が高い。雨季（5〜10月ごろ）と乾季（11〜4月ごろ）がはっきり分かれている。'},
+    {n:'リヤド',t:[14.6,17.4,21.4,26.9,32.6,35.3,36.6,36.4,33.6,28.4,21.6,16.3],p:[13,8,20,25,8,0,0,0,0,1,7,13],z:'乾燥帯（砂漠気候）',w:'夏は非常に暑く、一年を通して雨がほとんど降らない。'},
+    {n:'テヘラン',t:[4.0,6.5,11.4,17.1,22.6,28.1,30.9,29.8,25.5,18.8,11.3,6.0],p:[35,33,40,30,15,2,2,1,1,13,25,33],z:'乾燥帯（ステップ気候）',w:'雨が少なく、冬から春にかけて少し雨が降る。夏と冬の気温の差が大きい。'},
+    {n:'ニューヨーク',t:[0.5,1.6,5.8,11.8,17.3,22.5,25.4,24.9,21.0,14.9,9.0,3.5],p:[92,80,110,103,98,108,117,113,99,96,90,103],z:'温帯（温暖湿潤気候）',w:'夏は暑く、冬は寒い。一年を通して降水量がある。'},
+    {n:'イルクーツク',t:[-17.8,-15.0,-6.5,2.5,10.2,16.0,18.6,16.3,9.0,1.5,-8.0,-15.5],p:[11,8,10,18,33,65,105,95,48,20,16,15],z:'亜寒帯（冷帯）',w:'冬の寒さがとてもきびしく、夏と冬の気温の差が大きい。降水は夏に多い。'},
+    {n:'バロー',t:[-25.0,-26.5,-25.0,-17.0,-6.5,1.5,4.5,3.5,-0.5,-9.0,-17.5,-23.0],p:[4,4,3,4,4,8,25,25,17,11,6,5],z:'寒帯（ツンドラ気候）',w:'北極海に面し、一年のほとんどが0℃以下。短い夏だけ0℃をこえ、こけ類などが育つ。'},
+    {n:'ラパス',t:[8.0,8.0,7.9,7.2,5.8,4.6,4.4,5.4,6.6,7.9,8.6,8.4],p:[120,100,70,30,10,5,8,15,30,40,50,90],z:'高山気候',w:'標高約3600mの高地にあるため、低緯度でも一年中すずしく、気温の変化が小さい。'}]}
 };
 function climFig(c){
   const W=320,H=236,l=40,r=50,t=26,b=34; const w=W-l-r,h=H-t-b; const TMIN=-10,TMAX=35,PMAX=450;
@@ -5832,11 +5856,11 @@ function rikaiSheet(u,R){
   const pick=(R.pick||[]).map(x=>`<li>${esc(x.t).replace(/（([^（）]+・[^（）]+)）/,(m,o)=>'（ '+o.split('・').map(w=>show&&w===x.k?`<b class="rk-ok">${esc(w)}</b>`:esc(w)).join(' ・ ')+' ）')}</li>`).join('');
   const order=(R.order||[]).map(x=>`<li>${esc(x.q||'次のできごとを、古い順に並べましょう。')}<div class="rk-opts">${x.items.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div><div class="rk-line">（　　→　　→　　${x.items.length>3?'→　　':''}）</div>${ans(x.ans)}</li>`).join('');
   const tf=(R.tf||[]).map(x=>`<li><div class="rk-opts col"><span>X　${esc(x.x)}</span><span>Y　${esc(x.y)}</span></div>${ans('X '+(x.ax?'正':'誤')+'・Y '+(x.ay?'正':'誤')+(x.why?'（'+x.why+'）':''))}</li>`).join('');
-  const data=(R.data||[]).map(x=>`<li>${esc(x.q)}${x.opts?`<div class="rk-opts">${x.opts.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div>`:''}${ans(x.a)}</li>`).join('');
+  const data=(R.data||[]).map(x=>`<li>${esc(x.q)}${[].concat(x.fig||[]).map(kFig).join('')}${x.opts?`<div class="rk-opts">${x.opts.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div>`:''}${ans(x.a)}</li>`).join('');
   const wrs=[].concat(R.wr||[]);
   const wr=wrs.map(w=>`<li>${esc(w.q)}${w.use&&w.use.length?`<span class="rk-use">（${w.use.map(x=>'「'+esc(x)+'」').join('')}の語を使って${w.lim?w.lim+'字程度で':''}）</span>`:''}<div class="rk-wbox">${show?esc(w.a):''}</div></li>`).join('');
   return `<div class="sheet rksheet"><div class="rk-head"><span class="rk-unit">理解プリント｜${esc(u.name)}${u.of?`（${u.no}/${u.of}）`:''}${R.lv==='B'?'<span class="rk-lv">くわしく</span>':''}${u.link?'<span class="rk-lv rk-lk">基本の確認</span>':''}</span><h3>${esc(R.q)}</h3></div>
-  <div class="rkgrid"><div class="rk-exp"><p class="rk-lead">${em(R.lead)}</p>${(R.sec||[]).map(x=>`<section class="rk-box"><h4>${esc(x.h)}</h4>${x.b.map(t=>`<p>${em(t)}</p>`).join('')}${tbl(x.tbl)}</section>`).join('')}</div>
+  <div class="rkgrid"><div class="rk-exp"><p class="rk-lead">${em(R.lead)}</p>${(R.sec||[]).map(x=>`<section class="rk-box"><h4>${esc(x.h)}</h4>${x.b.map(t=>`<p>${em(t)}</p>`).join('')}${tbl(x.tbl)}${[].concat(x.fig||[]).map(kFig).join('')}</section>`).join('')}</div>
   <div class="rk-pr"><h4 class="rk-pt">${R.order||R.tf||R.data?'練習（入試形式）':'基本練習'}<small>説明を見ながら解きましょう</small></h4>
   ${fill?Q('〔　〕にあてはまる語句を書きましょう。',`<ol class="rk-list">${fill}</ol>`):''}
   ${pick?Q('（　）のうち、正しいほうを選びましょう。',`<ol class="rk-list">${pick}</ol>`):''}
@@ -5877,13 +5901,32 @@ function kChart(f,bar){
   LG.forEach(([lx,row,sr,j])=>{ const ly=by+22+extra+row*14; s+=bar?`<rect x="${lx}" y="${ly}" width="12" height="9" fill="currentColor" fill-opacity="${op[j]}" stroke="currentColor" stroke-width=".7"/>`:`<line x1="${lx}" x2="${lx+16}" y1="${ly+5}" y2="${ly+5}" stroke="currentColor" stroke-width="2" stroke-dasharray="${dash[j]||''}"/>`; s+=T(lx+20,ly+9,esc(sr.n||''),{fs:10,a:'start'}); });
   return SVG(W,Math.max(H,by+22+extra+lrows*14+4),s);
 }
+// 都市名から雨温図のデータをさがす（日本・世界の両方）
+function climByName(n){ for(const k in CLIM){ const c=CLIM[k].c.find(x=>x.n===n); if(c) return c; } return null; }
+// 時差の図：経度の数直線に、都市の位置と時刻をかく（本初子午線・日付変更線つき）
+function tzFig(z){
+  const W=380,l=16,r=16,w=W-l-r, X=lon=>l+w*(lon+180)/360; const P=(z.pts||[]).slice().sort((a,b)=>a.lon-b.lon);
+  const ax=58; let s=`<line x1="${l}" x2="${W-r}" y1="${ax}" y2="${ax}" stroke="currentColor" stroke-width="1.5"/>`;
+  for(let d=-180;d<=180;d+=15){ const x=X(d); const big=d%45===0; s+=`<line x1="${x}" x2="${x}" y1="${ax-(big?5:3)}" y2="${ax+(big?5:3)}" stroke="currentColor"/>`; if(big) s+=T(x,ax+17,d===0?'0':(d>0?'東'+d:'西'+(-d)),{fs:8.5}); }
+  s+=`<line x1="${X(0)}" x2="${X(0)}" y1="${ax-24}" y2="${ax+24}" stroke="currentColor" stroke-dasharray="3 2"/>`+T(X(0),ax+30,'本初子午線',{fs:8.5});
+  if(z.dl!==false){ s+=`<line x1="${X(180)}" x2="${X(180)}" y1="${ax-24}" y2="${ax+24}" stroke="currentColor" stroke-width="2"/><line x1="${X(-180)}" x2="${X(-180)}" y1="${ax-24}" y2="${ax+24}" stroke="currentColor" stroke-width="2"/>`+T(W-r,ax+30,'日付変更線',{fs:8.5,a:'end'}); }
+  // 都市：名前は上、時刻は下。近い都市は段をずらして重ならないようにする
+  let lastX=-99, row=0;
+  P.forEach(p=>{ const x=X(p.lon); row=(x-lastX<70)?(row+1)%2:0; lastX=x; const yN=ax-10-row*14, yT=ax+44+row*13;
+    s+=`<circle cx="${x}" cy="${ax}" r="3.5" fill="currentColor"/>`+T(x,yN,esc(p.n),{fs:10,b:1});
+    if(p.t) s+=T(x,yT,esc(p.t),{fs:9}); });
+  if(z.note) s+=T(W/2,ax+76,esc(z.note),{fs:9});
+  return SVG(W,ax+(z.note?84:70),s);
+}
 function kFig(f){
   if(!f) return '';
   const cap=(t,src)=>`${t?`<div class="tsum-h">${esc(t)}</div>`:''}`;
   const src=f.src?`<div class="srcnote">${esc(f.src)}</div>`:'';
   if(f.tbl){ const t=f.tbl; return `<div class="k-fig">${cap(t.t)}<table class="xnen stbl tsumt"><thead><tr>${t.h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.r.map(r=>`<tr>${r.map((c,i)=>i?`<td>${esc(c)}</td>`:`<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</tbody></table>${t.src?`<div class="srcnote">${esc(t.src)}</div>`:''}</div>`; }
   if(f.box) return `<div class="k-fig k-doc">${f.t?`<div class="k-doch">${esc(f.t)}</div>`:''}${[].concat(f.box).map(x=>`<p>${esc(x).replace(/\[\[([^\]]+)\]\]/g,'<u>$1</u>')}</p>`).join('')}${src}</div>`;
-  if(f.clim) return `<div class="k-fig">${cap(f.t)}<div class="k-clims">${f.clim.map(c=>`<div><div class="k-cl">${esc(c.n)}</div>${climFig(c)}</div>`).join('')}</div>${src}</div>`;
+  if(f.clim){ const L=f.clim.map(c=>typeof c==='string'?climByName(c):c).filter(Boolean); const src2=f.src||(f.clim.some(c=>typeof c==='string')?CLIM.wg.src:'');
+    return `<div class="k-fig">${cap(f.t)}<div class="k-clims">${L.map((c,i)=>`<div><div class="k-cl">${esc(f.lab?f.lab[i]:c.n)}</div>${climFig(c)}</div>`).join('')}</div>${src2?`<div class="srcnote">${esc(src2)}</div>`:''}</div>`; }
+  if(f.tz) return `<div class="k-fig">${cap(f.t)}${tzFig(f.tz)}${src}</div>`;
   if(f.line||f.bar) return `<div class="k-fig">${cap(f.t)}${kChart(f.line||f.bar,!!f.bar)}${src}</div>`;
   if(f.band) return `<div class="k-fig">${cap(f.t)}${bandRows(f.band.rows,f.band.cats)}${src}</div>`;
   return '';
