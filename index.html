@@ -539,6 +539,17 @@ main.q:has(.rklay){min-width:0}.rklay{min-width:0}.rkmain{min-width:0;overflow-x
 .rk-tbl{margin:6px 0 2px}
 .rk-tip{margin:12px 0 0;padding:6px 10px;border-radius:8px;border:1px dashed currentColor;line-height:1.7}.rk-tip b{margin-right:8px}
 .moreopt{border:1px dashed var(--line);border-radius:8px;padding:4px 10px}.moreopt summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:700}.moreopt[open]{padding-bottom:8px}.moreopt[open] summary{margin-bottom:6px}.moreopt .row+.row{margin-top:6px}
+
+/* 理解プリントの手直し */
+.rk-x{display:none}
+body.rkedit .rksheet .rk-ed{position:relative;outline:1px dashed color-mix(in srgb,currentColor 25%,transparent);outline-offset:2px}
+body.rkedit .rksheet .rk-x{display:inline-block;float:right;margin:0 0 2px 6px;font-size:11px;line-height:1.4;padding:0 6px;border:1px solid currentColor;border-radius:4px;background:var(--card,#fff);color:#b42318;cursor:pointer;position:relative;z-index:1}
+body.rkedit .rksheet .rk-hid{opacity:.35}
+body.rkedit .rksheet .rk-hid>.rk-x{color:#1a7f37;opacity:1}
+body.rkedit .rksheet .rk-em{cursor:pointer;text-decoration:underline dotted}
+.rksheet .rk-em.rk-pl,body.rkedit .rksheet .rk-em.rk-pl{font-weight:normal;color:inherit;background:none;text-decoration:none}
+.rkm .rk-hid,.rkm .rk-x{display:none!important}
+@media print{ .rk-x,.rk-hid{display:none!important} .rk-ed{outline:0!important} }
 </style>
 <style id="gcss">
 /* 分野の切りかえ（歴史・地理・公民） */
@@ -5807,7 +5818,7 @@ function rkShHTML(L){ if(!L.length) return '';
 window.rkShHTML=rkShHTML;
 function rikaiHTML(u,acc,seen){
   const L=rkSheets(u.key,u.name); if(!L.length) return '';
-  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))&&!(u.only&&u.only!=='all'&&!u.only.has(x.id))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link}:{...u,name:x.name}; if(acc) acc.push([m,x.R]); return `<div class="rk-sbar"><button type="button" class="tbtn del" onclick="rkOff('${x.id}')">このプリントを外す</button></div>`+rikaiSheet(m,x.R).replace('<div class="sheet rksheet"',`<div class="sheet rksheet" data-grp="${esc(u.key)}"`); }).join('');
+  return L.map((x,i)=>[x,i]).filter(([x,i])=>(u.pick==null||u.pick===i)&&!(seen&&seen.has(x.R))&&!(u.only&&u.only!=='all'&&!u.only.has(x.id))).map(([x,i])=>{ if(seen) seen.add(x.R); const m=L.length>1?{...u,name:x.name,no:i+1,of:L.length,link:x.link,id:x.id}:{...u,name:x.name,id:x.id}; if(acc) acc.push([m,rkEdR(x.id,x.R)]); return `<div class="rk-sbar"><button type="button" class="tbtn del" onclick="rkOff('${x.id}')">このプリントを外す</button>${RKED[x.id]?`<button type="button" class="tbtn" onclick="rkEdReset('${x.id}')">手直しを元に戻す</button>`:''}</div>`+rikaiSheet(m,x.R).replace('<div class="sheet rksheet"',`<div class="sheet rksheet" data-grp="${esc(u.key)}"`); }).join('');
 }
 // 答えのまとめ（印刷の最後に1つの解答ページとしてつける）
 function rkKeyHTML(acc){
@@ -5848,30 +5859,50 @@ function rkPickHTML(key,name,cur,id){
   const own=L.map((x,i)=>[x,i]).filter(([x])=>!x.link), lk=L.map((x,i)=>[x,i]).filter(([x])=>x.link);
   return `<label class="rk-pick">プリント<select class="sel" id="${id}" aria-label="プリント"><option value="-1"${cur<0?' selected':''}>すべて表示（まとめて印刷）</option>${lk.length?`<optgroup label="この単元のプリント">${own.map(([x,i])=>opt(x,i)).join('')}</optgroup><optgroup label="基本の確認（定期テスト用のプリント）">${lk.map(([x,i])=>opt(x,i)).join('')}</optgroup>`:own.map(([x,i])=>opt(x,i)).join('')}</select></label>`;
 }
+// プリントの手直し（説明・問題を消す、太字をふつうの字にする）。プリントごとにこのブラウザに保存
+let RKED={}; try{ RKED=JSON.parse(localStorage.getItem('rk-ed')||'{}')||{}; }catch(e){}
+const rkEdSave=()=>{ try{ localStorage.setItem('rk-ed',JSON.stringify(RKED)); }catch(e){} };
+let RKEDIT=false;
+const rkEdOf=id=>(id&&RKED[id])||{h:[],p:[]};
+const RK_QK=['fill','pick','order','tf','data','wr'];
+// 消した問題を除いた中身（解答ページにも使う）
+function rkEdR(id,R){ const E=rkEdOf(id); if(!E.h.length) return R; const o={...R};
+  RK_QK.forEach(k=>{ const L=[].concat(R[k]||[]); if(!L.length) return; o[k]=E.h.includes('g:'+k)?[]:L.filter((x,j)=>!E.h.includes(k+j)); }); return o; }
+window.rkEd=(id,k)=>{ const E=RKED[id]||(RKED[id]={h:[],p:[]}); const i=E.h.indexOf(k); i<0?E.h.push(k):E.h.splice(i,1); if(!E.h.length&&!E.p.length) delete RKED[id]; rkEdSave(); rkRerender(); };
+window.rkEm=(ev,id,k)=>{ if(!RKEDIT) return; ev.preventDefault(); const E=RKED[id]||(RKED[id]={h:[],p:[]}); const i=E.p.indexOf(k); i<0?E.p.push(k):E.p.splice(i,1); if(!E.h.length&&!E.p.length) delete RKED[id]; rkEdSave(); rkRerender(); };
+window.rkEdReset=id=>{ delete RKED[id]; rkEdSave(); rkRerender(); };
+window.rkSetEdit=v=>{ RKEDIT=!!v; document.body.classList.toggle('rkedit',RKEDIT); rkRerender(); };
 function rikaiSheet(u,R){
-  const em=t=>esc(t).replace(/\[\[([^\]]+)\]\]/g,'<b class="rk-em">$1</b>');
+  const id=u.id||'', E=rkEdOf(id), ed=RKEDIT&&!!id;
+  const hid=k=>E.h.includes(k);
+  const jsq=x=>String(x).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const xb=k=>ed?`<button type="button" class="rk-x" onclick="rkEd('${jsq(id)}','${k}')" title="${hid(k)?'元に戻す':'消す'}">${hid(k)?'戻す':'✕'}</button>`:'';
+  // 消した部分は、手直し中だけうすく表示する（印刷はしない）
+  const W=(k,html,tag='div',cls='')=>{ if(!html) return ''; if(hid(k)&&!ed) return ''; return `<${tag} class="rk-ed${cls?' '+cls:''}${hid(k)?' rk-hid':''}" data-ek="${k}">${xb(k)}${html}</${tag}>`; };
+  const em=(t,k)=>{ let j=0; return esc(t).replace(/\[\[([^\]]+)\]\]/g,(m,w)=>{ const kk=k+'.'+(j++); const pl=E.p.includes(kk); return `<b class="rk-em${pl?' rk-pl':''}"${ed?` onclick="rkEm(event,'${jsq(id)}','${kk}')" title="クリックで太字を${pl?'もどす':'やめる'}"`:''}>${w}</b>`; }); };
   const show=!!G.rkAns; let n=0;
   const tbl=t=>t?`<div class="rk-tbl"><div class="tsum-h">${esc(t.t)}</div><table class="xnen stbl tsumt"><thead><tr>${t.h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.r.map(r=>`<tr>${r.map((c,i)=>i?`<td>${esc(c)}</td>`:`<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</tbody></table>${t.src?`<div class="srcnote">${esc(t.src)}</div>`:''}</div>`:'';
-  const Q=(lab,body)=>body?`<div class="rk-q"><span class="rk-no">${++n}</span>${lab}</div>${body}`:'';
+  const Q=(k,lab,body)=>{ if(!body) return ''; if(hid('g:'+k)&&!ed) return ''; if(!hid('g:'+k)) n++; return `<div class="rk-ed rk-qg${hid('g:'+k)?' rk-hid':''}" data-ek="g:${k}">${ed?`<button type="button" class="rk-x" onclick="rkEd('${jsq(id)}','g:${k}')">${hid('g:'+k)?'戻す':'✕ この問題をまとめて消す'}</button>`:''}<div class="rk-q"><span class="rk-no">${hid('g:'+k)?'－':n}</span>${lab}</div>${body}</div>`; };
   const ans=a=>show?`<div class="rk-ans">答え：${esc(a)}</div>`:'';
   const K='アイウエオ';
-  const fill=(R.fill||[]).map(x=>`<li>${esc(x.t).replace('〔〕',`<span class="rk-blank">${show?esc(x.k):'&nbsp;'}</span>`)}</li>`).join('');
-  const pick=(R.pick||[]).map(x=>`<li>${esc(x.t).replace(/（([^（）]+・[^（）]+)）/,(m,o)=>'（ '+o.split('・').map(w=>show&&w===x.k?`<b class="rk-ok">${esc(w)}</b>`:esc(w)).join(' ・ ')+' ）')}</li>`).join('');
-  const order=(R.order||[]).map(x=>`<li>${esc(x.q||'次のできごとを、古い順に並べましょう。')}<div class="rk-opts">${x.items.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div><div class="rk-line">（　　→　　→　　${x.items.length>3?'→　　':''}）</div>${ans(x.ans)}</li>`).join('');
-  const tf=(R.tf||[]).map(x=>`<li><div class="rk-opts col"><span>X　${esc(x.x)}</span><span>Y　${esc(x.y)}</span></div>${ans('X '+(x.ax?'正':'誤')+'・Y '+(x.ay?'正':'誤')+(x.why?'（'+x.why+'）':''))}</li>`).join('');
-  const data=(R.data||[]).map(x=>`<li>${esc(x.q)}${[].concat(x.fig||[]).map(kFig).join('')}${x.opts?`<div class="rk-opts">${x.opts.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div>`:''}${ans(x.a)}</li>`).join('');
-  const wrs=[].concat(R.wr||[]);
-  const wr=wrs.map(w=>`<li>${esc(w.q)}${w.use&&w.use.length?`<span class="rk-use">（${w.use.map(x=>'「'+esc(x)+'」').join('')}の語を使って${w.lim?w.lim+'字程度で':''}）</span>`:''}<div class="rk-wbox">${show?esc(w.a):''}</div></li>`).join('');
+  const items=(k,f)=>{ const L=[].concat(R[k]||[]).map((x,j)=>W(k+j,f(x),'li')).join(''); return L; };
+  const fill=items('fill',x=>esc(x.t).replace('〔〕',`<span class="rk-blank">${show?esc(x.k):'&nbsp;'}</span>`));
+  const pick=items('pick',x=>esc(x.t).replace(/（([^（）]+・[^（）]+)）/,(m,o)=>'（ '+o.split('・').map(w=>show&&w===x.k?`<b class="rk-ok">${esc(w)}</b>`:esc(w)).join(' ・ ')+' ）'));
+  const order=items('order',x=>`${esc(x.q||'次のできごとを、古い順に並べましょう。')}<div class="rk-opts">${x.items.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div><div class="rk-line">（　　→　　→　　${x.items.length>3?'→　　':''}）</div>${ans(x.ans)}`);
+  const tf=items('tf',x=>`<div class="rk-opts col"><span>X　${esc(x.x)}</span><span>Y　${esc(x.y)}</span></div>${ans('X '+(x.ax?'正':'誤')+'・Y '+(x.ay?'正':'誤')+(x.why?'（'+x.why+'）':''))}`);
+  const data=items('data',x=>`${esc(x.q)}${[].concat(x.fig||[]).map(kFig).join('')}${x.opts?`<div class="rk-opts">${x.opts.map((t,i)=>`<span>${K[i]}　${esc(t)}</span>`).join('')}</div>`:''}${ans(x.a)}`);
+  const wr=items('wr',w=>`${esc(w.q)}${w.use&&w.use.length?`<span class="rk-use">（${w.use.map(x=>'「'+esc(x)+'」').join('')}の語を使って${w.lim?w.lim+'字程度で':''}）</span>`:''}<div class="rk-wbox">${show?esc(w.a):''}</div>`);
+  const sec=(R.sec||[]).map((x,i)=>W('s'+i,`<h4>${esc(x.h)}</h4>${x.b.map((t,j)=>W(`s${i}p${j}`,em(t,`s${i}p${j}`),'p')).join('')}${W(`s${i}t`,tbl(x.tbl))}${[].concat(x.fig||[]).map((f,j)=>W(`s${i}f${j}`,kFig(f))).join('')}`,'section','rk-box')).join('');
   return `<div class="sheet rksheet"><div class="rk-head"><span class="rk-unit">理解プリント｜${esc(u.name)}${u.of?`（${u.no}/${u.of}）`:''}${R.lv==='B'?'<span class="rk-lv">くわしく</span>':''}${u.link?'<span class="rk-lv rk-lk">基本の確認</span>':''}</span><h3>${esc(R.q)}</h3></div>
-  <div class="rkgrid"><div class="rk-exp"><p class="rk-lead">${em(R.lead)}</p>${(R.sec||[]).map(x=>`<section class="rk-box"><h4>${esc(x.h)}</h4>${x.b.map(t=>`<p>${em(t)}</p>`).join('')}${tbl(x.tbl)}${[].concat(x.fig||[]).map(kFig).join('')}</section>`).join('')}</div>
+  <div class="rkgrid"><div class="rk-exp">${W('lead',em(R.lead,'lead'),'p','rk-lead')}${sec}</div>
   <div class="rk-pr"><h4 class="rk-pt">${R.order||R.tf||R.data?'練習（入試形式）':'基本練習'}<small>説明を見ながら解きましょう</small></h4>
-  ${fill?Q('〔　〕にあてはまる語句を書きましょう。',`<ol class="rk-list">${fill}</ol>`):''}
-  ${pick?Q('（　）のうち、正しいほうを選びましょう。',`<ol class="rk-list">${pick}</ol>`):''}
-  ${order?Q('並べかえましょう。',`<ol class="rk-list">${order}</ol>`):''}
-  ${tf?Q('次の文X・Yの正誤を答えましょう。',`<ol class="rk-list">${tf}</ol>`):''}
-  ${data?Q('資料を読み取りましょう。',`<ol class="rk-list">${data}</ol>`):''}
-  ${wr?Q('次の問いに答えましょう。',`<ol class="rk-list">${wr}</ol>`):''}
-  ${R.tip?`<p class="rk-tip"><b>ポイント</b>${em(R.tip)}</p>`:''}</div></div></div>`;
+  ${Q('fill','〔　〕にあてはまる語句を書きましょう。',fill&&`<ol class="rk-list">${fill}</ol>`)}
+  ${Q('pick','（　）のうち、正しいほうを選びましょう。',pick&&`<ol class="rk-list">${pick}</ol>`)}
+  ${Q('order','並べかえましょう。',order&&`<ol class="rk-list">${order}</ol>`)}
+  ${Q('tf','次の文X・Yの正誤を答えましょう。',tf&&`<ol class="rk-list">${tf}</ol>`)}
+  ${Q('data','資料を読み取りましょう。',data&&`<ol class="rk-list">${data}</ol>`)}
+  ${Q('wr','次の問いに答えましょう。',wr&&`<ol class="rk-list">${wr}</ol>`)}
+  ${R.tip?W('tip',`<b>ポイント</b>${em(R.tip,'tip')}`,'p','rk-tip'):''}</div></div></div>`;
 }
 // 歴史タブからも使う
 window.RIKAI=RIKAI; window.rikaiFor=(key,name,showAns,pick)=>{ const o=G.rkAns; const m=showAns===true?'in':showAns===false?'none':(showAns||RKA); G.rkAns=m==='in'; const acc=[]; const h=rikaiHTML({key,name,pick:pick==null||pick<0?null:pick},acc); G.rkAns=o; return h+(m==='end'?rkKeyHTML(acc):''); };
@@ -6190,6 +6221,7 @@ function rkPanelHTML(s,groups,sel,o){
   ${kind==='test'?'':`<section class="step"><h2 class="step-h"><span class="sn">2</span>プリントの形</h2>
     <div class="row"><div class="lab">${kind==='sum'?'答え':'解答の印刷'}</div><div class="segs">${kind==='sum'?seg(SMA,'show','答えを書いたまとめ',"rkSetMode('sum','show')")+seg(SMA,'hide','答えをかくす（書きこみ練習）',"rkSetMode('sum','hide')")+seg(SMA,'end','かくして、最後に答えつきを付ける',"rkSetMode('sum','end')"):kind==='kata'?seg(KTA,'none','解答は印刷しない',"rkSetMode('kata','none')")+seg(KTA,'end','解答・解説を最後のページにまとめる',"rkSetMode('kata','end')")+seg(KTA,'in','解答・解説を各問題に書きこむ',"rkSetMode('kata','in')"):seg(RKA,'none','解答は印刷しない',"rkSetAns('none')")+seg(RKA,'end','解答を最後のページにまとめる',"rkSetAns('end')")+seg(RKA,'in','解答を各問題に書きこむ',"rkSetAns('in')")}</div></div>
     <div class="row"><div class="lab">文字の大きさ</div><div><div class="segs">${seg(RKP.fit,true,'1ページに収まるよう自動で調整',"rkSetPrint('fit',true)")}${seg(RKP.fit,false,'調整しない',"rkSetPrint('fit',false)")}</div><p class="hint">1ページを少しこえるプリントは、文字を小さくして（4分の3まで）1ページに収めます。</p></div></div>
+    ${kind==='rikai'?`<div class="row"><div class="lab">手直し</div><div><div class="segs">${seg(RKEDIT,false,'しない',"rkSetEdit(false)")}${seg(RKEDIT,true,'説明・問題を消す／太字をやめる',"rkSetEdit(true)")}</div><p class="hint">${RKEDIT?'プリントの「✕」で、その説明や問題を消します（「戻す」で元にもどります）。太字の語をクリックすると、ふつうの字になります。手直しはこのブラウザに保存されます。':'プリントの説明や問題を一部だけ消したり、太字をふつうの字にしたりできます。'}</p></div></div>`:''}
     ${kind==='rikai'?`<div class="row"><div class="lab">印刷の向き</div><div class="segs">${seg(ori,'p','縦（上に説明・下に問題）',"rkSetPrint('ori','p')")}${seg(ori,'l','横（左に説明・右に問題）',"rkSetPrint('ori','l')")}</div></div>`:''}
     <div class="row"><div class="lab">並べ方</div><div><div class="segs">${seg(pack,false,'1枚ずつ新しいページから',"rkSetPrint('pack',false)")}${seg(pack,true,'短いものは同じページにまとめる',"rkSetPrint('pack',true)")}</div><p class="hint">${pack?'1枚のプリントが2ページに分かれないようにしたうえで、半分ほどのプリントどうしを同じページにまとめます（近くの同じくらいの長さのものと組み合わせます）。':'プリントごとに新しいページから印刷します。'}</p></div></div>
   </section>`}
@@ -6617,7 +6649,7 @@ function furiRuby(w,r){
   if(!m) return rb(w,r);
   let k=1; return parts.map(p=>HAN.test(p)?rb(p,m[k++]):p).join('');
 }
-const FURI_SKIP='script,style,textarea,input,select,option,ruby,rt,svg,header,.subj,.tabs,.optrows,.rkpanel,.pset,.fu,.no-furi,[contenteditable],.btn,.tbtn,.chip,.actions,.qtools,.rk-sbar,.cb-tools,.cb-gone,.empty,.k-jis';
+const FURI_SKIP='script,style,textarea,input,select,option,ruby,rt,svg,header,.subj,.tabs,.optrows,.rkpanel,.pset,.fu,.no-furi,[contenteditable],.btn,.tbtn,.chip,.actions,.qtools,.rk-sbar,.cb-tools,.cb-gone,.empty,.k-jis,.rk-x';
 // 入試の形で解く画面（入試演習・入試形式・テスト作成）は、本番と同じくふりがなを付けない
 function furiExamMode(){ const sj=document.body.dataset.subj; if(sj==='cb') return true;
   const m=sj==='rk'?(document.querySelector('.panel:not(.gpanel) .tabs [data-mode][aria-pressed="true"]')||{dataset:{}}).dataset.mode:G.mode;
