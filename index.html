@@ -6099,7 +6099,7 @@ const cbNeedLead=Q=>/下線部|文章|会話|パネル|カード|レポート|�
 function cbSwapCands(si,di,qi){
   const Q=CB[si].dai[di].qs[qi], f=cbFmt(Q);
   const used=new Set(Object.values(CBX).filter(v=>v!=='del'));
-  const L=[]; CB.forEach((S,a)=>{ if(a===si) return; const D_=S.dai[di]; if(!D_) return; D_.qs.forEach((R,c)=>{ if(cbFmt(R)===f) L.push(cbKey(a,di,c)); }); });
+  const ar=CB[si].dai[di].area||CB_AREA[di]; const L=[]; CB.forEach((S,a)=>{ if(a===si) return; S.dai.forEach((D_,dj)=>{ if((D_.area||CB_AREA[dj])!==ar) return; D_.qs.forEach((R,c)=>{ if(cbFmt(R)===f) L.push(cbKey(a,dj,c)); }); }); });
   const free=L.filter(k=>!used.has(k));
   // 導入を見なくても解ける問題を先に
   return free.filter(k=>!cbNeedLead(cbAt(k).Q)).concat(free.filter(k=>cbNeedLead(cbAt(k).Q)));
@@ -6150,10 +6150,10 @@ function cbFmt(Q){
 function cbPanelHTML(){
   const opt=CB.map((S,i)=>`<option value="${i}"${G.cb===i?' selected':''}>${esc(S.t)}</option>`).join('');
   const cnt={}; CB.forEach(S=>S.dai.forEach(D_=>D_.qs.forEach(Q=>{ const f=cbFmt(Q); cnt[f]=(cnt[f]||0)+1; })));
-  const fopt=`<option value=""${!G.cbFmt?' selected':''}>回ごとに解く（大問7つ）</option>`+CB_FMT.filter(([k])=>cnt[k]).map(([k,n])=>`<option value="${k}"${G.cbFmt===k?' selected':''}>形式別：${n}（${cnt[k]}問）</option>`).join('');
+  const fopt=`<option value=""${!G.cbFmt?' selected':''}>回ごとに解く</option>`+CB_FMT.filter(([k])=>cnt[k]).map(([k,n])=>`<option value="${k}"${G.cbFmt===k?' selected':''}>形式別：${n}（${cnt[k]}問）</option>`).join('');
   const seg=(on,t)=>`<button type="button" class="seg${on?' on':''}" ${on?'':'data-gact="cbans"'}>${t}</button>`;
   const xc=cbXCount();
-  return sidePanel([['練習する問題',[['練習のしかた',`<select class="sel" id="cbFmt" aria-label="練習のしかた">${fopt}</select>`]].concat(G.cbFmt?[]:[['回',`<select class="sel" id="cbSet" aria-label="回">${opt}</select>`]]).concat([['',`<p class="hint">千葉県公立高校の入試と同じ形（大問1 千葉・2 日本地理・3 世界地理・4 歴史前半・5 歴史後半・6 公民政治・7 公民経済）の演習です。問題・資料はすべてこの道場で作成したものです。</p>`]])],
+  return sidePanel([['練習する問題',[['練習のしかた',`<select class="sel" id="cbFmt" aria-label="練習のしかた">${fopt}</select>`]].concat(G.cbFmt?[]:[['回',`<select class="sel" id="cbSet" aria-label="回">${opt}</select>`]]).concat([['',`<p class="hint">千葉県公立高校の入試と同じ形（大問1 千葉・2 日本地理・3 世界地理・4 歴史前半・5 歴史後半・6 公民政治・7 公民経済）の演習です。「総合」の回は、一つのテーマで地理・歴史・公民をまたいで問う大問を集めたものです。問題・資料はすべてこの道場で作成したものです。</p>`]])],
     ['プリントの形',[['答え',`<div class="segs">${seg(!G.cbAns,'答えをかくす')}${seg(!!G.cbAns,'答えと解説を表示')}</div>`],['問題の調整',`<p class="hint">問題の右上の「消す」「入れ替える」で、プリントを作りかえられます（入れ替えは、ほかの回の同じ大問・同じ形式の問題から選びます）。</p>${xc?`<button class="btn" data-cbx="reset">${G.cbFmt?'消した問題をすべて元に戻す':'この回の消す・入れ替えをすべて元に戻す'}（${xc}問）</button>`:''}`]]]],
     `<button type="button" class="btn primary" onclick="window.print()">印刷する</button>`);
 }
