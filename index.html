@@ -550,6 +550,9 @@ body.rkedit .rksheet .rk-em{cursor:pointer;text-decoration:underline dotted}
 .rksheet .rk-em.rk-pl,body.rkedit .rksheet .rk-em.rk-pl{font-weight:normal;color:inherit;background:none;text-decoration:none}
 .rkm .rk-hid,.rkm .rk-x{display:none!important}
 @media print{ .rk-x,.rk-hid{display:none!important} .rk-ed{outline:0!important} }
+
+/* 軽くする：画面の外にあるプリントは、見えるまで配置・描画を省く（印刷には影響しない） */
+@media screen{ .rkmain .sheet{content-visibility:auto;contain-intrinsic-size:auto 1100px} .nenpyo>.nen{content-visibility:auto;contain-intrinsic-size:auto 64px} }
 </style>
 <style id="gcss">
 /* 分野の切りかえ（歴史・地理・公民） */
@@ -6231,21 +6234,28 @@ function rkPanelHTML(s,groups,sel,o){
 window.rkPanelHTML=rkPanelHTML;
 // 印刷の高さを測って、①少しだけ1ページをこえるプリントは文字を縮小、②「まとめる」なら短いプリントを同じページに並べる
 // 文字を縮小したときの実際の高さを測って、1ページに収まる倍率（0.75以上）を探す
-function rkFitZ(e,land,PH){ const MM=96/25.4; const m=document.createElement('div'); m.className='rkm'+(land?' land':''); m.style.width=(land?277:190)+'mm'; const w=document.createElement('div'); const c=e.cloneNode(true); w.appendChild(c); m.appendChild(w); document.body.appendChild(m);
-  let res=null; for(let z=0.97;z>=0.745;z-=0.025){ c.style.zoom=z; const h=w.getBoundingClientRect().height/MM; if(h<=PH-2){ res=[z,h]; break; } }
-  m.remove(); return res; }
+// 1ページを少しこえるプリントを、まとめて測る（ページ全体の再計算を何度も起こさないよう、測る用の箱の中だけで、倍率ごとに一度に測る）
+function rkFitMany(list){ const MM=96/25.4; const res=new Map(); if(!list.length) return res;
+  [false,true].forEach(land=>{ const L=list.filter(x=>x.land===land); if(!L.length) return;
+    const m=document.createElement('div'); m.className='rkm'+(land?' land':''); m.style.width=(land?277:190)+'mm'; m.style.contain='layout style';
+    const W=L.map(x=>{ const w=document.createElement('div'); const c=x.e.cloneNode(true); c.removeAttribute('id'); w.appendChild(c); m.appendChild(w); return {x,w,c}; });
+    document.body.appendChild(m);
+    let left=W; for(let z=0.97;z>=0.745&&left.length;z-=0.025){ left.forEach(o=>{ o.c.style.zoom=z; }); const hs=left.map(o=>o.w.getBoundingClientRect().height/MM);
+      left=left.filter((o,i)=>{ if(hs[i]<=o.x.PH-2){ res.set(o.x.e,[z,hs[i]]); return false; } return true; }); }
+    m.remove(); });
+  return res; }
 function rkLayoutPrint(){
   const box=document.querySelector(document.body.dataset.subj==='rk'?'#q .rkmain':'#gq .rkmain'); if(!box) return; if(window.furiApply) furiApply(box);
   const land=document.body.classList.contains('rkland'), H=land?190:277, W=land?277:190, GAP=9, MM=96/25.4;
   const S_=[...box.querySelectorAll('.sheet')];
   S_.forEach(e=>{ e.removeAttribute('data-z'); e.style.removeProperty('--z'); e.classList.remove('pg-new','pg-cont','pg-fit'); });
   if(!S_.length) return;
-  const m=document.createElement('div'); m.className='rkm'+(land?' land':''); m.style.width=W+'mm';
+  const m=document.createElement('div'); m.className='rkm'+(land?' land':''); m.style.width=W+'mm'; m.style.contain='layout style';
   S_.forEach(e=>{ const c=e.cloneNode(true); c.removeAttribute('id'); m.appendChild(c); }); document.body.appendChild(m);
   const hs=[...m.children].map(c=>c.getBoundingClientRect().height/MM); m.remove();
-  const it=S_.map((e,i)=>{ let h=hs[i]; const isLand=land&&e.classList.contains('rksheet'); const PH=isLand?190:277;
-    if(RKP.fit&&h>PH&&h<=PH/0.62){ const r=rkFitZ(e,isLand,PH); if(r){ e.style.setProperty('--z',r[0].toFixed(3)); e.setAttribute('data-z','1'); h=r[1]; } }
-    return {e,h,PH,grp:e.dataset.grp||'',par:e.parentNode,key:e.classList.contains('rkkey')||(e.parentNode.classList.contains('sum-ansv')&&e===e.parentNode.querySelector('.sheet'))}; });
+  const it=S_.map((e,i)=>{ const isLand=land&&e.classList.contains('rksheet'); const PH=isLand?190:277;
+    return {e,h:hs[i],PH,land:isLand,grp:e.dataset.grp||'',par:e.parentNode,key:e.classList.contains('rkkey')||(e.parentNode.classList.contains('sum-ansv')&&e===e.parentNode.querySelector('.sheet'))}; });
+  if(RKP.fit){ const fz=rkFitMany(it.filter(x=>x.h>x.PH&&x.h<=x.PH/0.62)); it.forEach(x=>{ const r=fz.get(x.e); if(r){ x.e.style.setProperty('--z',r[0].toFixed(3)); x.e.setAttribute('data-z','1'); x.h=r[1]; } }); }
   if(!RKP.pack) return;
   // 前から順に詰める。入らないときは、同じ単元の近く（3枚先まで）で入るものを先に入れる
   const pend=it.slice(); let rem=0, first=true; const out=[];
@@ -6266,7 +6276,8 @@ window.addEventListener('beforeprint',()=>{ try{ if(window.__rkCur) rkLayoutPrin
 function rkLayoutHTML(panel,empty,body,id,cls){ return `<div class="rklay"><aside class="rkside"><div class="pset">${panel}</div></aside><div class="rkmain">${empty?`<div class="empty">${empty}</div>`:''}<div id="${id}"${cls?` class="${cls}"`:''}>${body}</div></div></div>`; }
 window.rkLayoutHTML=rkLayoutHTML;
 window.rkApplyPrint=rkApplyPrint;
-window.rkPanelFix=()=>{ document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; }); try{ rkLayoutPrint(); }catch(e){} };
+// 詰め方・文字の縮小は印刷のときだけ使うので、画面を作り直すたびには測らない（印刷の直前 beforeprint で測る）
+window.rkPanelFix=()=>{ document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; }); };
 function rkGCards(){ const d=D(); const cnt=u=>rkSheets(u.key,u.name).length; const U=d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>({key:u.key,name:u.name,n:cnt(u),ch:u.ch}));
   if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:rkTopicItems(u.key,u.name)}))}];
   return [{h:'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:new Set(it.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size,items:it}:null; }).filter(Boolean)}]; }
