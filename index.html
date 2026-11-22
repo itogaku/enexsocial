@@ -553,6 +553,11 @@ body.rkedit .rksheet .rk-em{cursor:pointer;text-decoration:underline dotted}
 
 /* 軽くする：画面の外にあるプリントは、見えるまで配置・描画を省く（印刷には影響しない） */
 @media screen{ .rkmain .sheet{content-visibility:auto;contain-intrinsic-size:auto 1100px} .nenpyo>.nen{content-visibility:auto;contain-intrinsic-size:auto 64px} }
+
+/* 作り直している間の表示 */
+body.rkbusy .rkmain{opacity:.55;transition:opacity .1s}
+body.rkbusy{cursor:progress}
+body.rkbusy .rkside::after{content:"更新中…";position:sticky;bottom:8px;display:block;margin:8px auto 0;width:max-content;padding:4px 12px;border-radius:999px;background:var(--ink,#222);color:#fff;font-size:12px}
 </style>
 <style id="gcss">
 /* 分野の切りかえ（歴史・地理・公民） */
@@ -6202,7 +6207,12 @@ window.rkPrintOpts=rkPrintOpts; rkApplyPrint();
 /* 理解プリントの設定パネル（理科のプリントと同じ形：1 印刷する範囲／2 プリントの形）。歴史タブ（s='h'）とほかの分野（s='g'）で共通 */
 window.__rkOpen=window.__rkOpen||new Set();
 function rkRegScope(s,M){ (window.__rkS=window.__rkS||{})[s]=M; }
-function rkRerender(){ const y=window.scrollY; let sel=document.body.dataset.subj==='rk'?'#q .rkside':'#gq .rkside'; if(!document.querySelector(sel)) sel=document.body.dataset.subj==='rk'?'#q .pleft':'#gq .pleft'; const sd=document.querySelector(sel); if(!sd||!window.__rkCur) return; const st=sd.scrollTop; const mn=document.querySelector(sel.replace('rkside','rkmain')); const mt=mn?mn.scrollTop:0;
+// ボタンを押したら、すぐに押した見た目と「更新中」を出してから、次の描画のあとで作り直す（固まって見えないように）
+let rkBusy=false, rkAgain=false;
+function rkRerender(){ if(rkBusy){ rkAgain=true; return; } rkBusy=true; document.body.classList.add('rkbusy');
+  requestAnimationFrame(()=>setTimeout(()=>{ try{ rkRerenderNow(); } finally { rkBusy=false; document.body.classList.remove('rkbusy'); if(rkAgain){ rkAgain=false; rkRerender(); } } },0)); }
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('.rkside .segs > .seg, .pleft .segs > .seg'); if(!b||b.classList.contains('on')) return; b.parentNode.querySelectorAll('.seg.on').forEach(x=>x.classList.remove('on')); b.classList.add('on'); },true);
+function rkRerenderNow(){ const y=window.scrollY; let sel=document.body.dataset.subj==='rk'?'#q .rkside':'#gq .rkside'; if(!document.querySelector(sel)) sel=document.body.dataset.subj==='rk'?'#q .pleft':'#gq .pleft'; const sd=document.querySelector(sel); if(!sd||!window.__rkCur) return; const st=sd.scrollTop; const mn=document.querySelector(sel.replace('rkside','rkmain')); const mt=mn?mn.scrollTop:0;
   window.__rkCur();
   const sd2=document.querySelector(sel); if(sd2) sd2.scrollTop=st; const mn2=document.querySelector(sel.replace('rkside','rkmain')); if(mn2) mn2.scrollTop=mt; window.scrollTo({top:y}); }
 window.rkPk=(s,op,arg)=>{ const M=(window.__rkS||{})[s]; if(!M) return; const cards=M.cards(); const all=cards.flatMap(c=>c.items?c.items.map(u=>u.key):[c.key]); const ids=k=>{ const c=cards.find(c=>c.key===k); return c?(c.items?c.items.map(u=>u.key):[c.key]):[k]; };
@@ -6259,7 +6269,7 @@ function rkFitMany(list){ const MM=96/25.4; const res=new Map(); if(!list.length
     m.remove(); });
   return res; }
 function rkLayoutPrint(){
-  const box=document.querySelector(document.body.dataset.subj==='rk'?'#q .rkmain':'#gq .rkmain'); if(!box) return; if(window.furiApply) furiApply(box);
+  const box=document.querySelector(document.body.dataset.subj==='rk'?'#q .rkmain':'#gq .rkmain'); if(!box) return; if(window.furiApply) furiApply(box,true);
   const land=document.body.classList.contains('rkland'), H=land?190:277, W=land?277:190, GAP=9, MM=96/25.4;
   const S_=[...box.querySelectorAll('.sheet')];
   S_.forEach(e=>{ e.removeAttribute('data-z'); e.style.removeProperty('--z'); e.classList.remove('pg-new','pg-cont','pg-fit'); });
@@ -6679,10 +6689,18 @@ const FURI_SKIP='script,style,textarea,input,select,option,ruby,rt,svg,header,.s
 function furiExamMode(){ const sj=document.body.dataset.subj; if(sj==='cb') return true;
   const m=sj==='rk'?(document.querySelector('.panel:not(.gpanel) .tabs [data-mode][aria-pressed="true"]')||{dataset:{}}).dataset.mode:G.mode;
   return m==='exam'||m==='print'; }
-function furiApply(root){
+// 軽くする：プリントや年表の行がたくさんあるときは、画面に近づいたものから順にふりがなを付ける（印刷の直前には全部に付ける）
+const FURI_LAZY='.sheet,.nenpyo>.nen';
+const furiIO=new Map();
+function furiObserve(el){ const sc=el.closest('.rkmain'); const key=sc||document;
+  let io=furiIO.get(key); if(!io){ io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ io.unobserve(e.target); if(e.target.isConnected) furiApply(e.target,true); } }),{root:sc||null,rootMargin:'1200px 0px'}); furiIO.set(key,io); }
+  io.observe(el); }
+function furiApply(root,all){
   if(!FURI_ON||!FURI_RE||!root||furiExamMode()) return;
+  // 中にプリント・行がたくさんあるときは、それぞれ見えてから付ける
+  let lazy=null; if(!all&&root.querySelectorAll){ const L=root.querySelectorAll(FURI_LAZY); if(L.length>6){ lazy=new Set(L); L.forEach(furiObserve); } }
   const used=new Map(); const scopeOf=el=>el.closest('.sheet,.nzsheet,.k-box,main')||document.body;
-  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{ const p=n.parentElement; if(!p||!n.nodeValue||!HAN.test(n.nodeValue)) return NodeFilter.FILTER_REJECT; return p.closest(FURI_SKIP)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT; }});
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{ const p=n.parentElement; if(!p||!n.nodeValue||!HAN.test(n.nodeValue)) return NodeFilter.FILTER_REJECT; if(lazy){ const z=p.closest(FURI_LAZY); if(z&&lazy.has(z)) return NodeFilter.FILTER_REJECT; } return p.closest(FURI_SKIP)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT; }});
   const T=[]; while(w.nextNode()) T.push(w.currentNode);
   for(const n of T){ const t=n.nodeValue; FURI_RE.lastIndex=0; if(!FURI_RE.test(t)) continue;
     const sc=scopeOf(n.parentElement); const keep=sc.tagName!=='MAIN'&&sc!==document.body; if(!used.has(sc)) used.set(sc,new Set(keep?(sc.__furi||[]):[])); const U=used.get(sc);
