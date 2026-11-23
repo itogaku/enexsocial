@@ -592,6 +592,7 @@ body.rkbusy .rkside::after{content:"更新中…";position:sticky;bottom:8px;dis
 .pleft>.rkpanel{border-bottom:0;padding-bottom:0;margin-bottom:6px}
 
 /* 一問一答プリント */
+.ichisheet .ic-y{width:5.2em;white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums}
 .ichisheet .sh-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid currentColor;margin-bottom:6px;font-size:inherit}
 .ichisheet .sh-title h3{margin:0;font-family:var(--mincho);font-size:20px}
 .ichisheet .sh-title .sub{font-size:12px;color:var(--muted);font-family:var(--gothic);font-weight:400}
@@ -769,6 +770,7 @@ rt{font-size:.5em;font-weight:400;letter-spacing:0;line-height:1}
         <button id="tab-kata" data-mode="kata" aria-pressed="false" title="問題の型と解き方">解き方</button>
         <button id="tab-naze" data-mode="naze" aria-pressed="false" title="疑問から考える">なぜ？</button>
         <button id="tab-sum" data-mode="sum" aria-pressed="false" title="学ぶことの整理">まとめ</button>
+        <button id="tab-ichi" data-mode="ichi" aria-pressed="false" title="単元のできごとを年代順に確認">一問一答</button>
       </div></div>
       <div class="tgp"><span class="tgl">テストを作る</span><div class="tgb">
         <button id="tab-print" data-mode="print" aria-pressed="false" title="A4で印刷">テスト作成</button>
@@ -3773,6 +3775,39 @@ function sumHTML(t){
   return h+'</div>';
 }
 function sHGroups(){ const ks=Object.keys(THEMES); const c=k=>({key:k,name:THEMES[k],n:null,items:null}); return [{h:'',cards:[{key:'ov',name:'全体のまとめ（歴史の流れ）',n:null,items:null}]},{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
+
+/* ---------- 一問一答プリント（歴史タブ）：単元のできごとを年代順に。前の答えが出てくるところは［番号］ ---------- */
+function iHGroups(){ const ks=Object.keys(THEMES); const n=k=>E.filter(e=>!e.deleted&&e.tags.includes(k)&&S.ranks.includes(e.rank)&&(S.world||!e.world)).length; const c=k=>({key:k,name:THEMES[k],n:n(k),items:null}); return [{h:'時代の流れ（教科書の章）',cards:ks.filter(k=>THEME_ERA.has(k)).map(c)},{h:'分野（時代をまたぐ）',cards:ks.filter(k=>!THEME_ERA.has(k)).map(c)}].filter(g=>g.cards.length); }
+function ichiHUnit(k,acc){
+  const o=window.ichiOpt(); const ys=e=>e.lab?e.lab[0]+e.lab[1]:(e.y<0?'前'+(-e.y):e.y)+'年';
+  const F0=E.filter(e=>!e.deleted&&e.tags.includes(k)&&S.ranks.includes(e.rank)&&(S.world||!e.world)).sort((a,b)=>a.y-b.y||a.id-b.id); if(!F0.length) return '';
+  const RN={A:'A　まず覚える（重要）',B:'B　標準',C:'C　発展'};
+  const parts=o.o==='rank'?['A','B','C'].filter(r=>S.ranks.includes(r)).map(r=>[RN[r],F0.filter(e=>e.rank===r)]).filter(x=>x[1].length):[['',F0]];
+  const era=THEME_ERA.has(k); let no=0; const ans=[]; let h='';
+  parts.forEach(([ph,FP])=>{ if(ph) h+=`<div class="ic-part ic-p${ph[0]}">${esc(ph)}</div>`;
+    // 時代の単元は時代区分（縄文・弥生…）、分野の単元は時代（古代・中世…）で見出しを入れる
+    const gk=e=>era?e.per:(e.era||''); let last=null; const seen=[]; let rows='';
+    FP.forEach(e=>{ const g=gk(e); if(g!==last){ if(rows) h+=`<table class="ichi ichih"><tbody>${rows}</tbody></table>`; rows=''; h+=g?`<div class="ic-grp">${esc(g)}</div>`:''; last=g; }
+      const n=++no; const a=e.alts[0]; ans.push([n,a]);
+      let t=esc(e.text); let ref=false;
+      seen.forEach(([m,keys])=>{ keys.forEach(w=>{ if(w.length>=2&&!e.alts.includes(w)&&t.includes(esc(w))){ t=t.split(esc(w)).join(`<span class="ic-ref" title="${m}の答え">［${m}］</span>`); ref=true; } }); });
+      t=t.replace('〔〕','<span class="ic-blank">（　　　　）</span>');
+      rows+=`<tr class="ic-r${ref?' ic-ch':''}"><td class="ic-no">${n}</td><td class="ic-y">${esc(ys(e))}</td><td class="ic-q">${ref?'<span class="ic-arr">↳</span>':''}${e.rank==='A'&&o.o!=='rank'?'<span class="ic-star">★</span>':''}${t}</td><td class="ic-a">${o.a==='right'?esc(a):''}</td></tr>`;
+      seen.push([n,e.alts.map(x=>x.replace(/[（(].*?[）)]/g,''))]); });
+    if(rows) h+=`<table class="ichi ichih"><tbody>${rows}</tbody></table>`; });
+  if(acc) acc.push([THEMES[k],ans]);
+  return `<div class="sheet ichisheet${o.a==='right'?' ic-right':''}" data-grp="${esc(k)}"><div class="sh-title"><h3>${esc(THEMES[k])}</h3><span class="sub">一問一答（歴史・年代順・重要度 ${S.ranks.join('・')}・${no}問）</span></div><p class="ic-how">${o.o==='flow'?'★は特に重要。':''}［番号］は、前に出てきたその番号の答えを表します（↳ の問題）。${o.a==='right'?'右の答えの列は、折ったり隠したりして使いましょう。':''}</p>${h}</div>`;
+}
+function renderIchiH(){
+  if(!window.rkPanelHTML||!window.ichiOpt){ setTimeout(renderIchiH,0); return; }
+  window.__rkCur=renderIchiH; window.rkApplyPrint('ichi');
+  if(!S.iSel){ let L=null; try{ L=JSON.parse(localStorage.getItem('ichi-sel-he')||'null'); }catch(e){} S.iSel=(Array.isArray(L)?L:[sumKey()]).filter(k=>THEMES[k]); }
+  window.rkRegScope('hi',{cards:()=>iHGroups().flatMap(g=>g.cards),get:()=>S.iSel,set:L=>{ S.iSel=L; try{ localStorage.setItem('ichi-sel-he',JSON.stringify(L)); }catch(e){} }});
+  const sel=new Set(S.iSel); const o=window.ichiOpt(); const acc=[];
+  const body=Object.keys(THEMES).filter(k=>sel.has(k)).map(k=>ichiHUnit(k,o.a==='end'?acc:null)).join('')+(o.a==='end'?window.ichiKeyHTML(acc):'');
+  $('#q').innerHTML=window.rkLayoutHTML(window.rkPanelHTML('hi',iHGroups(),sel,{kind:'ichi',lab:'単元'}),sel.size?'':'左の「単元」で、印刷したい単元を選んでください（いくつでも選べます）。重要度は上の「重要度」で選びます。',body,'sheets');
+  window.rkPanelFix();
+}
 function renderSum(){
   if(!window.rkPanelHTML){ setTimeout(renderSum,0); return; }
   window.__rkCur=renderSum; window.rkApplyPrint('sum');
@@ -3921,7 +3956,7 @@ function renderControls(){
   }else if(S.mode==='essay'){
     h=`<span class="lab">テーマ</span>${themeSelect('genTheme',S.theme,false,ecnt)}</div><div class="row"><span class="lab">設定</span>
        <span class="lab" style="min-width:auto">指定語句</span><button class="chip" data-hintset="1" aria-pressed="${S.hint}">あり</button><button class="chip" data-hintset="0" aria-pressed="${!S.hint}">なし</button>`;
-  }else if(S.mode==='sum'){
+  }else if(S.mode==='sum'||S.mode==='ichi'){
     h=`<span class="lab">単元</span><span class="hint-line">下の「1 印刷する範囲」で選びます（複数えらべます）</span>`;
   }else if(S.mode==='naze'){
     h=`<span class="lab">問い</span><span class="hint-line">「1 問い」で選びます</span>`;
@@ -3952,6 +3987,7 @@ function newQuestion(){
   S.msg='';
   if(S.mode==='list'){S.cur=null;renderList();return;}
   if(S.mode==='sum'){S.cur=null;renderSum();return;}
+  if(S.mode==='ichi'){S.cur=null;renderIchiH();return;}
   if(S.mode==='rikai'){S.cur=null;renderRikaiH();return;}
   if(S.mode==='kata'){S.cur=null;renderKataH();return;}
   if(S.mode==='naze'){S.cur=null;renderNazeH();return;}
@@ -5873,6 +5909,7 @@ function ichiUnitHTML(u,acc){
   return `<div class="sheet ichisheet${ICA==='right'?' ic-right':''}" data-grp="${esc(u.key)}"><div class="sh-title"><h3>${esc(u.name)}</h3><span class="sub">一問一答（${esc(d.name)}・重要度 ${G.ranks.join('・')}・${no}問）</span></div><p class="ic-how">${ICO==='flow'?'★は特に重要。↳ は上の問題とつながる問題で、［番号］はその番号の答えを表します。':'［番号］はその番号の問題の答えを表します。'}${ICA==='right'?'右の答えの列は、折ったり隠したりして使いましょう。':''}</p>${h}</div>`;
 }
 function ichiKeyHTML(acc){ if(!acc.length) return ''; return `<div class="sheet rkkey ichikey"><div class="sh-title"><h3>一問一答　解答</h3></div>${acc.map(([n,L])=>`<div class="ick"><div class="ick-h">${esc(n)}</div><div class="ick-l">${L.map(([i,a])=>`<span><b>${i}</b> ${esc(a)}</span>`).join('')}</div></div>`).join('')}</div>`; }
+window.ichiOpt=()=>({a:ICA,o:ICO}); window.ichiKeyHTML=ichiKeyHTML;
 function renderIchi(){
   window.__rkCur=renderIchi; rkApplyPrint('ichi');
   const d=D(); const sel=new Set(iSelGet()); const acc=[];
