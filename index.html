@@ -3986,10 +3986,11 @@ function renderControls(){
 function newQuestion(){
   S.msg='';
   if(S.mode==='list'){S.cur=null;renderList();return;}
-  if(S.mode==='sum'){S.cur=null;renderSum();return;}
-  if(S.mode==='ichi'){S.cur=null;renderIchiH();return;}
-  if(S.mode==='rikai'){S.cur=null;renderRikaiH();return;}
-  if(S.mode==='kata'){S.cur=null;renderKataH();return;}
+  const keep=f=>window.__rkCur===f&&window.rkKeep?window.rkKeep(f):f();
+  if(S.mode==='sum'){S.cur=null;keep(renderSum);return;}
+  if(S.mode==='ichi'){S.cur=null;keep(renderIchiH);return;}
+  if(S.mode==='rikai'){S.cur=null;keep(renderRikaiH);return;}
+  if(S.mode==='kata'){S.cur=null;keep(renderKataH);return;}
   if(S.mode==='naze'){S.cur=null;renderNazeH();return;}
   if(S.mode==='print'){S.cur=null;buildSheet();if(!S.prFitted){S.prFitted=true;fitOnePage();}else renderPrint();return;}
   S.answered=false;
@@ -6350,9 +6351,16 @@ let rkBusy=false, rkAgain=false;
 function rkRerender(){ if(rkBusy){ rkAgain=true; return; } rkBusy=true; document.body.classList.add('rkbusy');
   requestAnimationFrame(()=>setTimeout(()=>{ try{ rkRerenderNow(); } finally { rkBusy=false; document.body.classList.remove('rkbusy'); if(rkAgain){ rkAgain=false; rkRerender(); } } },0)); }
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('.rkside .segs > .seg, .pleft .segs > .seg'); if(!b||b.classList.contains('on')) return; b.parentNode.querySelectorAll('.seg.on').forEach(x=>x.classList.remove('on')); b.classList.add('on'); },true);
-function rkRerenderNow(){ const y=window.scrollY; let sel=document.body.dataset.subj==='rk'?'#q .rkside':'#gq .rkside'; if(!document.querySelector(sel)) sel=document.body.dataset.subj==='rk'?'#q .pleft':'#gq .pleft'; const sd=document.querySelector(sel); if(!sd||!window.__rkCur) return; const st=sd.scrollTop; const mn=document.querySelector(sel.replace('rkside','rkmain')); const mt=mn?mn.scrollTop:0;
-  window.__rkCur();
-  const sd2=document.querySelector(sel); if(sd2) sd2.scrollTop=st; const mn2=document.querySelector(sel.replace('rkside','rkmain')); if(mn2) mn2.scrollTop=mt; window.scrollTo({top:y}); }
+// 作り直す前後で、設定欄・プリントの欄・その中の一覧のスクロール位置を保つ（上に戻らないように）
+function rkKeep(fn){ const y=window.scrollY; const rk=document.body.dataset.subj==='rk'?'#q':'#gq';
+  let sel=rk+' .rkside'; if(!document.querySelector(sel)) sel=rk+' .pleft'; const sd=document.querySelector(sel);
+  const IN='.units,.rksh,.pset,.rkp-sub'; const st=sd?sd.scrollTop:0; const inner=sd?[...sd.querySelectorAll(IN)].map(e=>e.scrollTop):[];
+  const mn=document.querySelector(rk+' .rkmain')||document.querySelector(rk+' .pright'); const mt=mn?mn.scrollTop:0;
+  fn();
+  const sd2=document.querySelector(sel); if(sd2){ sd2.scrollTop=st; [...sd2.querySelectorAll(IN)].forEach((e,i)=>{ if(inner[i]) e.scrollTop=inner[i]; }); }
+  const mn2=document.querySelector(rk+' .rkmain')||document.querySelector(rk+' .pright'); if(mn2) mn2.scrollTop=mt; window.scrollTo({top:y}); }
+window.rkKeep=rkKeep;
+function rkRerenderNow(){ if(!window.__rkCur) return; rkKeep(()=>window.__rkCur()); }
 window.rkPk=(s,op,arg)=>{ const M=(window.__rkS||{})[s]; if(!M) return; const cards=M.cards(); const all=cards.flatMap(c=>c.items?c.items.map(u=>u.key):[c.key]); const ids=k=>{ const c=cards.find(c=>c.key===k); return c?(c.items?c.items.map(u=>u.key):[c.key]):[k]; };
   let L=new Set(M.get());
   if(op==='u'){ L.has(arg)?L.delete(arg):L.add(arg); }
@@ -6573,11 +6581,12 @@ function newG(){
   if(G.subj==='cb') return renderCB();
   G.answered=false; G.cur=null;
   if(G.mode==='list') return renderList();
-  if(G.mode==='sum') return renderSumG();
-  if(G.mode==='ichi') return renderIchi();
-  if(G.mode==='rikai') return renderRikai();
+  const keep=f=>window.__rkCur===f?rkKeep(f):f();
+  if(G.mode==='sum') return keep(renderSumG);
+  if(G.mode==='ichi') return keep(renderIchi);
+  if(G.mode==='rikai') return keep(renderRikai);
   if(G.mode==='naze') return renderNaze();
-  if(G.mode==='kata'){ if(isT()){ G.mode='rikai'; renderG(); return renderRikai(); } return renderKata(); }
+  if(G.mode==='kata'){ if(isT()){ G.mode='rikai'; renderG(); return renderRikai(); } return keep(renderKata); }
   if(G.mode==='print'){ if(!G.sheet) buildSheet(); renderPrint(); if(!G.fitted){G.fitted=true; fitPage();} return; }
   G.cur=G.mode==='drill'?mkDrill():G.mode==='exam'?mkExam(G.fmt):mkEssay();
   renderQ();
