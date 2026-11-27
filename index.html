@@ -628,6 +628,15 @@ body.rkedit .sumsheet .rk-x,body.rkedit .ksheet .rk-x{display:inline-block;font-
 body.rkedit .sumsheet .pr-hid,body.rkedit .ksheet .pr-hid{opacity:.35}
 body.rkedit .sumsheet .pr-hid>.rk-x,body.rkedit .sumsheet .pr-hid>h4>.rk-x,body.rkedit .sumsheet .pr-hid td>.rk-x,body.rkedit .ksheet .pr-hid .rk-x{color:#1a7f37;opacity:1}
 body.rkedit .sumsheet .pr-ed{outline:1px dashed color-mix(in srgb,currentColor 18%,transparent);outline-offset:1px}
+
+/* 消したものの一覧（画面だけ） */
+.rk-sbar.offbar{justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px;font-size:12.5px}
+.rk-sbar.offbar details{flex:1;min-width:0;background:var(--surface);border:1px dashed var(--line);border-radius:6px;padding:3px 8px}
+.rk-sbar.offbar summary{cursor:pointer;color:var(--muted)}
+.rk-sbar.offbar ul{margin:4px 0 2px;padding-left:1.2em;max-height:180px;overflow:auto}
+.rk-sbar.offbar li{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:1px 0}
+.rk-sbar.offbar li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+@media print{ .ic-hid,.pr-hid,.rk-hid{display:none!important} }
 </style>
 <style id="gcss">
 /* 分野の切りかえ（歴史・地理・公民） */
@@ -3796,7 +3805,7 @@ function ichiHUnit(k,acc){
   const o=window.ichiOpt(); const ys=e=>e.lab?e.lab[0]+e.lab[1]:(e.y<0?'前'+(-e.y):e.y)+'年';
   const okey=e=>'h:'+e.sid; const OFF=window.ICHI_OFF, ed=window.ichiEdit();
   const FA=E.filter(e=>!e.deleted&&e.tags.includes(k)&&S.ranks.includes(e.rank)&&(S.world||!e.world)).sort((a,b)=>a.y-b.y||a.id-b.id); if(!FA.length) return '';
-  const offK=FA.filter(e=>OFF.has(okey(e))).map(okey); const F0=ed?FA:FA.filter(e=>!OFF.has(okey(e)));
+  const offL=FA.filter(e=>OFF.has(okey(e))).map(e=>[okey(e),e.text]); const F0=FA.filter(e=>!OFF.has(okey(e)));
   const RN={A:'A　まず覚える（重要）',B:'B　標準',C:'C　発展'};
   const parts=o.o==='rank'?['A','B','C'].filter(r=>S.ranks.includes(r)).map(r=>[RN[r],F0.filter(e=>e.rank===r)]).filter(x=>x[1].length):[['',F0]];
   const era=THEME_ERA.has(k); let no=0; const ans=[]; let h='';
@@ -3812,7 +3821,7 @@ function ichiHUnit(k,acc){
       if(!off) seen.push([n,e.alts.map(x=>x.replace(/[（(].*?[）)]/g,''))]); });
     if(rows) h+=`<table class="ichi ichih"><tbody>${rows}</tbody></table>`; });
   if(acc) acc.push([THEMES[k],ans]);
-  return window.ichiBar(offK)+`<div class="sheet ichisheet${o.a==='right'?' ic-right':''}" data-grp="${esc(k)}"><div class="sh-title"><h3>${esc(THEMES[k])}</h3><span class="sub">一問一答（歴史・年代順・重要度 ${S.ranks.join('・')}・${no}問）</span></div><p class="ic-how">${o.o==='flow'?'★は特に重要。':''}［番号］は、前に出てきたその番号の答えを表します（↳ の問題）。${o.a==='right'?'右の答えの列は、折ったり隠したりして使いましょう。':''}</p>${h}</div>`;
+  return window.ichiBar(offL)+`<div class="sheet ichisheet${o.a==='right'?' ic-right':''}" data-grp="${esc(k)}"><div class="sh-title"><h3>${esc(THEMES[k])}</h3><span class="sub">一問一答（歴史・年代順・重要度 ${S.ranks.join('・')}・${no}問）</span></div><p class="ic-how">${o.o==='flow'?'★は特に重要。':''}［番号］は、前に出てきたその番号の答えを表します（↳ の問題）。${o.a==='right'?'右の答えの列は、折ったり隠したりして使いましょう。':''}</p>${h}</div>`;
 }
 function renderIchiH(){
   if(!window.rkPanelHTML||!window.ichiOpt){ setTimeout(renderIchiH,0); return; }
@@ -5899,7 +5908,9 @@ window.ichiTog=k=>{ ICHI_OFF.has(k)?ICHI_OFF.delete(k):ICHI_OFF.add(k); ichiOffS
 window.ichiOn=ks=>{ String(ks).split(',').forEach(k=>ICHI_OFF.delete(k)); ichiOffSave(); rkRerender(); };
 window.ichiX=(k,off)=>RKEDIT?`<button type="button" class="rk-x" onclick="ichiTog('${k}')" title="${off?'元に戻す':'この問題を消す'}">${off?'戻す':'✕'}</button>`:'';
 window.ichiEdit=()=>RKEDIT;
-window.ichiBar=(ks)=>ks.length?`<div class="rk-sbar"><button type="button" class="tbtn" onclick="ichiOn('${ks.join(',')}')">消した問題を戻す（${ks.length}問）</button></div>`:'';
+// 消したものの一覧（L=[[キー,文],...]、tog=1つ戻す関数名、all=すべて戻すときの呼び出し）
+window.offBarHTML=(L,tog,all,unit)=>L.length?`<div class="rk-sbar offbar"><details><summary>消した${unit||'問題'}（${L.length}）</summary><ul>${L.map(([k,t])=>`<li><span>${esc(String(t).replace(/\[\[|\]\]/g,'').replace('〔〕','（　）').slice(0,60))}</span><button type="button" class="tbtn" onclick="${tog}('${String(k).replace(/'/g,"\\'")}')">戻す</button></li>`).join('')}</ul></details><button type="button" class="tbtn" onclick="${all}">すべて戻す</button></div>`:'';
+window.ichiBar=(L)=>window.offBarHTML(L,'ichiTog',`ichiOn('${L.map(x=>x[0]).join(',')}')`);
 function iGCards(){ const d=D(); const U=d.units.map(u=>({key:u.key,name:u.name,n:d.facts.filter(f=>f.u===u.key&&!DEL.has(f.id)&&G.ranks.includes(f.r)&&!ICHI_OFF.has(G.subj+':'+f.id)).length,ch:u.ch}));
   if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:null}))}];
   return [{h:'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:it.reduce((a,u)=>a+u.n,0),items:it}:null; }).filter(Boolean)}]; }
@@ -5921,7 +5932,7 @@ function ichiChain(F){ const keys=F.map(f=>f.k.split('|').map(x=>x.replace(/[（
   return {out,par,via}; }
 function ichiUnitHTML(u,acc){
   const d=D(); const okey=f=>G.subj+':'+f.id; const FA=d.facts.filter(f=>f.u===u.key&&!DEL.has(f.id)&&G.ranks.includes(f.r)); if(!FA.length) return '';
-  const offK=FA.filter(f=>ICHI_OFF.has(okey(f))).map(okey); const F0=RKEDIT?FA:FA.filter(f=>!ICHI_OFF.has(okey(f)));
+  const offL=FA.filter(f=>ICHI_OFF.has(okey(f))).map(f=>[okey(f),f.t]); const F0=FA.filter(f=>!ICHI_OFF.has(okey(f)));
   const RN={A:'A　まず覚える（重要）',B:'B　標準',C:'C　発展'};
   const parts=ICO==='rank'?['A','B','C'].filter(r=>G.ranks.includes(r)).map(r=>[RN[r],F0.filter(f=>f.r===r)]).filter(x=>x[1].length):[['',F0]];
   let no=0; const ans=[]; let h='';
@@ -5933,7 +5944,7 @@ function ichiUnitHTML(u,acc){
         t=t.replace('〔〕','<span class="ic-blank">（　　　　）</span>');
         return `<tr class="ic-r${dep?' ic-ch':''}${off?' ic-hid':''}"><td class="ic-no">${off?'－':n}${window.ichiX(okey(f),off)}</td><td class="ic-q" style="${dep?`padding-left:${0.4+Math.min(dep,3)*1.3}em`:''}">${dep?'<span class="ic-arr">↳</span>':''}${f.r==='A'&&ICO!=='rank'?'<span class="ic-star">★</span>':''}${t}</td><td class="ic-a">${ICA==='right'?esc(a):''}</td></tr>`; }).join('')}</tbody></table>`; }); });
   if(acc) acc.push([u.name,ans]);
-  return window.ichiBar(offK)+`<div class="sheet ichisheet${ICA==='right'?' ic-right':''}" data-grp="${esc(u.key)}"><div class="sh-title"><h3>${esc(u.name)}</h3><span class="sub">一問一答（${esc(d.name)}・重要度 ${G.ranks.join('・')}・${no}問）</span></div><p class="ic-how">${ICO==='flow'?'★は特に重要。↳ は上の問題とつながる問題で、［番号］はその番号の答えを表します。':'［番号］はその番号の問題の答えを表します。'}${ICA==='right'?'右の答えの列は、折ったり隠したりして使いましょう。':''}</p>${h}</div>`;
+  return window.ichiBar(offL)+`<div class="sheet ichisheet${ICA==='right'?' ic-right':''}" data-grp="${esc(u.key)}"><div class="sh-title"><h3>${esc(u.name)}</h3><span class="sub">一問一答（${esc(d.name)}・重要度 ${G.ranks.join('・')}・${no}問）</span></div><p class="ic-how">${ICO==='flow'?'★は特に重要。↳ は上の問題とつながる問題で、［番号］はその番号の答えを表します。':'［番号］はその番号の問題の答えを表します。'}${ICA==='right'?'右の答えの列は、折ったり隠したりして使いましょう。':''}</p>${h}</div>`;
 }
 function ichiKeyHTML(acc){ if(!acc.length) return ''; return `<div class="sheet rkkey ichikey"><div class="sh-title"><h3>一問一答　解答</h3></div>${acc.map(([n,L])=>`<div class="ick"><div class="ick-h">${esc(n)}</div><div class="ick-l">${L.map(([i,a])=>`<span><b>${i}</b> ${esc(a)}</span>`).join('')}</div></div>`).join('')}</div>`; }
 window.ichiOpt=()=>({a:ICA,o:ICO}); window.ichiKeyHTML=ichiKeyHTML;
@@ -6169,20 +6180,22 @@ const prOffSave=()=>{ try{ localStorage.setItem('pr-off',JSON.stringify([...PR_O
 window.prTog=k=>{ PR_OFF.has(k)?PR_OFF.delete(k):PR_OFF.add(k); prOffSave(); rkRerender(); };
 window.prOn=pre=>{ [...PR_OFF].forEach(k=>{ if(k.startsWith(pre+'|')) PR_OFF.delete(k); }); prOffSave(); rkRerender(); };
 const prX=(k,off)=>`<button type="button" class="rk-x" onclick="prTog('${String(k).replace(/'/g,"\\'")}')" title="${off?'元に戻す':'消す'}">${off?'戻す':'✕'}</button>`;
-const prBar=(pre,n)=>n?`<div class="rk-sbar"><button type="button" class="tbtn" onclick="prOn('${String(pre).replace(/'/g,"\\'")}')">消したものを戻す（${n}）</button></div>`:'';
+const prBar=(pre,L)=>window.offBarHTML(L,'prTog',`prOn('${String(pre).replace(/'/g,"\\'")}')`,'もの');
 // まとめ：描いたあとで、消せる部品に ✕ をつけ、消したものを外す
 const SUM_ITEMS='section.dai, .sumpt>li, .sumlk>li, .sumcat li, .sumflow>.sf, table.sumtl tr, table.tsumt tbody tr, .sumes>dt, .sumdoc, .sumclim, .sumqa>li';
 function prEditApply(root){ if(!root) return; const done=new Set();
-  root.querySelectorAll('.sheet[data-sk]').forEach(sh=>{ const sk=sh.dataset.sk; const L=[...sh.querySelectorAll(SUM_ITEMS)]; let n=0;
-    L.forEach((el,i)=>{ const k=sk+'|'+i; const off=PR_OFF.has(k); if(off) n++;
-      if(RKEDIT){ const b=document.createElement('span'); b.innerHTML=prX(k,off); const btn=b.firstChild; const host=el.tagName==='SECTION'?el.querySelector('h4'):el.tagName==='TR'?el.lastElementChild:el; host.appendChild(btn); el.classList.add('pr-ed'); if(off) el.classList.toggle('pr-hid',true); }
-      else if(off){ if(el.tagName==='DT'&&el.nextElementSibling&&el.nextElementSibling.tagName==='DD') el.nextElementSibling.remove(); el.remove(); } });
+  root.querySelectorAll('.sheet[data-sk]').forEach(sh=>{ const sk=sh.dataset.sk; const L=[...sh.querySelectorAll(SUM_ITEMS)]; const offL=[];
+    L.forEach((el,i)=>{ const k=sk+'|'+i; const off=PR_OFF.has(k);
+      if(off){ const tx=(el.tagName==='SECTION'?'大問：'+((el.querySelector('h4')||{}).textContent||''):el.textContent||'').replace(/\s+/g,' ').trim(); offL.push([k,tx]); if(el.tagName==='DT'&&el.nextElementSibling&&el.nextElementSibling.tagName==='DD') el.nextElementSibling.remove(); el.remove(); return; }
+      if(RKEDIT&&el.isConnected){ const b=document.createElement('span'); b.innerHTML=prX(k,false); const host=el.tagName==='SECTION'?el.querySelector('h4'):el.tagName==='TR'?el.lastElementChild:el; host.appendChild(b.firstChild); el.classList.add('pr-ed'); } });
+    const n=offL.length;
     // 大問の番号をつめる
     let d=0; sh.querySelectorAll('section.dai').forEach(sec=>{ const dn=sec.querySelector('.dn'); if(dn) dn.textContent=sec.classList.contains('pr-hid')?'－':++d; });
-    if(n&&!done.has(sk)){ done.add(sk); sh.insertAdjacentHTML('beforebegin',prBar(sk,n)); } }); }
+    if(n&&!done.has(sk)){ done.add(sk); sh.insertAdjacentHTML('beforebegin',prBar(sk,offL)); } }); }
 window.prEditApply=prEditApply;
 // 解き方：消した例題・問題をデータから外す（番号・解答ページもそろう）
-function kFilt(K,sj){ const id=sj+':'+K.t; const f=(L,p)=>(L||[]).map((x,i)=>({x,k:id+'|'+p+i})).filter(o=>RKEDIT||!PR_OFF.has(o.k)); return {...K,__id:id,__rei:f(K.rei,'r'),__chk:f(K.chk,'c'),__jis:f(K.jis,'j'),rei:f(K.rei,'r').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),chk:f(K.chk,'c').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),jis:f(K.jis,'j').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x)}; }
+function kFilt(K,sj){ const id=sj+':'+K.t; const f=(L,p)=>(L||[]).map((x,i)=>({x,k:id+'|'+p+i})).filter(o=>!PR_OFF.has(o.k));
+  const offL=[['r',K.rei,'例題'],['c',K.chk,'チェック'],['j',K.jis,'実践']].flatMap(([p,L,lab])=>(L||[]).map((x,i)=>[id+'|'+p+i,lab+'：'+(x.q||x.t||'')]).filter(o=>PR_OFF.has(o[0]))); return {...K,__id:id,__off:offL,__rei:f(K.rei,'r'),__chk:f(K.chk,'c'),__jis:f(K.jis,'j'),rei:f(K.rei,'r').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),chk:f(K.chk,'c').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),jis:f(K.jis,'j').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x)}; }
 function kataHTML(K0,show,sj){
   const K=K0.__id?K0:kFilt(K0,sj||G.subj); const ed=RKEDIT; const ofs=o=>PR_OFF.has(o.k); const xb=o=>ed?prX(o.k,ofs(o)):'';
   let h=`<div class="sheet ksheet"><div class="rk-head k-head"><span class="rk-unit">解き方｜${esc(K.area||'')}</span><h3>${esc(K.t)}</h3>${K.lead?`<p class="k-lead">${esc(K.lead)}</p>`:''}</div>`;
@@ -6209,8 +6222,7 @@ function kataHTML(K0,show,sj){
     h+='</section>';
   }
   if(K.tip) h+=`<p class="rk-tip"><b>ポイント</b>${esc(K.tip)}</p>`;
-  const nOff=[...PR_OFF].filter(k=>k.startsWith(K.__id+'|')).length;
-  return prBar(K.__id,nOff)+h+'</div>';
+  return prBar(K.__id,K.__off||[])+h+'</div>';
 }
 function kataList(sj){ return KATA[sj]||[]; }
 function kataSelHTML(sj,cur,id){ const L=kataList(sj); return L.length?`<select class="sel" id="${id}" aria-label="問題の型">${L.map((K,i)=>`<option value="${i}"${cur===i?' selected':''}>${esc(K.t)}</option>`).join('')}</select>`:''; }
