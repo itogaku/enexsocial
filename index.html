@@ -602,7 +602,7 @@ body.rkbusy .rkside::after{content:"更新中…";position:sticky;bottom:8px;dis
 .ichisheet table.ichi{width:100%;border-collapse:collapse;table-layout:fixed}
 .ichisheet table.ichi td{border-bottom:1px solid var(--line);padding:4px 4px;vertical-align:top;line-height:1.6;font-size:13.5px}
 .ichisheet .ic-no{width:2.6em;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;padding-right:8px!important}
-.ichisheet .ic-a{width:9.5em;font-weight:700;overflow-wrap:anywhere}
+.ichisheet .ic-a{width:9.5em;font-weight:400;overflow-wrap:anywhere}
 .ichisheet.ic-right .ic-a{border-left:1.5px dashed var(--muted)}
 .ichisheet:not(.ic-right) .ic-a{width:0;padding:0!important;border:0}
 .ichisheet tr.ic-ch td{border-bottom-style:dotted}
@@ -3834,7 +3834,7 @@ function ichiHUnit(k,acc){
       let t=esc(e.text); let ref=false;
       seen.forEach(([m,keys])=>{ keys.forEach(w=>{ if(w.length>=2&&!e.alts.includes(w)&&t.includes(esc(w))){ t=t.split(esc(w)).join(`<span class="ic-ref" title="${m}の答え">［${m}］</span>`); ref=true; } }); });
       t=t.replace('〔〕','<span class="ic-blank">（　　　　）</span>');
-      rows+=`<tr class="ic-r${ref?' ic-ch':''}${off?' ic-hid':''}"><td class="ic-no">${off?'－':n}</td><td class="ic-y">${esc(ys(e))}</td><td class="ic-q">${window.ichiX(okey(e),off)}${ref?'<span class="ic-arr">↳</span>':''}${e.rank==='A'&&o.o!=='rank'?'<span class="ic-star">★</span>':''}${t}</td><td class="ic-a">${o.a==='right'?esc(a):''}</td></tr>`;
+      rows+=`<tr class="ic-r${ref?' ic-ch':''}${off?' ic-hid':''}"><td class="ic-no">${off?'－':n}</td><td class="ic-y">${esc(ys(e))}</td><td class="ic-q">${window.ichiX(okey(e),off)}${ref?'<span class="ic-arr">↳</span>':''}${e.rank==='A'&&o.o!=='rank'?'<span class="ic-star">★</span>':''}${t}</td><td class="ic-a">${o.a==='right'?`<b class="ic-ab${window.prPl('ic|'+okey(e))?' rk-pl':''}" data-bk="ic|${okey(e)}">${esc(a)}</b>`:''}</td></tr>`;
       if(!off) seen.push([n,e.alts.map(x=>x.replace(/[（(].*?[）)]/g,''))]); });
     if(rows) h+=`<table class="ichi ichih"><tbody>${rows}</tbody></table>`; });
   if(acc) acc.push([THEMES[k],ans]);
@@ -5959,7 +5959,7 @@ function ichiUnitHTML(u,acc){
       h+=(gt?`<div class="ic-grp">${esc(gt)}</div>`:'')+`<table class="ichi"><tbody>${out.map(([i,dep])=>{ const f=F[i]; const off=ICHI_OFF.has(okey(f)); const n=num.get(i); const a=f.k.split('|')[0]; if(!off) ans.push([n,a]);
         let t=esc(f.t); if(par[i]>=0&&via[i]){ const pn=num.get(par[i]); const ref=`<span class="ic-ref" title="${pn?pn+'の答え':'消した問題の答え'}">${pn?'［'+pn+'］':esc(via[i])}</span>`; t=t.split(esc(via[i])).join(ref); }
         t=t.replace('〔〕','<span class="ic-blank">（　　　　）</span>');
-        return `<tr class="ic-r${dep?' ic-ch':''}${off?' ic-hid':''}"><td class="ic-no">${off?'－':n}</td><td class="ic-q" style="${dep?`padding-left:${0.4+Math.min(dep,3)*1.3}em`:''}">${window.ichiX(okey(f),off)}${dep?'<span class="ic-arr">↳</span>':''}${f.r==='A'&&ICO!=='rank'?'<span class="ic-star">★</span>':''}${t}</td><td class="ic-a">${ICA==='right'?esc(a):''}</td></tr>`; }).join('')}</tbody></table>`; }); });
+        return `<tr class="ic-r${dep?' ic-ch':''}${off?' ic-hid':''}"><td class="ic-no">${off?'－':n}</td><td class="ic-q" style="${dep?`padding-left:${0.4+Math.min(dep,3)*1.3}em`:''}">${window.ichiX(okey(f),off)}${dep?'<span class="ic-arr">↳</span>':''}${f.r==='A'&&ICO!=='rank'?'<span class="ic-star">★</span>':''}${t}</td><td class="ic-a">${ICA==='right'?`<b class="ic-ab${window.prPl('ic|'+okey(f))?' rk-pl':''}" data-bk="ic|${okey(f)}">${esc(a)}</b>`:''}</td></tr>`; }).join('')}</tbody></table>`; }); });
   if(acc) acc.push([u.name,ans]);
   return window.ichiBar(offL)+`<div class="sheet ichisheet${ICA==='right'?' ic-right':''}" data-grp="${esc(u.key)}"><div class="sh-title"><h3>${esc(u.name)}</h3><span class="sub">一問一答（${esc(d.name)}・重要度 ${G.ranks.join('・')}・${no}問）</span></div><p class="ic-how">${ICO==='flow'?'★は特に重要。↳ は上の問題とつながる問題で、［番号］はその番号の答えを表します。':'［番号］はその番号の問題の答えを表します。'}${ICA==='right'?'右の答えの列は、折ったり隠したりして使いましょう。':''}</p>${h}</div>`;
 }
@@ -6226,17 +6226,18 @@ function prEditApply(root){ if(!root) return; const done=new Set();
     if(n&&!done.has(sk)){ done.add(sk); sh.insertAdjacentHTML('beforebegin',prBar(sk,offL)); } }); }
 window.prEditApply=prEditApply;
 let PR_PL=new Set(); try{ PR_PL=new Set(JSON.parse(localStorage.getItem('pr-pl')||'[]')); }catch(e){}
-function prBoldApply(root){ if(!root) return; root.querySelectorAll('.sheet[data-sk],.sheet[data-bs]').forEach(sh=>{ const bs=sh.dataset.bs||sh.dataset.sk; [...sh.querySelectorAll('b.ans,b.rk-em')].forEach((b,i)=>{ const k=bs+'|'+i; b.dataset.bk=k; b.title='クリックで太字を切りかえ'; if(PR_PL.has(k)) b.classList.add('rk-pl'); }); }); }
+window.prPl=k=>PR_PL.has(k);
+function prBoldApply(root){ if(!root) return; root.querySelectorAll('.sheet[data-sk],.sheet[data-bs]').forEach(sh=>{ const bs=sh.dataset.bs||sh.dataset.sk; [...sh.querySelectorAll('b.ans,b.rk-em')].forEach((b,i)=>{ if(b.dataset.bk) return; const k=bs+'|'+i; b.dataset.bk=k; b.title='クリックで太字を切りかえ'; if(PR_PL.has(k)) b.classList.add('rk-pl'); }); }); }
 document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('b[data-bk]'); if(!b) return; const k=b.dataset.bk; PR_PL.has(k)?PR_PL.delete(k):PR_PL.add(k); try{ localStorage.setItem('pr-pl',JSON.stringify([...PR_PL])); }catch(er){} rkRerender(); });
 // 解き方：消した例題・問題をデータから外す（番号・解答ページもそろう）
 function kFilt(K,sj){ const id=sj+':'+K.t; const f=(L,p)=>(L||[]).map((x,i)=>({x,k:id+'|'+p+i})).filter(o=>!PR_OFF.has(o.k));
   const offL=[['r',K.rei,'例題'],['c',K.chk,'チェック'],['j',K.jis,'実践']].flatMap(([p,L,lab])=>(L||[]).map((x,i)=>[id+'|'+p+i,lab+'：'+(x.q||x.t||'')]).filter(o=>PR_OFF.has(o[0]))); return {...K,__id:id,__off:offL,__rei:f(K.rei,'r'),__chk:f(K.chk,'c'),__jis:f(K.jis,'j'),rei:f(K.rei,'r').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),chk:f(K.chk,'c').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),jis:f(K.jis,'j').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x)}; }
 function kataHTML(K0,show,sj){
   const K=K0.__id?K0:kFilt(K0,sj||G.subj); const ofs=o=>PR_OFF.has(o.k); const xb=o=>prX(o.k,false);
-  let h=`<div class="sheet ksheet" data-bs="${esc('k:'+K.__id)}"><div class="rk-head k-head"><span class="rk-unit">解き方｜${esc(K.area||'')}</span><h3>${esc(K.t)}</h3>${K.lead?`<p class="k-lead">${esc(K.lead)}</p>`:''}</div>`;
+  let h=`<div class="sheet ksheet"><div class="rk-head k-head"><span class="rk-unit">解き方｜${esc(K.area||'')}</span><h3>${esc(K.t)}</h3>${K.lead?`<p class="k-lead">${esc(K.lead)}</p>`:''}</div>`;
   let rn=0; const nRei=K.__rei.filter(o=>!ofs(o)).length; K.__rei.forEach(o=>{ const R=o.x, off=ofs(o), ri=off?-1:rn++;
     h+=`<section class="k-rei${off?' pr-hid':''}"><h4 class="k-sh">例題と解き方${nRei>1&&!off?` ${ri+1}`:''}${R.h?`<small>${esc(R.h)}</small>`:''}${xb(o)}</h4><div class="k-box">${kQ(R)}</div>`;
-    h+=(R.steps||[]).map((s,i)=>`<div class="k-step"><div class="k-sth"><span class="k-tag">解き方</span><span class="k-ck">✓${i+1}</span>${esc(s.h)}</div>${(s.b||[]).map(t=>`<p>${esc(t).replace(/\[\[([^\]]+)\]\]/g,'<b class="rk-em">$1</b>')}</p>`).join('')}${[].concat(s.fig||[]).map(kFig).join('')}</div>`).join('');
+    h+=(R.steps||[]).map((s,i)=>`<div class="k-step"><div class="k-sth"><span class="k-tag">解き方</span><span class="k-ck">✓${i+1}</span>${esc(s.h)}</div>${(s.b||[]).map((t,bi)=>{ let j=0; return `<p>${esc(t).replace(/\[\[([^\]]+)\]\]/g,(m,w)=>{ const bk=K.__id+'|'+o.k.split('|').pop()+'|'+i+'.'+bi+'.'+(j++); return `<b class="rk-em${window.prPl(bk)?' rk-pl':''}" data-bk="${esc(bk)}">${w}</b>`; })}</p>`; }).join('')}${[].concat(s.fig||[]).map(kFig).join('')}</div>`).join('');
     h+=`<div class="k-reia">例題の答え　<b>${esc(kA(R))}</b></div></section>`;
   });
   if(K.__chk.length){
