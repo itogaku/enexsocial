@@ -647,6 +647,13 @@ body.rkedit .rksheet .rk-ed{outline:0}
 .rkpanel .xhint{margin:0 0 6px;font-size:11.5px}
 @media print{ .rk-x,.rksheet .rk-x,.ichisheet .rk-x,.sumsheet .rk-x,.ksheet .rk-x,.rksheet .rk-qg>.rk-x{display:none!important} }
 .ichisheet .ic-q>.rk-x{float:right}
+
+/* 太字はいつでもクリックで切りかえ（画面） */
+.rksheet b.rk-em[onclick],.sheet b[data-bk]{cursor:pointer}
+.rksheet b.rk-em[onclick]:hover,.sheet b[data-bk]:hover{background:color-mix(in srgb,var(--ai) 10%,transparent);border-radius:2px}
+.sheet b[data-bk].rk-pl,.rksheet b.rk-em.rk-pl{font-weight:400!important;color:inherit!important;text-decoration:none!important;background:none}
+.hideans .sheet b.ans.rk-pl,.hideans b.ans.rk-pl{color:transparent!important}
+@media print{ .sheet b[data-bk]:hover,.rksheet b.rk-em:hover{background:none} }
 </style>
 <style id="gcss">
 /* 分野の切りかえ（歴史・地理・公民） */
@@ -6077,7 +6084,7 @@ const RK_QK=['fill','pick','order','tf','data','wr'];
 function rkEdR(id,R){ const E=rkEdOf(id); if(!E.h.length) return R; const o={...R};
   RK_QK.forEach(k=>{ const L=[].concat(R[k]||[]); if(!L.length) return; o[k]=E.h.includes('g:'+k)?[]:L.filter((x,j)=>!E.h.includes(k+j)); }); return o; }
 window.rkEd=(id,k)=>{ const E=RKED[id]||(RKED[id]={h:[],p:[]}); const i=E.h.indexOf(k); i<0?E.h.push(k):E.h.splice(i,1); if(!E.h.length&&!E.p.length) delete RKED[id]; rkEdSave(); rkRerender(); };
-window.rkEm=(ev,id,k)=>{ if(!RKEDIT) return; ev.preventDefault(); const E=RKED[id]||(RKED[id]={h:[],p:[]}); const i=E.p.indexOf(k); i<0?E.p.push(k):E.p.splice(i,1); if(!E.h.length&&!E.p.length) delete RKED[id]; rkEdSave(); rkRerender(); };
+window.rkEm=(ev,id,k)=>{ ev.preventDefault(); const E=RKED[id]||(RKED[id]={h:[],p:[]}); const i=E.p.indexOf(k); i<0?E.p.push(k):E.p.splice(i,1); if(!E.h.length&&!E.p.length) delete RKED[id]; rkEdSave(); rkRerender(); };
 window.rkEdReset=id=>{ delete RKED[id]; rkEdSave(); rkRerender(); };
 window.rkEdOnAll=id=>{ const E=RKED[id]; if(!E) return; E.h=[]; if(!E.p.length) delete RKED[id]; rkEdSave(); rkRerender(); };
 // 理解：消した部分の一覧（文の頭を出す）
@@ -6102,7 +6109,7 @@ function rikaiSheet(u,R){
   const xb=k=>id?`<button type="button" class="rk-x" onclick="rkEd('${jsq(id)}','${k}')" title="消す">✕</button>`:'';
   // 消した部分はプリントから外す（上の一覧から戻せる）
   const W=(k,html,tag='div',cls='')=>{ if(!html) return ''; if(hid(k)) return ''; return `<${tag} class="rk-ed${cls?' '+cls:''}${hid(k)?' rk-hid':''}" data-ek="${k}">${xb(k)}${html}</${tag}>`; };
-  const em=(t,k)=>{ let j=0; return esc(t).replace(/\[\[([^\]]+)\]\]/g,(m,w)=>{ const kk=k+'.'+(j++); const pl=E.p.includes(kk); return `<b class="rk-em${pl?' rk-pl':''}"${ed?` onclick="rkEm(event,'${jsq(id)}','${kk}')" title="クリックで太字を${pl?'もどす':'やめる'}"`:''}>${w}</b>`; }); };
+  const em=(t,k)=>{ let j=0; return esc(t).replace(/\[\[([^\]]+)\]\]/g,(m,w)=>{ const kk=k+'.'+(j++); const pl=E.p.includes(kk); return `<b class="rk-em${pl?' rk-pl':''}"${id?` onclick="rkEm(event,'${jsq(id)}','${kk}')" title="クリックで太字を${pl?'もどす':'やめる'}"`:''}>${w}</b>`; }); };
   const show=!!G.rkAns; let n=0;
   const tbl=t=>t?`<div class="rk-tbl"><div class="tsum-h">${esc(t.t)}</div><table class="xnen stbl tsumt"><thead><tr>${t.h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.r.map(r=>`<tr>${r.map((c,i)=>i?`<td>${esc(c)}</td>`:`<th>${esc(c)}</th>`).join('')}</tr>`).join('')}</tbody></table>${t.src?`<div class="srcnote">${esc(t.src)}</div>`:''}</div>`:'';
   const Q=(k,lab,body)=>{ if(!body) return ''; if(hid('g:'+k)) return ''; n++; return `<div class="rk-ed rk-qg" data-ek="g:${k}">${id?`<button type="button" class="rk-x" onclick="rkEd('${jsq(id)}','g:${k}')" title="この問題をまとめて消す">✕ まとめて</button>`:''}<div class="rk-q"><span class="rk-no">${n}</span>${lab}</div>${body}</div>`; };
@@ -6218,12 +6225,15 @@ function prEditApply(root){ if(!root) return; const done=new Set();
     let d=0; sh.querySelectorAll('section.dai').forEach(sec=>{ const dn=sec.querySelector('.dn'); if(dn) dn.textContent=sec.classList.contains('pr-hid')?'－':++d; });
     if(n&&!done.has(sk)){ done.add(sk); sh.insertAdjacentHTML('beforebegin',prBar(sk,offL)); } }); }
 window.prEditApply=prEditApply;
+let PR_PL=new Set(); try{ PR_PL=new Set(JSON.parse(localStorage.getItem('pr-pl')||'[]')); }catch(e){}
+function prBoldApply(root){ if(!root) return; root.querySelectorAll('.sheet[data-sk],.sheet[data-bs]').forEach(sh=>{ const bs=sh.dataset.bs||sh.dataset.sk; [...sh.querySelectorAll('b.ans,b.rk-em')].forEach((b,i)=>{ const k=bs+'|'+i; b.dataset.bk=k; b.title='クリックで太字を切りかえ'; if(PR_PL.has(k)) b.classList.add('rk-pl'); }); }); }
+document.addEventListener('click',e=>{ const b=e.target.closest&&e.target.closest('b[data-bk]'); if(!b) return; const k=b.dataset.bk; PR_PL.has(k)?PR_PL.delete(k):PR_PL.add(k); try{ localStorage.setItem('pr-pl',JSON.stringify([...PR_PL])); }catch(er){} rkRerender(); });
 // 解き方：消した例題・問題をデータから外す（番号・解答ページもそろう）
 function kFilt(K,sj){ const id=sj+':'+K.t; const f=(L,p)=>(L||[]).map((x,i)=>({x,k:id+'|'+p+i})).filter(o=>!PR_OFF.has(o.k));
   const offL=[['r',K.rei,'例題'],['c',K.chk,'チェック'],['j',K.jis,'実践']].flatMap(([p,L,lab])=>(L||[]).map((x,i)=>[id+'|'+p+i,lab+'：'+(x.q||x.t||'')]).filter(o=>PR_OFF.has(o[0]))); return {...K,__id:id,__off:offL,__rei:f(K.rei,'r'),__chk:f(K.chk,'c'),__jis:f(K.jis,'j'),rei:f(K.rei,'r').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),chk:f(K.chk,'c').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x),jis:f(K.jis,'j').filter(o=>!PR_OFF.has(o.k)).map(o=>o.x)}; }
 function kataHTML(K0,show,sj){
   const K=K0.__id?K0:kFilt(K0,sj||G.subj); const ofs=o=>PR_OFF.has(o.k); const xb=o=>prX(o.k,false);
-  let h=`<div class="sheet ksheet"><div class="rk-head k-head"><span class="rk-unit">解き方｜${esc(K.area||'')}</span><h3>${esc(K.t)}</h3>${K.lead?`<p class="k-lead">${esc(K.lead)}</p>`:''}</div>`;
+  let h=`<div class="sheet ksheet" data-bs="${esc('k:'+K.__id)}"><div class="rk-head k-head"><span class="rk-unit">解き方｜${esc(K.area||'')}</span><h3>${esc(K.t)}</h3>${K.lead?`<p class="k-lead">${esc(K.lead)}</p>`:''}</div>`;
   let rn=0; const nRei=K.__rei.filter(o=>!ofs(o)).length; K.__rei.forEach(o=>{ const R=o.x, off=ofs(o), ri=off?-1:rn++;
     h+=`<section class="k-rei${off?' pr-hid':''}"><h4 class="k-sh">例題と解き方${nRei>1&&!off?` ${ri+1}`:''}${R.h?`<small>${esc(R.h)}</small>`:''}${xb(o)}</h4><div class="k-box">${kQ(R)}</div>`;
     h+=(R.steps||[]).map((s,i)=>`<div class="k-step"><div class="k-sth"><span class="k-tag">解き方</span><span class="k-ck">✓${i+1}</span>${esc(s.h)}</div>${(s.b||[]).map(t=>`<p>${esc(t).replace(/\[\[([^\]]+)\]\]/g,'<b class="rk-em">$1</b>')}</p>`).join('')}${[].concat(s.fig||[]).map(kFig).join('')}</div>`).join('');
@@ -6484,9 +6494,8 @@ function rkPanelHTML(s,groups,sel,o){
     ${kind==='rikai'?row('向き',seg(ori,'p','縦',"rkSetPrint('ori','p')",'縦向き：上に説明、下に問題')+seg(ori,'l','横',"rkSetPrint('ori','l')",'横向き：左に説明、右に問題')):''}
     ${row('文字',seg(RKP.fit,true,'自動で縮小',"rkSetPrint('fit',true)",'1ページを少しこえるプリントは、文字を小さくして（4分の3まで）1ページに収めます')+seg(RKP.fit,false,'そのまま',"rkSetPrint('fit',false)",'文字の大きさを変えません'))}
     ${row('並べ方',seg(pack,false,'1枚ずつ',"rkSetPrint('pack',false)",'プリントごとに新しいページから印刷します')+seg(pack,true,'詰める',"rkSetPrint('pack',true)",'短いプリントどうしを同じページにまとめます（1枚が2ページに分かれないようにします）'))}
-    ${kind==='rikai'?row('太字',seg(RKEDIT,false,'そのまま',"rkSetEdit(false)")+seg(RKEDIT,true,'クリックで直す',"rkSetEdit(true)",'太字の語をクリックして、ふつうの字にします'),RKEDIT?'太字の語をクリックすると、ふつうの字になります（もう一度で元にもどります）。':''):''}
   </section>`}
-  ${kind==='test'?'':`<p class="hint xhint">プリントの「✕」で、問題や項目をその場で消せます（印刷には出ません）。消したものはプリントの上の一覧から戻せます。</p><div class="toolbar"><div class="pgc" id="rkPgc"></div><button type="button" class="btn primary" onclick="window.print()"${su.length?'':' disabled'}>印刷する</button></div>`}
+  ${kind==='test'?'':`<p class="hint xhint">プリントの「✕」で問題や項目を消せます（印刷には出ません。上の一覧から戻せます）。太字の語はクリックで、ふつうの字と切りかえられます。</p><div class="toolbar"><div class="pgc" id="rkPgc"></div><button type="button" class="btn primary" onclick="window.print()"${su.length?'':' disabled'}>印刷する</button></div>`}
   </div>`;
 }
 window.rkPanelHTML=rkPanelHTML;
@@ -6545,7 +6554,7 @@ function rkLayoutHTML(panel,empty,body,id,cls){ return `<div class="rklay"><asid
 window.rkLayoutHTML=rkLayoutHTML;
 window.rkApplyPrint=rkApplyPrint;
 // 詰め方・文字の縮小は印刷のときだけ使うので、画面を作り直すたびには測らない（印刷の直前 beforeprint で測る）
-window.rkPanelFix=()=>{ document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; }); const rk=document.body.dataset.subj==='rk'?'#q':'#gq'; if(document.body.dataset.rkkind==='sum') prEditApply(document.querySelector(rk+' .rkmain')); rkPgShow(); };
+window.rkPanelFix=()=>{ document.querySelectorAll('.rkpanel input[data-ind="1"]').forEach(x=>{ x.indeterminate=true; }); const rk=document.body.dataset.subj==='rk'?'#q':'#gq'; const mn=document.querySelector(rk+' .rkmain'); prBoldApply(mn); if(document.body.dataset.rkkind==='sum') prEditApply(mn); rkPgShow(); };
 function rkGCards(){ const d=D(); const cnt=u=>rkSheets(u.key,u.name).length; const U=d.units.filter(u=>rkSheets(u.key,u.name,true).length).map(u=>({key:u.key,name:u.name,n:cnt(u),ch:u.ch}));
   if(!d.chapters) return [{h:'',cards:U.map(u=>({...u,items:rkTopicItems(u.key,u.name)}))}];
   return [{h:'',cards:d.chapters.map(c=>{ const it=U.filter(u=>u.ch===c.key); return it.length?{key:'ch:'+c.key,name:c.name,n:new Set(it.flatMap(u=>rkSheets(u.key,u.name).map(x=>x.R))).size,items:it}:null; }).filter(Boolean)}]; }
